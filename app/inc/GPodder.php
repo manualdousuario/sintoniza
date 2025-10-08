@@ -112,7 +112,14 @@ class GPodder
         $this->db->simple($sql, ['userId' => $userId, 'token' => $token, 'expiresAt' => $expiresAt]);
     }
 
-	public function updateLanguage(string $language): ?string
+ public function resetPassword(int $userId, string $newPassword): void
+    {
+        // Hash the new password and update in database
+        $hashedPassword = password_hash($newPassword, null);
+        $this->db->simple('UPDATE users SET password = ? WHERE id = ?;', $hashedPassword, $userId);
+    }
+
+ public function updateLanguage(string $language): ?string
 	{
 		if (!$this->user) {
 			return __('messages.user_not_logged');

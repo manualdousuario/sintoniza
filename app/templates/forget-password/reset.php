@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $gpodder->getUserByPasswordResetToken($token);
     
         if ($user) {
-            $gpodder->changePassword($user->id, $newPassword);
+            $gpodder->resetPassword($user->id, $newPassword);
             $gpodder->updatePasswordResetToken($user->id, null, null);
     
             echo '<div class="alert alert-success" role="alert">
