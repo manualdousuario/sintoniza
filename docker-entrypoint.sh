@@ -44,10 +44,11 @@ check_env_var() {
 }
 
 REQUIRED_ENV_VARS=(
-    "DB_HOST"
-    "DB_USER"
-    "DB_PASS"
-    "DB_NAME"
+    "SINTONIZA_DB_HOST"
+    "SINTONIZA_DB_USER"
+    "SINTONIZA_DB_PASS"
+    "SINTONIZA_DB_NAME"
+    "SINTONIZA_DB_PORT"
     "BASE_URL"
     "TITLE"
     "SMTP_USER"
