@@ -414,7 +414,19 @@ class Feed
 
 		if (false !== strpos($str, ':')) {
 			$parts = explode(':', $str);
-			$duration = ($parts[2] ?? 0) * 3600 + ($parts[1] ?? 0) * 60 + $parts[0] ?? 0;
+			$count = count($parts);
+			
+			// Handle HH:MM:SS, MM:SS, or SS formats
+			if ($count === 3) {
+				// HH:MM:SS
+				$duration = (int)$parts[0] * 3600 + (int)$parts[1] * 60 + (int)$parts[2];
+			} elseif ($count === 2) {
+				// MM:SS
+				$duration = (int)$parts[0] * 60 + (int)$parts[1];
+			} else {
+				// Single value
+				$duration = (int)$parts[0];
+			}
 		}
 		else {
 			$duration = (int) $str;
