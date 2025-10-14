@@ -55,10 +55,11 @@ services:
     ports:
       - "80:80"
     environment:
-      DB_HOST: ${DB_HOST:-db}
-      DB_USER: ${DB_USER}
-      DB_PASS: ${DB_PASS}
-      DB_NAME: ${DB_NAME}
+      SINTONIZA_DB_HOST: ${DB_HOST:-db}
+      SINTONIZA_DB_USER: ${DB_USER}
+      SINTONIZA_DB_PASS: ${DB_PASS}
+      SINTONIZA_DB_NAME: ${DB_NAME}
+      SINTONIZA_DB_PORT: ${DB_PORT:-3306}
       BASE_URL: ${BASE_URL:-https://sintoniza.xyz/}
       TITLE: ${TITLE:-Sintoniza}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-p@ssw0rd}
@@ -95,10 +96,11 @@ Note: All environment variables are required.
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| DB_HOST | Database host address | db |
-| DB_USER | Database username | user |
-| DB_PASS | Database password | password |
-| DB_NAME | Database name | database_name |
+| SINTONIZA_DB_HOST | Database host address | db |
+| SINTONIZA_DB_USER | Database username | user |
+| SINTONIZA_DB_PASS | Database password | password |
+| SINTONIZA_DB_NAME | Database name | database_name |
+| SINTONIZA_DB_PORT | Database port | database_port |
 | BASE_URL | Base URL for the application | https://sintoniza.xyz/ |
 | TITLE | Application title | Sintoniza |
 | ADMIN_PASSWORD | Administrator password | p@ssw0rd |

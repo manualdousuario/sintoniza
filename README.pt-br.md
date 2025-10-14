@@ -55,10 +55,11 @@ services:
     ports:
       - "80:80"
     environment:
-      DB_HOST: mariadb
-      DB_USER: user
-      DB_PASS: password
-      DB_NAME: database_name
+      SINTONIZA_DB_HOST: mariadb
+      SINTONIZA_DB_USER: user
+      SINTONIZA_DB_PASS: password
+      SINTONIZA_DB_NAME: database_name
+      SINTONIZA_DB_PORT: 3306
       BASE_URL: https://sintoniza.xyz/
       TITLE: Sintoniza
       ADMIN_PASSWORD: p@ssw0rd
