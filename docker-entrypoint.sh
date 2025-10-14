@@ -67,10 +67,11 @@ log_success "Todas as variáveis de ambiente obrigatórias estão definidas"
 log_info "Configurando arquivo de variáveis de ambiente..."
 
 # Variáveis obrigatórias
-echo "DB_HOST=${DB_HOST}" >> /app/.env
-echo "DB_USER=${DB_USER}" >> /app/.env
-echo "DB_PASS=${DB_PASS}" >> /app/.env
-echo "DB_NAME=${DB_NAME}" >> /app/.env
+echo "SINTONIZA_DB_HOST=${DB_HOST}" >> /app/.env
+echo "SINTONIZA_DB_USER=${DB_USER}" >> /app/.env
+echo "SINTONIZA_DB_PASS=${DB_PASS}" >> /app/.env
+echo "SINTONIZA_DB_NAME=${DB_NAME}" >> /app/.env
+echo "SINTONIZA_DB_PORT=${DB_PORT}" >> /app/.env
 echo "BASE_URL=${BASE_URL}" >> /app/.env
 echo "TITLE=${TITLE}" >> /app/.env
 

@@ -10,7 +10,7 @@ if (!isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) && !empty($_SERVE
 	@list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) = explode(':', base64_decode(substr($_SERVER['HTTP_AUTHORIZATION'], 6)));
 }
 
-$db = new DB(DB_HOST, DB_NAME, DB_USER, DB_PASS, DB_PORT);
+$db = new DB(SINTONIZA_DB_HOST, SINTONIZA_DB_NAME, SINTONIZA_DB_USER, SINTONIZA_DB_PASS, SINTONIZA_DB_PORT);
 $api = new API($db);
 
 try {
