@@ -5,11 +5,11 @@ $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
 // Define
-define("SINTONIZA_DB_HOST", isset($_ENV['SINTONIZA_DB_HOST']) ? $_ENV['DB_HOST'] : 'localhost');
-define("SINTONIZA_DB_USER", isset($_ENV['SINTONIZA_DB_USER']) ? $_ENV['DB_USER'] : 'root');
-define("SINTONIZA_DB_PASS", isset($_ENV['SINTONIZA_DB_PASS']) ? $_ENV['DB_PASS'] : '');
-define("SINTONIZA_DB_PORT", isset($_ENV['SINTONIZA_DB_PORT']) ? $_ENV['DB_PORT'] : 3306);
-define("SINTONIZA_DB_NAME", isset($_ENV['SINTONIZA_DB_NAME']) ? $_ENV['DB_NAME'] : 'sintoniza');
+define("SINTONIZA_DB_HOST", isset($_ENV['SINTONIZA_DB_HOST']) ? $_ENV['SINTONIZA_DB_HOST'] : 'localhost');
+define("SINTONIZA_DB_USER", isset($_ENV['SINTONIZA_DB_USER']) ? $_ENV['SINTONIZA_DB_USER'] : 'root');
+define("SINTONIZA_DB_PASS", isset($_ENV['SINTONIZA_DB_PASS']) ? $_ENV['SINTONIZA_DB_PASS'] : '');
+define("SINTONIZA_DB_PORT", isset($_ENV['SINTONIZA_DB_PORT']) ? $_ENV['SINTONIZA_DB_PORT'] : 3306);
+define("SINTONIZA_DB_NAME", isset($_ENV['SINTONIZA_DB_NAME']) ? $_ENV['SINTONIZA_DB_NAME'] : 'sintoniza');
 define("BASE_URL", isset($_ENV['BASE_URL']) ? $_ENV['BASE_URL'] : '');
 define("TITLE", isset($_ENV['TITLE']) ? $_ENV['TITLE'] : 'Sintoniza');
 define("ENABLE_SUBSCRIPTIONS", isset($_ENV['ENABLE_SUBSCRIPTIONS'])? filter_var($_ENV['ENABLE_SUBSCRIPTIONS'], FILTER_VALIDATE_BOOLEAN) : false);
