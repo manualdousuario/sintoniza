@@ -38,17 +38,10 @@ class DB extends PDO
         $this->validateString($dbname, 'Database name');
         $this->validateString($user, 'Username');
         $this->validateString($password, 'Password');
+        $this->validateString($port, 'Port');
         
-        // Validate port if provided
-        if ($port !== null && $port !== '') {
-            $this->validateNumeric($port, 'Port', 1, 65535);
-        }
-
         // Build DSN with optional port
-        $dsn = sprintf('mysql:host=%s;charset=utf8mb4', $this->sanitizeIdentifier($host));
-        if ($port !== null && $port !== '') {
-            $dsn .= sprintf(';port=%d', (int)$port);
-        }
+        $dsn = sprintf('mysql:host=%s;port=%s;charset=utf8mb4', [$this->sanitizeIdentifier($host), $this->sanitizeIdentifier($port)]);
         
         parent::__construct($dsn, $user, $password, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
