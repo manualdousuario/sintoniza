@@ -9,7 +9,7 @@ class Language {
     private function __construct() {
         try {
             require_once __DIR__ . '/DB.php';
-            $this->db = new Database(DB_HOST, DB_NAME, DB_USER, DB_PASS, DB_PORT);
+            $this->db = new Database(SINTONIZA_DB_HOST, SINTONIZA_DB_NAME, SINTONIZA_DB_USER, SINTONIZA_DB_PASS, SINTONIZA_DB_PORT);
         } catch (Exception $e) {
             error_log("Error connecting to database: " . $e->getMessage());
             $this->db = null;

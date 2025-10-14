@@ -5,10 +5,10 @@ services:
     ports:
       - "80:80"
     environment:
-      DB_HOST: db
-      DB_USER: database_user
-      DB_PASS: database_password
-      DB_NAME: database_name
+      SINTONIZA_DB_HOST: db
+      SINTONIZA_DB_USER: database_user
+      SINTONIZA_DB_PASS: database_password
+      SINTONIZA_DB_NAME: database_name
       BASE_URL: https://sintoniza.xyz/
       TITLE: Sintoniza
       ADMIN_PASSWORD: p@ssw0rd

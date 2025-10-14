@@ -55,10 +55,10 @@ services:
     ports:
       - "80:80"
     environment:
-      DB_HOST: ${DB_HOST:-db}
-      DB_USER: ${DB_USER}
-      DB_PASS: ${DB_PASS}
-      DB_NAME: ${DB_NAME}
+      SINTONIZA_DB_HOST: ${SINTONIZA_DB_HOST:-db}
+      SINTONIZA_DB_USER: ${SINTONIZA_DB_USER}
+      SINTONIZA_DB_PASS: ${SINTONIZA_DB_PASS}
+      SINTONIZA_DB_NAME: ${SINTONIZA_DB_NAME}
       BASE_URL: ${BASE_URL:-https://sintoniza.xyz/}
       TITLE: ${TITLE:-Sintoniza}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-p@ssw0rd}
@@ -80,9 +80,9 @@ services:
     container_name: db
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASS}
+      MYSQL_DATABASE: ${SINTONIZA_DB_NAME}
+      MYSQL_USER: ${SINTONIZA_DB_USER}
+      MYSQL_PASSWORD: ${SINTONIZA_DB_PASS}
     ports:
       - 3306:3306
     volumes:
@@ -95,10 +95,10 @@ Note: All environment variables are required.
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| DB_HOST | Database host address | db |
-| DB_USER | Database username | user |
-| DB_PASS | Database password | password |
-| DB_NAME | Database name | database_name |
+| SINTONIZA_DB_HOST | Database host address | db |
+| SINTONIZA_DB_USER | Database username | user |
+| SINTONIZA_DB_PASS | Database password | password |
+| SINTONIZA_DB_NAME | Database name | database_name |
 | BASE_URL | Base URL for the application | https://sintoniza.xyz/ |
 | TITLE | Application title | Sintoniza |
 | ADMIN_PASSWORD | Administrator password | p@ssw0rd |
