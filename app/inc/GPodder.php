@@ -291,21 +291,28 @@ class GPodder
 
 	public function updateFeedForSubscription(int $subscription): ?Feed
 	{
-		$url = $this->db->firstColumn('SELECT url FROM subscriptions WHERE id = ?;', $subscription);
+		try {
+			$url = $this->db->firstColumn('SELECT url FROM subscriptions WHERE id = ?;', $subscription);
 
-		if (!$url) {
+			if (!$url) {
+				return null;
+			}
+
+			$feed = new Feed($url);
+
+			if (!$feed->fetch()) {
+				error_log(sprintf("Failed to fetch feed for subscription %d (URL: %s)", $subscription, $url));
+				return null;
+			}
+
+			$feed->sync($this->db);
+
+			return $feed;
+		} catch (\Exception $e) {
+			error_log(sprintf("Error updating feed for subscription %d: %s in %s:%d",
+				$subscription, $e->getMessage(), $e->getFile(), $e->getLine()));
 			return null;
 		}
-
-		$feed = new Feed($url);
-
-		if (!$feed->fetch()) {
-			return null;
-		}
-
-		$feed->sync($this->db);
-
-		return $feed;
 	}
 
 	public function getFeedForSubscription(int $subscription): ?Feed
@@ -352,8 +359,24 @@ class GPodder
                 flush();
             }
 
-            $this->updateFeedForSubscription($row->subscription);
-            $i++;
+            try {
+                $this->updateFeedForSubscription($row->subscription);
+                $i++;
+            } catch (\Exception $e) {
+                // Log the error and continue with the next feed
+                $errorMsg = sprintf("ERRO ao atualizar feed %s (subscription %d): %s",
+                    $row->url, $row->subscription, $e->getMessage());
+                error_log($errorMsg);
+                
+                if ($cli) {
+                    printf("  ❌ ERRO: %s\n", $e->getMessage());
+                } else {
+                    printf("<p style='color:red'>❌ ERRO: %s</p>", htmlspecialchars($e->getMessage()));
+                    flush();
+                }
+                // Continue to the next feed
+                continue;
+            }
         }
 
         if (!$i) {

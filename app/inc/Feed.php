@@ -365,11 +365,22 @@ class Feed
 					$imageUrl = trim((string)$item->{'media:thumbnail'}['url']);
 				}
 
+				// Safely parse pubDate with error handling
+				$parsedPubDate = null;
+				if ($pubDate) {
+					try {
+						$parsedPubDate = new \DateTime($pubDate);
+					} catch (\Exception $e) {
+						// Log invalid date but continue processing
+						error_log(sprintf("Invalid episode pubDate '%s' for feed %s: %s", $pubDate, $this->feed_url, $e->getMessage()));
+					}
+				}
+
 				$this->episodes[] = (object) [
 					'image_url'   => $imageUrl,
 					'url'         => $link,
 					'media_url'   => $audioUrl,
-					'pubdate'     => $pubDate ? new \DateTime($pubDate) : null,
+					'pubdate'     => $parsedPubDate,
 					'title'       => $title,
 					'description' => $description,
 					'duration'    => $duration,
@@ -378,7 +389,19 @@ class Feed
 		}
 
 		$this->language = $language ? substr((string)$language, 0, 2) : null;
-		$this->pubdate = $pubdate ? new \DateTime((string)$pubdate) : null;
+		
+		// Safely parse feed pubDate with error handling
+		if ($pubdate) {
+			try {
+				$this->pubdate = new \DateTime((string)$pubdate);
+			} catch (\Exception $e) {
+				// Log invalid date but continue processing
+				error_log(sprintf("Invalid feed pubDate '%s' for feed %s: %s", $pubdate, $this->feed_url, $e->getMessage()));
+				$this->pubdate = null;
+			}
+		} else {
+			$this->pubdate = null;
+		}
 
 		return true;
 	}
