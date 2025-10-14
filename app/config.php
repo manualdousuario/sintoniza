@@ -8,7 +8,7 @@ $dotenv->load();
 define("DB_HOST", isset($_ENV['DB_HOST']) ? $_ENV['DB_HOST'] : 'localhost');
 define("DB_USER", isset($_ENV['DB_USER']) ? $_ENV['DB_USER'] : 'root');
 define("DB_PASS", isset($_ENV['DB_PASS']) ? $_ENV['DB_PASS'] : '');
-define("DB_PORT", isset($_ENV['DB_PORT']) ? $_ENV['DB_PORT'] : ' 3306');
+define("DB_PORT", isset($_ENV['DB_PORT']) ? $_ENV['DB_PORT'] : 3306);
 define("DB_NAME", isset($_ENV['DB_NAME']) ? $_ENV['DB_NAME'] : 'sintoniza');
 define("BASE_URL", isset($_ENV['BASE_URL']) ? $_ENV['BASE_URL'] : '');
 define("TITLE", isset($_ENV['TITLE']) ? $_ENV['TITLE'] : 'Sintoniza');
