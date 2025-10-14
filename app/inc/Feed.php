@@ -76,11 +76,11 @@ class Feed
         }
     }
 
-	public function sync(DB $db): void
-    {
-        $db->exec('START TRANSACTION');
-        
-        try {
+	public function sync(Database $db): void
+	   {
+	       $db->beginTransaction();
+	       
+	       try {
             // Insert/update feed and get ID in one operation
             $db->upsert('feeds', $this->export(), ['feed_url']);
             $feed_id = $db->firstColumn('SELECT id FROM feeds WHERE feed_url = ?', $this->feed_url);
@@ -163,10 +163,10 @@ class Feed
                 $db->exec('DROP TEMPORARY TABLE IF EXISTS tmp_episodes');
             }
 
-            $db->exec('COMMIT');
+            $db->commit();
         }
         catch (Exception $e) {
-            $db->exec('ROLLBACK');
+            $db->rollBack();
             $db->exec('DROP TEMPORARY TABLE IF EXISTS tmp_episodes');
             throw $e;
         }

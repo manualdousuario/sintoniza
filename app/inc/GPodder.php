@@ -2,10 +2,10 @@
 
 class GPodder
 {
-	protected DB $db;
+	protected Database $db;
 	public ?\stdClass $user = null;
 
-	public function __construct(DB $db)
+	public function __construct(Database $db)
 	{
 		$this->db = $db;
 

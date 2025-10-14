@@ -10,7 +10,7 @@ class API
 	public ?string $base_path;
 	protected ?string $path;
 	protected ?string $format = null;
-	protected DB $db;
+	protected Database $db;
 
 	// Define allowed actions for episodes
 	protected const ALLOWED_EPISODE_ACTIONS = ['download', 'play', 'delete', 'new'];
@@ -38,7 +38,7 @@ class API
 		'timestamp' => '/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:?\d{2})?$/'
 	];
 
-	public function __construct(DB $db)
+	public function __construct(Database $db)
 	{
 		session_name('sessionid');
 		$this->db = $db;
@@ -599,19 +599,19 @@ class API
 
             try {
                 $this->db->beginTransaction();
-                $st = $this->db->prepare('INSERT IGNORE INTO subscriptions (user, url, changed) 
-					VALUES (:user, :url, :changed)');
+                $changed = time();
 
                 foreach ($lines as $url) {
                     if (!$this->validateURL($url)) {
                         continue;
                     }
 
-                    $st->execute([
-                        ':url' => $url,
-                        ':user' => $this->user->id,
-                        ':changed' => time()
-                    ]);
+                    $this->db->simple('INSERT IGNORE INTO subscriptions (user, url, changed)
+      VALUES (?, ?, ?)',
+                        $this->user->id,
+                        $url,
+                        $changed
+                    );
                 }
 
                 $this->db->commit();
@@ -735,82 +735,79 @@ class API
 		}
 	
 		try {
-			$this->db->beginTransaction();
-	
-			$timestamp = time();
-			$st = $this->db->prepare(
-				'INSERT INTO episodes_actions 
-				(user, subscription, url, episode, changed, action, data, device) 
-				VALUES 
-				(:user, :subscription, :url, :episode, :changed, :action, :data, :device)'
-			);
-	
-			foreach ($input as $action) {
-				try {
-					$this->validateEpisodeAction($action);
-				} catch (InvalidArgumentException $e) {
-					continue;
-				}
-	
-				// Get subscription ID or create new subscription
-				$subscription_id = $this->db->firstColumn(
-					'SELECT id FROM subscriptions WHERE url = ? AND user = ?;', 
-					$action->podcast, 
-					$this->user->id
-				);
-	
-				if (!$subscription_id) {
-					$this->db->simple(
-						'INSERT INTO subscriptions (user, url, changed) VALUES (?, ?, ?);', 
-						$this->user->id, 
-						$action->podcast, 
-						$timestamp
-					);
-					$subscription_id = $this->db->lastInsertId();
-				}
-	
-				// Get feed ID from subscription
-				$feed_id = $this->db->firstColumn('SELECT feed FROM subscriptions WHERE id = ?', 
-					$subscription_id);
-	
-				// Try to get episode ID from episodes table
-				$episode_id = null;
-				if ($feed_id) {
-					$episode_id = $this->db->firstColumn(
-						'SELECT id FROM episodes WHERE media_url = ? AND feed = ?',
-						$action->episode,
-						$feed_id
-					);
-				}
-	
-				// Get device ID if device is provided
-				$device_id = null;
-				if (!empty($action->device)) {
-					$device_id = $this->getDeviceID($action->device, $this->user->id);
-				}
-	
-				$actionData = clone $action;
-				unset($actionData->action, $actionData->episode, $actionData->podcast, $actionData->device);
-	
-				$st->execute([
-					':user' => $this->user->id,
-					':subscription' => $subscription_id,
-					':url' => $action->episode,
-					':episode' => $episode_id,
-					':changed' => !empty($action->timestamp) ? strtotime($action->timestamp) : $timestamp,
-					':action' => strtolower($action->action),
-					':device' => $device_id,
-					':data' => json_encode($actionData, JSON_THROW_ON_ERROR)
-				]);
-			}
-	
-			$this->db->commit();
-	
-			return ['timestamp' => $timestamp, 'update_urls' => []];
+		    $this->db->beginTransaction();
+
+		    $timestamp = time();
+
+		    foreach ($input as $action) {
+		        try {
+		            $this->validateEpisodeAction($action);
+		        } catch (InvalidArgumentException $e) {
+		            continue;
+		        }
+
+		        // Get subscription ID or create new subscription
+		        $subscription_id = $this->db->firstColumn(
+		            'SELECT id FROM subscriptions WHERE url = ? AND user = ?;',
+		            $action->podcast,
+		            $this->user->id
+		        );
+
+		        if (!$subscription_id) {
+		            $this->db->simple(
+		                'INSERT INTO subscriptions (user, url, changed) VALUES (?, ?, ?);',
+		                $this->user->id,
+		                $action->podcast,
+		                $timestamp
+		            );
+		            $subscription_id = $this->db->lastInsertId();
+		        }
+
+		        // Get feed ID from subscription
+		        $feed_id = $this->db->firstColumn('SELECT feed FROM subscriptions WHERE id = ?',
+		            $subscription_id);
+
+		        // Try to get episode ID from episodes table
+		        $episode_id = null;
+		        if ($feed_id) {
+		            $episode_id = $this->db->firstColumn(
+		                'SELECT id FROM episodes WHERE media_url = ? AND feed = ?',
+		                $action->episode,
+		                $feed_id
+		            );
+		        }
+
+		        // Get device ID if device is provided
+		        $device_id = null;
+		        if (!empty($action->device)) {
+		            $device_id = $this->getDeviceID($action->device, $this->user->id);
+		        }
+
+		        $actionData = clone $action;
+		        unset($actionData->action, $actionData->episode, $actionData->podcast, $actionData->device);
+
+		        $this->db->simple(
+		            'INSERT INTO episodes_actions
+		            (user, subscription, url, episode, changed, action, data, device)
+		            VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+		            $this->user->id,
+		            $subscription_id,
+		            $action->episode,
+		            $episode_id,
+		            !empty($action->timestamp) ? strtotime($action->timestamp) : $timestamp,
+		            strtolower($action->action),
+		            json_encode($actionData, JSON_THROW_ON_ERROR),
+		            $device_id
+		        );
+		    }
+
+		    $this->db->commit();
+
+		    return ['timestamp' => $timestamp, 'update_urls' => []];
 		}
 		catch (Exception $e) {
-			$this->db->rollBack();
-			throw $e;
+		    $this->db->rollBack();
+		    throw $e;
 		}
 	}
 

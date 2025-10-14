@@ -1,8 +1,10 @@
 <?php
 
-class DB extends PDO
+class Database
 {
+    protected static ?Database $instance = null;
     protected array $statements = [];
+    protected MeekroDB $mdb;
     
     // Define allowed types for validation
     protected const VALID_TYPES = [
@@ -40,32 +42,39 @@ class DB extends PDO
         $this->validateString($password, 'Password');
         $this->validateString($port, 'Port');
         
-        // Build DSN with optional port
-        $dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $host, $port, $this->sanitizeIdentifier($dbname));
-        
-        parent::__construct($dsn, $user, $password, [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ,
-            PDO::ATTR_EMULATE_PREPARES => false,
-            PDO::MYSQL_ATTR_FOUND_ROWS => true
-        ]);
-
-        $this->exec('SET time_zone = "+00:00"');
+        // Create MeekroDB instance with connection parameters
+        $this->mdb = new MeekroDB($host, $user, $password, $dbname, (int)$port, 'utf8mb4');
         
         try {
-            $this->exec(sprintf('USE `%s`', $this->sanitizeIdentifier($dbname)));
-        }
-        catch (PDOException $e) {
-            if ($e->getCode() == 1049) {
+            // Test connection and set timezone
+            $this->mdb->query('SET time_zone = "+00:00"');
+            
+            // Try to use the database
+            try {
+                $this->mdb->query('USE `' . $this->sanitizeIdentifier($dbname) . '`');
+            }
+            catch (Exception $e) {
+                // Database doesn't exist, create it
                 $this->createDatabase($dbname);
-            } else {
-                throw $e;
+            }
+
+            if (!$this->checkTablesExist()) {
+                $this->installSchema();
             }
         }
-
-        if (!$this->checkTablesExist()) {
-            $this->installSchema();
+        catch (Exception $e) {
+            throw new RuntimeException('Database connection failed: ' . $e->getMessage());
         }
+        
+        self::$instance = $this;
+    }
+
+    /**
+     * Get singleton instance
+     */
+    public static function getInstance(): ?Database
+    {
+        return self::$instance;
     }
 
     /**
@@ -149,16 +158,16 @@ class DB extends PDO
     protected function createDatabase(string $dbname): void
     {
         $dbname = $this->sanitizeIdentifier($dbname);
-        $this->exec(sprintf('CREATE DATABASE IF NOT EXISTS `%s` 
-            DEFAULT CHARACTER SET utf8mb4 
-            DEFAULT COLLATE utf8mb4_general_ci', $dbname));
-        $this->exec(sprintf('USE `%s`', $dbname));
+        $this->mdb->query('CREATE DATABASE IF NOT EXISTS `%l`
+            DEFAULT CHARACTER SET utf8mb4
+            DEFAULT COLLATE utf8mb4_general_ci', $dbname);
+        $this->mdb->query('USE `%l`', $dbname);
     }
 
     protected function checkTablesExist(): bool
     {
         $requiredTables = ['users', 'devices', 'episodes', 'episodes_actions', 'feeds', 'subscriptions'];
-        $existingTables = $this->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);
+        $existingTables = $this->mdb->queryFirstColumn('SHOW TABLES');
         return count(array_intersect($requiredTables, $existingTables)) === count($requiredTables);
     }
 
@@ -179,7 +188,7 @@ class DB extends PDO
             )
         );
 
-        $this->exec('SET FOREIGN_KEY_CHECKS = 0');
+        $this->mdb->query('SET FOREIGN_KEY_CHECKS = 0');
 
         foreach ($commands as $command) {
             if (empty($command)) continue;
@@ -189,27 +198,27 @@ class DB extends PDO
             }
 
             try {
-                $this->exec($command);
+                $this->mdb->query($command);
             }
-            catch (PDOException $e) {
-                $this->exec('SET FOREIGN_KEY_CHECKS = 1');
+            catch (Exception $e) {
+                $this->mdb->query('SET FOREIGN_KEY_CHECKS = 1');
                 throw new RuntimeException(
-                    sprintf("Error: %s\n - %s", 
-                        $e->getMessage(), 
+                    sprintf("Error: %s\n - %s",
+                        $e->getMessage(),
                         $command
                     )
                 );
             }
         }
 
-        $this->exec('SET FOREIGN_KEY_CHECKS = 1');
+        $this->mdb->query('SET FOREIGN_KEY_CHECKS = 1');
     }
 
     /**
      * Enhanced upsert with parameter validation
      * @throws InvalidArgumentException
      */
-    public function upsert(string $table, array $params, array $conflict_columns): ?PDOStatement
+    public function upsert(string $table, array $params, array $conflict_columns): void
     {
         // Validate table name
         $this->validateString($table, 'Table name', 'identifier');
@@ -229,74 +238,162 @@ class DB extends PDO
             $this->validateString($column, 'Conflict column', 'identifier');
         }
 
-        $columns = array_keys($params);
-        $placeholders = array_map(fn($col) => ":$col", $columns);
-        $updates = array_map(fn($col) => "$col = VALUES($col)", $columns);
-
-        // Sanitize column names
-        $columns = array_map([$this, 'sanitizeIdentifier'], $columns);
-
-        $sql = sprintf(
-            'INSERT INTO %s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s',
-            $table,
-            implode(', ', $columns),
-            implode(', ', $placeholders),
-            implode(', ', $updates)
-        );
-
-        return $this->simple($sql, $params);
+        // Use MeekroDB's insertUpdate method
+        $this->mdb->insertUpdate($table, $params);
     }
 
     /**
-     * Enhanced prepare with parameter validation
-     * @throws InvalidArgumentException
+     * Execute a raw SQL query (backwards compatibility with PDO)
      */
-    public function prepare2(string $sql, ...$params): PDOStatement
+    public function query(string $sql): object
     {
-        // Validate SQL query with higher length limit
         $this->validateString($sql, 'SQL query', 'sql_query');
-
-        $hash = md5($sql);
-
-        if (!array_key_exists($hash, $this->statements)) {
-            $st = $this->statements[$hash] = $this->prepare($sql);
-        }
-        else {
-            $st = $this->statements[$hash];
-        }
-
-        if (isset($params[0]) && is_array($params[0])) {
-            $params = $params[0];
-        }
-
-        foreach ($params as $key => $value) {
-            // Determine parameter type for proper binding
-            $type = PDO::PARAM_STR;
-            if (is_int($value)) $type = PDO::PARAM_INT;
-            elseif (is_bool($value)) $type = PDO::PARAM_BOOL;
-            elseif (is_null($value)) $type = PDO::PARAM_NULL;
-
-            if (is_int($key)) {
-                $st->bindValue($key + 1, $value, $type);
+        $result = $this->mdb->query($sql);
+        
+        // Return a wrapper object that mimics PDOStatement for compatibility
+        return new class($result) {
+            private $result;
+            
+            public function __construct($result) {
+                $this->result = $result;
             }
-            else {
-                $st->bindValue(':' . $key, $value, $type);
+            
+            public function fetchAll(?int $mode = null): array {
+                return is_array($this->result) ? $this->result : [];
             }
-        }
+            
+            public function fetch(?int $mode = null) {
+                if (is_array($this->result) && count($this->result) > 0) {
+                    return (object)array_shift($this->result);
+                }
+                return false;
+            }
+            
+            public function fetchColumn(int $column = 0) {
+                if (is_array($this->result) && count($this->result) > 0) {
+                    $row = array_shift($this->result);
+                    return is_array($row) ? reset($row) : $row;
+                }
+                return false;
+            }
+        };
+    }
 
-        return $st;
+    /**
+     * Execute a command (backwards compatibility)
+     */
+    public function exec(string $sql): int
+    {
+        $this->validateString($sql, 'SQL query', 'sql_query');
+        $this->mdb->query($sql);
+        return $this->mdb->affectedRows();
+    }
+
+    /**
+     * Prepare statement (for backwards compatibility, but we'll execute immediately)
+     */
+    public function prepare(string $sql): object
+    {
+        $this->validateString($sql, 'SQL query', 'sql_query');
+        $mdb = $this->mdb;
+        
+        return new class($sql, $mdb) {
+            private $sql;
+            private $params = [];
+            private $mdb;
+            
+            public function __construct(string $sql, $mdb) {
+                $this->sql = $sql;
+                $this->mdb = $mdb;
+            }
+            
+            public function bindValue($param, $value, $type = null): void {
+                $this->params[$param] = $value;
+            }
+            
+            public function execute(?array $params = null): bool {
+                $executeParams = $params ?? $this->params;
+                
+                // Convert named parameters to positional if needed
+                $sql = $this->sql;
+                foreach ($executeParams as $key => $value) {
+                    if (is_string($key)) {
+                        $sql = str_replace($key, '%s', $sql);
+                    }
+                }
+                
+                $this->mdb->query($sql, ...array_values($executeParams));
+                return true;
+            }
+            
+            public function fetch() {
+                return false;
+            }
+        };
+    }
+
+    /**
+     * Begin transaction
+     */
+    public function beginTransaction(): bool
+    {
+        $this->mdb->startTransaction();
+        return true;
+    }
+
+    /**
+     * Commit transaction
+     */
+    public function commit(): bool
+    {
+        $this->mdb->commit();
+        return true;
+    }
+
+    /**
+     * Rollback transaction
+     */
+    public function rollBack(): bool
+    {
+        $this->mdb->rollback();
+        return true;
+    }
+
+    /**
+     * Get last insert ID
+     */
+    public function lastInsertId(): string
+    {
+        return (string)$this->mdb->insertId();
     }
 
     /**
      * Enhanced simple query with validation
      * @throws InvalidArgumentException
      */
-    public function simple(string $sql, ...$params): ?PDOStatement
+    public function simple(string $sql, ...$params): void
     {
         $this->validateString($sql, 'SQL query', 'sql_query');
-        $st = $this->prepare2($sql, ...$params);
-        $st->execute();
-        return $st;
+        
+        // Convert ? placeholders to %s for MeekroDB
+        $sql = str_replace('?', '%s', $sql);
+        
+        // Handle both positional and named parameters
+        if (count($params) === 1 && is_array($params[0])) {
+            $paramArray = $params[0];
+            // Check if it's an associative array (named parameters)
+            if (array_keys($paramArray) !== range(0, count($paramArray) - 1)) {
+                // Named parameters - convert SQL and parameters
+                foreach ($paramArray as $key => $value) {
+                    $sql = str_replace(':' . $key, '%s', $sql);
+                }
+                $params = array_values($paramArray);
+            } else {
+                $params = $paramArray;
+            }
+        }
+        
+        $this->mdb->query($sql, ...$params);
     }
 
     /**
@@ -306,9 +403,27 @@ class DB extends PDO
     public function firstRow(string $sql, ...$params): ?stdClass
     {
         $this->validateString($sql, 'SQL query', 'sql_query');
-        $st = $this->simple($sql, ...$params);
-        $row = $st->fetch();
-        return $row ?: null;
+        
+        // Convert ? placeholders to %s for MeekroDB
+        $sql = str_replace('?', '%s', $sql);
+        
+        // Handle both positional and named parameters
+        if (count($params) === 1 && is_array($params[0])) {
+            $paramArray = $params[0];
+            // Check if it's an associative array (named parameters)
+            if (array_keys($paramArray) !== range(0, count($paramArray) - 1)) {
+                // Named parameters - convert SQL and parameters
+                foreach ($paramArray as $key => $value) {
+                    $sql = str_replace(':' . $key, '%s', $sql);
+                }
+                $params = array_values($paramArray);
+            } else {
+                $params = $paramArray;
+            }
+        }
+        
+        $row = $this->mdb->queryFirstRow($sql, ...$params);
+        return $row ? (object)$row : null;
     }
 
     /**
@@ -318,8 +433,10 @@ class DB extends PDO
     public function firstColumn(string $sql, ...$params)
     {
         $this->validateString($sql, 'SQL query', 'sql_query');
-        $st = $this->simple($sql, ...$params);
-        return $st->fetchColumn() ?: null;
+        // Convert ? placeholders to %s for MeekroDB
+        $sql = str_replace('?', '%s', $sql);
+        $result = $this->mdb->queryFirstField($sql, ...$params);
+        return $result !== null ? $result : null;
     }
 
     /**
@@ -329,8 +446,9 @@ class DB extends PDO
     public function rowsFirstColumn(string $sql, ...$params): array
     {
         $this->validateString($sql, 'SQL query', 'sql_query');
-        $st = $this->simple($sql, ...$params);
-        return $st->fetchAll(PDO::FETCH_COLUMN);
+        // Convert ? placeholders to %s for MeekroDB
+        $sql = str_replace('?', '%s', $sql);
+        return $this->mdb->queryFirstColumn($sql, ...$params);
     }
 
     /**
@@ -340,10 +458,12 @@ class DB extends PDO
     public function iterate(string $sql, ...$params): Generator
     {
         $this->validateString($sql, 'SQL query', 'sql_query');
-        $st = $this->simple($sql, ...$params);
+        // Convert ? placeholders to %s for MeekroDB
+        $sql = str_replace('?', '%s', $sql);
+        $results = $this->mdb->query($sql, ...$params);
         
-        while ($row = $st->fetch()) {
-            yield $row;
+        foreach ($results as $row) {
+            yield (object)$row;
         }
     }
 

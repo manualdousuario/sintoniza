@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../config.php';
 
-$db = new DB(DB_HOST, DB_NAME, DB_USER, DB_PASS, DB_PORT);
+$db = new Database(DB_HOST, DB_NAME, DB_USER, DB_PASS, DB_PORT);
 $gpodder = new GPodder($db);
 
 if (PHP_SAPI === 'cli') {
