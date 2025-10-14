@@ -31,15 +31,24 @@ class DB extends PDO
         'default' => 255         // Default max length for other strings
     ];
 
-    public function __construct(string $host, string $dbname, string $user, string $password)
+    public function __construct(string $host, string $dbname, string $user, string $password, ?string $port = null)
     {
         // Validate connection parameters
         $this->validateString($host, 'Host');
         $this->validateString($dbname, 'Database name');
         $this->validateString($user, 'Username');
         $this->validateString($password, 'Password');
+        
+        // Validate port if provided
+        if ($port !== null && $port !== '') {
+            $this->validateNumeric($port, 'Port', 1, 65535);
+        }
 
+        // Build DSN with optional port
         $dsn = sprintf('mysql:host=%s;charset=utf8mb4', $this->sanitizeIdentifier($host));
+        if ($port !== null && $port !== '') {
+            $dsn .= sprintf(';port=%d', (int)$port);
+        }
         
         parent::__construct($dsn, $user, $password, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
