@@ -71,6 +71,7 @@ echo "SINTONIZA_DB_HOST=${SINTONIZA_DB_HOST}" >> /app/.env
 echo "SINTONIZA_DB_USER=${SINTONIZA_DB_USER}" >> /app/.env
 echo "SINTONIZA_DB_PASS=${SINTONIZA_DB_PASS}" >> /app/.env
 echo "SINTONIZA_DB_NAME=${SINTONIZA_DB_NAME}" >> /app/.env
+echo "SINTONIZA_DB_PORT=${SINTONIZA_DB_PORT}" >> /app/.env
 echo "BASE_URL=${BASE_URL}" >> /app/.env
 echo "TITLE=${TITLE}" >> /app/.env
 
