@@ -37,15 +37,13 @@ function html_head($page_name = null, $logged = false)
 						<i class="bi bi-book-half text-white fs-5 me-2"></i>
 						<a href="/" class="fs-4 fw-bold text-white text-decoration-none"><?php echo TITLE; ?></a>
 					</div>
-					<nav class="d-block d-md-flex pb-1 pb-md-0">
-						<?php
-						if (isAdmin()) { ?>
-							<li><a href="/admin" class="nav-link px-2 text-white d-flex align-items-center justify-content-center gap-2"><i class="bi bi-shield-lock"></i> <?php echo __('general.administration'); ?></a></li>
-						<?php }
-						?>
-					</nav>
 				</div>
 				<div class="d-flex align-items-center">
+					<?php
+					if (isAdmin()) { ?>
+						<a href="/admin" class="btn btn-sm btn-outline-secondary me-2"><i class="bi bi-shield-lock"></i> <?php echo __('general.administration'); ?></a>
+					<?php }
+					?>
 					<?php
 					if ($logged == false) { ?>
 						<a href="/login" class="btn btn-sm btn-outline-secondary me-2"><i class="bi bi-box-arrow-in-right"></i> <?php echo __('general.login'); ?></a>

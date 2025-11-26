@@ -110,7 +110,7 @@ if ($api->url === 'logout') {
 	exit;
 }
 elseif ($gpodder->user && $api->url === 'admin' && isAdmin()) {
-	html_head('Administração', $gpodder->isLogged());
+	html_head('Administration', $gpodder->isLogged());
 
 	// Handle delete user action
 	if (isset($_POST['delete_user'])) {
