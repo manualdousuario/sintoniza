@@ -217,7 +217,10 @@ class GPodder
 			return 'O nome de usuário já existe';
 		}
 
-		$this->db->simple('INSERT INTO users (name, password, email, language, timezone) VALUES (?, ?, ?, ?, ?);', trim($name), password_hash($password, null), trim($email), 'en', 'UTC');
+		$isFirstUser = !$this->db->firstColumn('SELECT COUNT(*) FROM users;');
+		$admin = $isFirstUser ? 1 : 0;
+
+		$this->db->simple('INSERT INTO users (name, password, email, language, timezone, admin) VALUES (?, ?, ?, ?, ?, ?);', trim($name), password_hash($password, null), trim($email), 'en', 'UTC', $admin);
 		return null;
 	}
 
