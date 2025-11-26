@@ -12,7 +12,6 @@ services:
       SINTONIZA_DB_PORT: 3306
       BASE_URL: https://sintoniza.xyz/
       TITLE: Sintoniza
-      ADMIN_PASSWORD: p@ssw0rd
       DEBUG: true
       ENABLE_SUBSCRIPTIONS: true
       DISABLE_USER_METADATA_UPDATE: false

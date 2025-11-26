@@ -62,7 +62,6 @@ services:
       SINTONIZA_DB_PORT: ${DB_PORT:-3306}
       BASE_URL: ${BASE_URL:-https://sintoniza.xyz/}
       TITLE: ${TITLE:-Sintoniza}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-p@ssw0rd}
       DEBUG: ${DEBUG:-false}
       ENABLE_SUBSCRIPTIONS: ${ENABLE_SUBSCRIPTIONS:-false}
       DISABLE_USER_METADATA_UPDATE: ${DISABLE_USER_METADATA_UPDATE:-false}
@@ -103,7 +102,6 @@ Note: All environment variables are required.
 | SINTONIZA_DB_PORT | Database port | database_port |
 | BASE_URL | Base URL for the application | https://sintoniza.xyz/ |
 | TITLE | Application title | Sintoniza |
-| ADMIN_PASSWORD | Administrator password | p@ssw0rd |
 | DEBUG | Enable debug mode | true |
 | ENABLE_SUBSCRIPTIONS | Allow subscriptions | true |
 | DISABLE_USER_METADATA_UPDATE | Prevent users from updating their metadata | false |
