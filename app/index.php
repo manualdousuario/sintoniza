@@ -12,8 +12,10 @@ if (!isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) && !empty($_SERVE
 
 // Errors log
 error_reporting(E_ALL);
-
-$backtrace = null;
+ini_set('display_errors', '0');
+ini_set('display_startup_errors', '0');
+ini_set('log_errors', '1');
+ini_set('error_log', __DIR__ . '/logs/error.log');
 
 set_error_handler(static function ($severity, $message, $file, $line) {
 	if (!(error_reporting() & $severity)) {
@@ -21,32 +23,22 @@ set_error_handler(static function ($severity, $message, $file, $line) {
 		return;
 	}
 
-	global $backtrace;
-	$backtrace = debug_backtrace();
-
 	throw new \ErrorException($message, 0, $severity, $file, $line);
 });
 
-ini_set('error_log', __DIR__ . '/logs/error.log');
-
 set_exception_handler(function ($e) {
 	@http_response_code(500);
-	error_log((string)$e);
+
+	error_log((string) $e);
+	error_log('Stack trace: ' . $e->getTraceAsString());
+
 	echo '<pre class="alert alert-danger">
 	<h1 class="p-0 m-0 fs-5">Internal error</h1>';
-	
-	error_log((string) $e);
 
 	if (defined('DEBUG') && DEBUG) {
-		echo $e;
-
-		global $backtrace;
-		$backtrace ??= debug_backtrace();
-
-		error_log(print_r($backtrace, true));
-
-		echo '<hr/>';
-		print_r($backtrace);
+		echo htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
+		echo "\n" . htmlspecialchars(basename($e->getFile()), ENT_QUOTES, 'UTF-8')
+			. ':' . $e->getLine();
 	}
 	else { ?>
 		<?php echo __('An error happened and has been logged to logs/error.log'); ?></br>
