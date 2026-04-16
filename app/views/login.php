@@ -1,4 +1,4 @@
-<div class="container">
+<div class="container my-4">
 
     <?php
     if ($error) { ?>
@@ -11,7 +11,7 @@
     ?>
     <div class="row justify-content-center">
         <div class="col-md-6 col-lg-4">
-            <div class="card shadow">
+            <div class="card">
                 <div class="card-body p-4">
                     <form method="post" action="">
                         <h2 class="card-title text-center mb-4"><?php echo __('general.login'); ?></h2>
@@ -26,7 +26,7 @@
                         <div class="d-grid">
                             <button type="submit"
                                 class="btn btn-primary d-flex align-items-center justify-content-center gap-2">
-                                <i class="bi bi-box-arrow-in-right"></i> <?php echo __('general.login'); ?>
+                                <?php echo __('general.login'); ?>
                             </button>
                         </div>
                         <div class="mt-3 text-center">

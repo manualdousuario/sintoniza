@@ -1,4 +1,4 @@
-<div class="container">
+<div class="container my-4">
 
     <?php if (isset($error)): ?>
         <div class="alert alert-danger" role="alert"><?php echo htmlspecialchars($error); ?></div>
@@ -6,7 +6,7 @@
 
     <div class="row justify-content-center">
         <div class="col-md-6 col-lg-4">
-            <div class="card shadow">
+            <div class="card">
                 <div class="card-body p-4">
                     <form method="post" action="">
                         <h2 class="card-title text-center mb-4"><?php echo __('general.register') ?></h2>
@@ -34,7 +34,7 @@
                         <div class="d-grid">
                             <button type="submit"
                                 class="btn btn-primary d-flex align-items-center justify-content-center gap-2">
-                                <i class="bi bi-person-plus"></i> <?php echo __('general.register'); ?>
+                                <?php echo __('general.register'); ?>
                             </button>
                         </div>
                     </form>
