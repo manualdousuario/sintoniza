@@ -1,17 +1,21 @@
 "use strict";
 
 // Load plugins
-const gulp = require("gulp");
-const plumber = require("gulp-plumber");
-const sass = require('gulp-sass')(require('sass'));
-const concat = require("gulp-concat");
-const terser = require('gulp-terser');
-const sourcemaps = require("gulp-sourcemaps");
-const clean_css = require('gulp-clean-css');
+const gulp        = require("gulp");
+const plumber     = require("gulp-plumber");
+const sass        = require('gulp-sass')(require('sass'));
+const concat      = require("gulp-concat");
+const terser      = require('gulp-terser');
+const sourcemaps  = require("gulp-sourcemaps");
+const clean_css   = require('gulp-clean-css');
 
 // CSS task
 function css_styles() {
-	return gulp.src("./source/scss/styles.scss")
+	return gulp.src([
+		"./node_modules/bootstrap/dist/css/bootstrap.min.css",
+		"./node_modules/bootstrap-icons/font/bootstrap-icons.css",
+		"./source/scss/styles.scss",
+	])
 		.pipe(sourcemaps.init())
 		.pipe(sass({
 			outputStyle: "expanded",
@@ -24,9 +28,18 @@ function css_styles() {
 		.pipe(gulp.dest("./public/assets/css/"))
 }
 
+// Fonts task
+function copy_fonts() {
+	return gulp.src("./node_modules/bootstrap-icons/font/fonts/*")
+		.pipe(gulp.dest("./public/assets/css/fonts/"))
+}
+
+// JS task
 function js_scripts() {
 	return gulp
 		.src([
+			"./node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
+			"./node_modules/howler/dist/howler.min.js",
 			"./source/js/scripts.js",
 		])
 		.pipe(sourcemaps.init())
@@ -40,36 +53,27 @@ function js_scripts() {
 // Watch files
 function watchFiles() {
 	gulp.watch(
-		[
-			"./source/scss/*.scss"
-		],
+		["./source/scss/*.scss"],
 		{ usePolling: true },
 		gulp.parallel(css_styles)
 	);
-	
+
 	gulp.watch(
-		[
-			"./source/js/*.js",
-		],
+		["./source/js/*.js"],
 		{ usePolling: true },
 		gulp.parallel(js_scripts)
 	);
 }
 
-// Define complex tasks
-const css = gulp.series(
-	css_styles
-);
-const js = gulp.series(
-	js_scripts
-);
-
-const build = gulp.series(gulp.parallel(css, js));
+const css   = gulp.series(css_styles);
+const fonts = gulp.series(copy_fonts);
+const js    = gulp.series(js_scripts);
+const build = gulp.series(gulp.parallel(css, fonts, js));
 const watch = gulp.parallel(watchFiles);
 
-// Export Tasks
-exports.css = css;
-exports.js = js;
+exports.css   = css;
+exports.fonts = fonts;
+exports.js    = js;
 exports.build = build;
 exports.watch = watch;
 exports.default = build;

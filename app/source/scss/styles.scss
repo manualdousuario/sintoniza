@@ -539,19 +539,6 @@ footer.border-top {
 	}
 }
 
-.hero-badge {
-	display: inline-flex;
-	align-items: center;
-	gap: 0.4rem;
-	background: rgba(255, 255, 255, 0.08);
-	border: 1px solid rgba(255, 255, 255, 0.15);
-	border-radius: 50px;
-	padding: 0.35rem 1rem;
-	font-size: 0.82rem;
-	color: #a5b4fc;
-	margin-bottom: 1.5rem;
-}
-
 .hero-title {
 	font-size: clamp(2.2rem, 5vw, 3.5rem);
 	font-weight: 800;

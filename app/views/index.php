@@ -2,10 +2,6 @@
     <div class="container">
         <div class="row align-items-center g-4">
             <div class="col-lg-6">
-                <div class="hero-badge">
-                    <i class="bi bi-broadcast"></i>
-                    <?php echo TITLE; ?>
-                </div>
                 <h1 class="hero-title">
                     Todos os seus podcasts,<br>
                     <span>sincronizados em qualquer lugar</span>
