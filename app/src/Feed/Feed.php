@@ -49,6 +49,8 @@ class Feed
 
             if ($key === 'pubdate' && $value) {
                 $this->$key = new DateTime($value);
+            } elseif ($key === 'last_fetch') {
+                $this->$key = (int) $value;
             } else {
                 $this->$key = $value;
             }
