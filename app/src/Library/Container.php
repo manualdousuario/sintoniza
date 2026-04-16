@@ -19,6 +19,7 @@ use Sintoniza\Repository\EpisodeRepository;
 use Sintoniza\Repository\FeedRepository;
 use Sintoniza\Repository\SubscriptionRepository;
 use Sintoniza\Repository\UserRepository;
+use Sintoniza\Feed\PodcastIndexClient;
 use Sintoniza\Service\FeedService;
 use Sintoniza\Service\MailService;
 use Sintoniza\Service\UserService;
@@ -67,11 +68,19 @@ class Container
                 ->addArgument(DB::class)
                 ->addArgument(UserRepository::class);
 
-            $container->add(FeedService::class)
-                ->addArgument(DB::class)
-                ->addArgument(FeedRepository::class)
-                ->addArgument(MonologLogger::class)
-                ->addArgument(Client::class);
+            $container->add(FeedService::class, function () use ($container) {
+                $piClient = PODCAST_INDEX_API_KEY && PODCAST_INDEX_API_SECRET
+                    ? new PodcastIndexClient($container->get(Client::class), PODCAST_INDEX_API_KEY, PODCAST_INDEX_API_SECRET)
+                    : null;
+
+                return new FeedService(
+                    $container->get(DB::class),
+                    $container->get(FeedRepository::class),
+                    $container->get(MonologLogger::class),
+                    $container->get(Client::class),
+                    $piClient
+                );
+            })->setShared(true);
 
             $container->add(MailService::class);
 

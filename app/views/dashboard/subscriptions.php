@@ -1,10 +1,7 @@
 <h2 class="fs-3 mb-3"><?php echo __('general.subscriptions');?></h2>
 
 <?php
-if (isset($updateOutput)) {
-    echo '<p><a href="/dashboard/subscriptions" class="btn btn-danger" aria-label="' . __('general.back') . '">' . __('general.back') . '</a></p>';
-    echo $updateOutput;
-} elseif (isset($_GET['id'])) {
+if (isset($_GET['id'])) {
     ?>
         <p>
             <a href="/dashboard/subscriptions"class="btn btn-danger" aria-label="<?php echo __('general.back');?>"><?php echo __('general.back');?></a>
@@ -41,7 +38,7 @@ if (isset($updateOutput)) {
                 strtok('');
                 $title = $row->title ?? $url;
                 $image_url = !empty($row->image_url) ? '<div class="thumbnail"><img class="rounded border" src="'.$row->image_url.'" width="80" height="80" /></div>' : '' ;
-            
+
                 if($row->action == 'play') {
                     $action = '<div class="badge text-bg-success rounded-pill"><i class="bi bi-play"></i> '.__('actions.played').'</div>';
                 } else if($row->action == 'download') {
@@ -73,14 +70,12 @@ if (isset($updateOutput)) {
             }
         ?>
     </ul>
-<?php } else { 
+<?php } else {
     ?>
-    <form method="post" action="">
-        <div class="flex-wrap d-flex gap-2 pb-4">
-            <a href="/dashboard" class="btn btn-danger" aria-label="<?php echo __('general.back'); ?>"><?php echo __('general.back'); ?></a>
-            <a href="/subscriptions/<?php echo htmlspecialchars($gpodder->user->name); ?>.opml" target="_blank" class="btn btn-secondary">Feed OPML</a>
-        </div>
-    </form>
+    <div class="flex-wrap d-flex gap-2 pb-4">
+        <a href="/dashboard" class="btn btn-danger" aria-label="<?php echo __('general.back'); ?>"><?php echo __('general.back'); ?></a>
+        <a href="/subscriptions/<?php echo htmlspecialchars($gpodder->user->name); ?>.opml" target="_blank" class="btn btn-secondary">Feed OPML</a>
+    </div>
     <?php
 
     echo '<ul class="list-group">';

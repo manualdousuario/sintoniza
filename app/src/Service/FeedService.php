@@ -8,6 +8,7 @@ use GuzzleHttp\Client;
 use Monolog\Logger;
 use Sintoniza\Database\DB;
 use Sintoniza\Feed\Feed;
+use Sintoniza\Feed\PodcastIndexClient;
 use Sintoniza\Repository\FeedRepository;
 
 class FeedService
@@ -16,15 +17,29 @@ class FeedService
         private DB $db,
         private FeedRepository $feedRepository,
         private Logger $logger,
-        private Client $client
+        private Client $client,
+        private ?PodcastIndexClient $podcastIndexClient = null
     ) {}
 
     public function fetchAndSync(string $url): ?Feed
     {
         try {
-            $feed = new Feed($url);
+            $feed    = new Feed($url);
+            $fetched = false;
 
-            if (!$feed->fetch($this->client)) {
+            if ($this->podcastIndexClient && PODCAST_INDEX_USE_AS_PRIMARY) {
+                $fetched = $feed->fetchFromPodcastIndex($this->podcastIndexClient);
+
+                if (!$fetched) {
+                    $this->logger->warning('PodcastIndex fetch failed', ['url' => $url]);
+                }
+            }
+
+            if (!$fetched && (!$this->podcastIndexClient || !PODCAST_INDEX_USE_AS_PRIMARY || PODCAST_INDEX_FALLBACK_TO_RSS)) {
+                $fetched = $feed->fetch($this->client);
+            }
+
+            if (!$fetched) {
                 $this->logger->warning('Failed to fetch feed', ['url' => $url]);
                 return null;
             }

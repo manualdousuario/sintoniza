@@ -92,9 +92,7 @@ class DashboardController
 
     public function subscriptions(ServerRequestInterface $request, array $args = []): ResponseInterface
     {
-        $gpodder      = $request->getAttribute('gpodder');
-        $updateOutput = null;
-        $body         = $request->getParsedBody() ?? [];
+        $gpodder = $request->getAttribute('gpodder');
 
         ob_start();
         html_head('Inscrições', $gpodder->isLogged());

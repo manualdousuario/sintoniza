@@ -225,6 +225,67 @@ class Feed
         return true;
     }
 
+    public function fetchFromPodcastIndex(PodcastIndexClient $client): bool
+    {
+        $podcast = $client->getPodcastByFeedUrl($this->feed_url);
+
+        if (!$podcast) {
+            return false;
+        }
+
+        $this->title       = !empty($podcast['title']) ? (string) $podcast['title'] : null;
+        $this->url         = !empty($podcast['link']) ? (string) $podcast['link'] : null;
+        $this->description = !empty($podcast['description']) ? (string) $podcast['description'] : null;
+        $this->image_url   = !empty($podcast['artwork']) ? (string) $podcast['artwork']
+                           : (!empty($podcast['image']) ? (string) $podcast['image'] : null);
+        $this->language    = !empty($podcast['language']) ? substr((string) $podcast['language'], 0, 2) : null;
+        $this->last_fetch  = time();
+
+        if (!$this->title) {
+            return false;
+        }
+
+        if (!empty($podcast['lastUpdateTime'])) {
+            try {
+                $this->pubdate = new DateTime('@' . (int) $podcast['lastUpdateTime']);
+            } catch (Exception $e) {
+                $this->pubdate = null;
+            }
+        }
+
+        $episodes = $client->getEpisodesByFeedId((int) $podcast['id']);
+
+        foreach ($episodes as $item) {
+            $audioUrl = !empty($item['enclosureUrl']) ? (string) $item['enclosureUrl'] : null;
+
+            if (!$audioUrl) {
+                continue;
+            }
+
+            $pubdate = null;
+            if (!empty($item['datePublished'])) {
+                try {
+                    $pubdate = new DateTime('@' . (int) $item['datePublished']);
+                } catch (Exception $e) {}
+            }
+
+            $imageUrl = !empty($item['image']) ? (string) $item['image']
+                      : (!empty($item['feedImage']) ? (string) $item['feedImage'] : null);
+
+            $this->episodes[] = (object) [
+                'image_url'   => $imageUrl,
+                'url'         => !empty($item['link']) ? (string) $item['link'] : null,
+                'media_url'   => $audioUrl,
+                'pubdate'     => $pubdate,
+                'title'       => !empty($item['title']) ? (string) $item['title'] : null,
+                'description' => !empty($item['description']) ? (string) $item['description'] : null,
+                'duration'    => $this->validateDuration(!empty($item['duration']) ? (int) $item['duration'] : null),
+            ];
+        }
+
+        return true;
+    }
+
     public function sync(DB $db): void
     {
         $db->beginTransaction();

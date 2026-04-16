@@ -44,7 +44,7 @@ $container = \Sintoniza\Library\Container::getInstance();
 $client  = $container->get(\GuzzleHttp\Client::class);
 $session = $container->get(\Josantonius\Session\Session::class);
 $api     = new GpodderApi($db, $logger, $client, $session);
-$gpodder = new GPodder($db, $logger, $client, $session);
+$gpodder = new GPodder($db, $session);
 
 // Handle GPodder API requests (exits for API calls, returns for web requests)
 try {
