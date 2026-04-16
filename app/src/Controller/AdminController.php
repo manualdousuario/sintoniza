@@ -52,6 +52,7 @@ class AdminController
             printf('<div class="alert alert-%s" role="alert">%s</div>', $messageType, htmlspecialchars($message));
         }
 
+        $db = $this->db;
         require_once __DIR__ . '/../../views/admin.php';
         html_foot();
         return new HtmlResponse(ob_get_clean());
