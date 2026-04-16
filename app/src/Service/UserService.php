@@ -26,6 +26,10 @@ class UserService
             throw new AuthException(__('messages.invalid_username_password'));
         }
 
+        if (!($user->active ?? 1)) {
+            throw new AuthException('Conta desabilitada.');
+        }
+
         return $user;
     }
 

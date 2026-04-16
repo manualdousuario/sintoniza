@@ -50,8 +50,13 @@ function buildRouter(): Router
 
     // Admin routes
     $router->group('/admin', function ($group) {
-        $group->map('GET',  '/', [AdminController::class, 'index']);
-        $group->map('POST', '/', [AdminController::class, 'index']);
+        $group->map('GET',  '/',                    [AdminController::class, 'index']);
+        $group->map('POST', '/',                    [AdminController::class, 'index']);
+        $group->map('GET',  '/users',               [AdminController::class, 'users']);
+        $group->map('GET',  '/register-user',       [AdminController::class, 'registerUser']);
+        $group->map('POST', '/register-user',       [AdminController::class, 'registerUser']);
+        $group->map('GET',  '/user/{id:number}',    [AdminController::class, 'editUser']);
+        $group->map('POST', '/user/{id:number}',    [AdminController::class, 'editUser']);
     })->middleware(new AuthMiddleware())->middleware(new AdminMiddleware());
 
     // GPodder API routes

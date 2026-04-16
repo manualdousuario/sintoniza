@@ -42,11 +42,19 @@ function html_head($page_name = null, $logged = false)
 					</div>
 				</div>
 				<div class="d-flex align-items-center">
-					<?php
-					if (isAdmin()) { ?>
-						<a href="/admin" class="btn btn-sm btn-outline-secondary me-2"><i class="bi bi-shield-lock"></i> <?php echo __('general.administration'); ?></a>
-					<?php }
-					?>
+					<?php if (isAdmin()): ?>
+					<div class="dropdown me-2">
+						<button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+							<i class="bi bi-shield-lock"></i> Admin
+						</button>
+						<ul class="dropdown-menu dropdown-menu-end">
+							<li><a class="dropdown-item" href="/admin"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+							<li><hr class="dropdown-divider"></li>
+							<li><a class="dropdown-item" href="/admin/users"><i class="bi bi-people me-2"></i>Usuários</a></li>
+							<li><a class="dropdown-item" href="/admin/register-user"><i class="bi bi-person-plus me-2"></i>Registrar Usuário</a></li>
+						</ul>
+					</div>
+					<?php endif; ?>
 					<?php
 					if ($logged == false) { ?>
 						<a href="/login" class="btn btn-sm btn-outline-secondary me-2"><i class="bi bi-box-arrow-in-right"></i> <?php echo __('general.login'); ?></a>

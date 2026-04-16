@@ -64,6 +64,25 @@ class UserRepository
         return (int) $this->db->firstColumn('SELECT COUNT(*) FROM users');
     }
 
+    public function findPaginated(int $offset, int $limit): array
+    {
+        return $this->db->all(
+            'SELECT id, name, email, admin, active FROM users ORDER BY id DESC LIMIT ? OFFSET ?',
+            $limit,
+            $offset
+        );
+    }
+
+    public function updateInfo(int $id, string $email, bool $admin): void
+    {
+        $this->db->simple('UPDATE users SET email = ?, admin = ? WHERE id = ?', $email, (int) $admin, $id);
+    }
+
+    public function setActive(int $id, bool $active): void
+    {
+        $this->db->simple('UPDATE users SET active = ? WHERE id = ?', (int) $active, $id);
+    }
+
     public function updatePasswordResetToken(int $id, string $token, string $expiresAt): void
     {
         $this->db->simple(

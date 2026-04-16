@@ -64,7 +64,7 @@ if ($gpodder->isLogged()) {
 function isAdmin(): bool
 {
 	global $gpodder;
-	return $gpodder->user && $gpodder->user->admin === 1;
+	return $gpodder->user && (int) $gpodder->user->admin === 1;
 }
 
 function format_description(?string $str): string

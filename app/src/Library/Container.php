@@ -102,7 +102,8 @@ class Container
 
             $container->add(AdminController::class)
                 ->addArgument(DB::class)
-                ->addArgument(UserService::class);
+                ->addArgument(UserService::class)
+                ->addArgument(UserRepository::class);
 
             $container->add(GpodderApi::class)
                 ->addArgument(DB::class)
