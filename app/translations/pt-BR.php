@@ -58,7 +58,7 @@ return [
     ],
     'languages' => [
         'en' => 'Inglês',
-        'es' => 'Spanish',
+        'es' => 'Espanhol',
         'pt-BR' => 'Português (Brasil)'
     ],
     'admin' => [
@@ -73,7 +73,7 @@ return [
         'secret_user_note' => '(Use este nome de usuário no GPodder Desktop, pois ele não suporta senhas)',
         'latest_updates' => 'Últimas 10 atualizações',
         'registered_devices' => 'Dispositivos registrados',
-        'no_info' => 'Nenhuma informação disponível neste feedNenhuma informação disponível neste feed',
+        'no_info' => 'Nenhuma informação disponível neste feed',
         'last_update' => 'Última atualização',
         'update_all_metadata' => 'Atualizar todos os metadados dos feeds',
         'cron_notice' => 'A atualização de meta dados das inscrições está configurada para ser feita por rotinas diretamente no servidor, as atualização são feitas a cada uma hora.',
@@ -141,6 +141,11 @@ return [
     ],
     'footer' => [
         'managed_by' => 'Instância gerenciada e mantida por',
+        'with_love_by' => 'Com ❤️ por',
+        'version' => 'Versão'
+    ],
+    'home' => [
+        'intro' => 'Este é um servidor de sincronização de podcasts baseado no "protocolo" gPodder.',
         'fork_note' => 'Esse projeto é um fork do',
         'github_project' => 'Projeto publicado no Github',
         'tested_apps' => 'Aplicativos testados'

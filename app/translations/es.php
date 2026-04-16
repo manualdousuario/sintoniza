@@ -57,9 +57,9 @@ return [
         'api_token' => 'Token de API'
     ],
     'languages' => [
-        'en' => 'English',
-        'es' => 'Spanish',
-        'pt-BR' => 'Portuguese (Brazil)'
+        'en' => 'Inglés',
+        'es' => 'Español',
+        'pt-BR' => 'Portugués (Brasil)'
     ],
     'admin' => [
         'add_user' => 'Agregar usuario nuevo',
@@ -114,7 +114,7 @@ return [
         'invalid_gpodder_token' => 'El token de gpodder no es válido',
         'invalid_device_id' => 'ID de dispositivo no válido',
         'invalid_input_array' => 'Ingreso incorrecto: se requiere un arreglo de una línea por origen',
-        'not_implemented' => 'Not implemented yet',
+        'not_implemented' => 'Aún no implementado',
         'invalid_array' => 'No se encontró un arreglo válido',
         'missing_action_key' => 'Falta la clave de acción',
         'nextcloud_undefined_endpoint' => 'No está definido el endpoint de la API de Nextcloud',
