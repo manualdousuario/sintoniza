@@ -1,4 +1,4 @@
-<div class="container">
+<div class="container my-4">
 
     <p>
         <a href="/dashboard" class="btn btn-danger"><?php echo __('general.back'); ?></a>

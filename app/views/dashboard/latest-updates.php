@@ -1,4 +1,4 @@
-<div class="container">
+<div class="container my-4">
     
 <h2 class="fs-3 mb-3"><?php echo __('general.latest_updates'); ?></h2>
 

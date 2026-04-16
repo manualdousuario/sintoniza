@@ -1,4 +1,4 @@
-<div class="container">
+<div class="container my-4">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fs-3 m-0">Usuários</h2>

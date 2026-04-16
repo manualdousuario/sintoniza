@@ -93,8 +93,8 @@ try {
     $response = $router->dispatch($request);
 } catch (NotFoundException $e) {
     ob_start();
-    html_head('Página não encontrada');
-    echo '<div class="container py-5 text-center"><h1>404</h1><p>Página não encontrada.</p><a href="/" class="btn btn-primary">Início</a></div>';
+    html_head(__('messages.page_not_found'));
+    echo '<div class="container py-5 text-center"><h1>404</h1><p>' . __('messages.page_not_found') . '.</p><a href="/" class="btn btn-primary">' . __('general.home') . '</a></div>';
     html_foot();
     $response = new HtmlResponse(ob_get_clean(), 404);
 }

@@ -1,4 +1,4 @@
-<div class="container">
+<div class="container my-4">
     
     <?php if (isset($message)): ?>
         <div class="alert alert-<?= htmlspecialchars($messageType ?? 'success') ?>" role="alert">

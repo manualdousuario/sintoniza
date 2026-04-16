@@ -1,4 +1,4 @@
-<div class="container">
+<div class="container my-4">
 
     <div class="d-flex align-items-center mb-4 gap-2">
         <a href="/admin/users" class="btn btn-sm btn-outline-secondary">

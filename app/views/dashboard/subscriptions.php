@@ -1,5 +1,5 @@
 
-<div class="container">
+<div class="container my-4">
     
 <div class="d-flex gap-2 pb-4 align-items-center">
     <h2 class="fs-3"><?php echo __('general.subscriptions');?></h2>
