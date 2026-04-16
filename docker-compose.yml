@@ -5,11 +5,11 @@ services:
     ports:
       - "80:80"
     environment:
-      SINTONIZA_DB_HOST: db
-      SINTONIZA_DB_USER: database_user
-      SINTONIZA_DB_PASS: database_password
-      SINTONIZA_DB_NAME: database_name
-      SINTONIZA_DB_PORT: 3306
+      MYSQL_HOST: db
+      MYSQL_USER: database_user
+      MYSQL_PASSWORD: database_password
+      MYSQL_DATABASE: database_name
+      MYSQL_PORT: 3306
       BASE_URL: https://sintoniza.xyz/
       TITLE: Sintoniza
       DEBUG: true

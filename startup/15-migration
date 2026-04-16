@@ -1,0 +1,30 @@
+#!/bin/bash
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+log_success() {
+    echo -e "${GREEN}[✓] $1${NC}"
+}
+
+log_info() {
+    echo -e "${YELLOW}[i] $1${NC}"
+}
+
+log_error() {
+    echo -e "${RED}[✗] $1${NC}"
+}
+
+echo "Running migrations..."
+ENV_SOURCE=/app/.env php /app/vendor/bin/phinx migrate
+
+if [ $? -eq 0 ]; then
+    echo "Migrations completed successfully"
+else
+    echo "Migrations failed"
+    exit 1
+fi

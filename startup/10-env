@@ -1,0 +1,53 @@
+#!/bin/bash
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+log_success() {
+    echo -e "${GREEN}[✓] $1${NC}"
+}
+
+log_info() {
+    echo -e "${YELLOW}[i] $1${NC}"
+}
+
+log_error() {
+    echo -e "${RED}[✗] $1${NC}"
+}
+
+REQUIRED_VARS=("MYSQL_HOST" "MYSQL_DATABASE" "MYSQL_USER" "MYSQL_PASSWORD" "BASE_URL" "BASE_URL")
+MISSING_VARS=()
+
+for VAR in "${REQUIRED_VARS[@]}"; do
+    if [ -z "${!VAR}" ]; then
+        MISSING_VARS+=("$VAR")
+    fi
+done
+
+if [ ${#MISSING_VARS[@]} -ne 0 ]; then
+    log_error "The following required environment variables are not set:"
+    for VAR in "${MISSING_VARS[@]}"; do
+        echo -e "${RED}  - $VAR${NC}"
+    done
+    exit 1
+fi
+
+log_success "All required environment variables are set"
+
+# Create .env file with environment variables
+log_info "Setting up environment variables in /app/.env..."
+cat > /app/.env << EOL
+BASE_URL=${APP_URL}
+DB_CONNECTION=sqlite
+SQLITE_PATH=data/db/lastfm.sqlite
+LASTFM_API=${LASTFM_API}
+ENCRYPTION_KEY=${ENCRYPTION_KEY}
+ADMIN_USER=${ADMIN_USER}
+ADMIN_PASSWORD=${ADMIN_PASSWORD}
+EOL
+
+log_success "Environment variables set in /app/.env"

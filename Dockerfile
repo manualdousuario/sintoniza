@@ -1,30 +1,25 @@
-FROM php:8.0-fpm
+FROM shinsenter/php:8.4-fpm-nginx
 
-RUN apt-get update && apt-get install -y nginx cron nano procps unzip git \
-    && docker-php-ext-install pdo_mysql
+ENV ENABLE_CRONTAB=1
+ENV APP_PATH=/app
+ENV DOCUMENT_ROOT=public
+ENV TZ=UTC
+ENV ENABLE_TUNING_FPM=1
+ENV DISABLE_AUTORUN_SCRIPTS=0
 
-# Increase PHP memory limit to 512M
-RUN echo "memory_limit = 512M" > /usr/local/etc/php/conf.d/memory-limit.ini
- 
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+COPY app/ ${APP_PATH}/
+WORKDIR ${APP_PATH}
 
-COPY default.conf /etc/nginx/sites-available/default
+RUN composer config platform.php-64bit 8.4 && \
+    composer install --no-interaction --optimize-autoloader --no-dev
 
-RUN mkdir -p /app
-COPY app/ /app/
+COPY crontab /etc/crontab.d/lastfm
+RUN chmod 0644 /etc/crontab.d/lastfm
 
-WORKDIR /app
-RUN composer install --no-interaction --optimize-autoloader
+COPY /startup/* /startup/
+RUN chmod +x /startup/*
 
-# Copia e configura permissões do script de inicialização
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
-RUN touch /app/logs/cron.log
-RUN echo '* */12 * * * root php "/app/cli/sintoniza" >> /app/logs/cron.log 2>&1' >> /etc/crontab
-
-RUN chown -R www-data:www-data /app && chmod -R 755 /app
+RUN chown -R www-data:www-data ${APP_PATH} && \
+    chmod -R 755 ${APP_PATH}
 
 EXPOSE 80
-
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

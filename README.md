@@ -55,11 +55,11 @@ services:
     ports:
       - "80:80"
     environment:
-      SINTONIZA_DB_HOST: ${DB_HOST:-db}
-      SINTONIZA_DB_USER: ${DB_USER}
-      SINTONIZA_DB_PASS: ${DB_PASS}
-      SINTONIZA_DB_NAME: ${DB_NAME}
-      SINTONIZA_DB_PORT: ${DB_PORT:-3306}
+      MYSQL_HOST: ${DB_HOST:-db}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_PORT: ${DB_PORT:-3306}
       BASE_URL: ${BASE_URL:-https://sintoniza.xyz/}
       TITLE: ${TITLE:-Sintoniza}
       DEBUG: ${DEBUG:-false}
@@ -95,11 +95,11 @@ Note: All environment variables are required.
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| SINTONIZA_DB_HOST | Database host address | db |
-| SINTONIZA_DB_USER | Database username | user |
-| SINTONIZA_DB_PASS | Database password | password |
-| SINTONIZA_DB_NAME | Database name | database_name |
-| SINTONIZA_DB_PORT | Database port | database_port |
+| MYSQL_HOST | Database host address | db |
+| MYSQL_USER | Database username | user |
+| MYSQL_PASSWORD | Database password | password |
+| MYSQL_DATABASE | Database name | database_name |
+| MYSQL_PORT | Database port | database_port |
 | BASE_URL | Base URL for the application | https://sintoniza.xyz/ |
 | TITLE | Application title | Sintoniza |
 | DEBUG | Enable debug mode | true |
