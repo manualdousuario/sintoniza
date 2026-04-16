@@ -31,6 +31,8 @@ return [
         'send_reset_link' => 'Enviar enlace para restablecer',
         'reset_password' => 'Restablecer contraseña',
         'new_password' => 'Nueva contraseña',
+        'history' => 'Historial',
+        'episodes' => 'Episodios',
     ],
     'errors' => [
         'schema_file_not_found' => 'Archivo de esquema MySQL no encontrado',

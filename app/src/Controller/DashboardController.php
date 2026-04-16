@@ -21,9 +21,17 @@ class DashboardController
         private Session $session
     ) {}
 
+    private const SUBS_PER_PAGE = 20;
+
     public function index(ServerRequestInterface $request, array $args = []): ResponseInterface
     {
         $gpodder = $request->getAttribute('gpodder');
+
+        $page          = max(1, (int) ($request->getQueryParams()['page'] ?? 1));
+        $total         = $gpodder->countActiveSubscriptions();
+        $pages         = (int) ceil($total / self::SUBS_PER_PAGE);
+        $offset        = ($page - 1) * self::SUBS_PER_PAGE;
+        $subscriptions = $gpodder->listActiveSubscriptionsPage($offset, self::SUBS_PER_PAGE);
 
         ob_start();
         html_head('Painel', $gpodder->isLogged());

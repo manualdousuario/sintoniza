@@ -8,6 +8,7 @@ use Sintoniza\Controller\AdminController;
 use Sintoniza\Controller\AuthController;
 use Sintoniza\Controller\DashboardController;
 use Sintoniza\Controller\GpodderController;
+use Sintoniza\Controller\SubscriptionController;
 use Sintoniza\Library\Container;
 use Sintoniza\Library\Logger;
 use Sintoniza\Middleware\AdminMiddleware;
@@ -31,6 +32,12 @@ function buildRouter(): Router
     $router->map('POST', '/forget-password',        [AuthController::class, 'showForgotPassword']);
     $router->map('GET',  '/forget-password/reset',  [AuthController::class, 'showResetPassword']);
     $router->map('POST', '/forget-password/reset',  [AuthController::class, 'showResetPassword']);
+
+    // Subscription routes
+    $router->group('/subscription', function ($group) {
+        $group->map('GET', '/{id:number}',                       [SubscriptionController::class, 'show']);
+        $group->map('GET', '/{id:number}/episode/{episodeId:number}', [SubscriptionController::class, 'episode']);
+    })->middleware(new AuthMiddleware());
 
     // Protected routes
     $router->group('/dashboard', function ($group) {

@@ -14,6 +14,7 @@ use Sintoniza\Controller\AdminController;
 use Sintoniza\Controller\AuthController;
 use Sintoniza\Controller\DashboardController;
 use Sintoniza\Controller\GpodderController;
+use Sintoniza\Controller\SubscriptionController;
 use Sintoniza\Database\DB;
 use Sintoniza\Repository\EpisodeRepository;
 use Sintoniza\Repository\FeedRepository;
@@ -95,6 +96,9 @@ class Container
                 ->addArgument(DB::class)
                 ->addArgument(UserService::class)
                 ->addArgument(Session::class);
+
+            $container->add(SubscriptionController::class)
+                ->addArgument(DB::class);
 
             $container->add(AdminController::class)
                 ->addArgument(DB::class)

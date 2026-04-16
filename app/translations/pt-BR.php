@@ -31,6 +31,8 @@ return [
         'send_reset_link' => 'Enviar email de recuperação',
         'reset_password' => 'Recuperar senha',
         'new_password' => 'Nova senha',
+        'history' => 'Histórico',
+        'episodes' => 'Episódios',
     ],
     'errors' => [
         'schema_file_not_found' => 'Arquivo de esquema mysql.sql não encontrado',

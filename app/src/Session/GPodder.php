@@ -265,6 +265,36 @@ class GPodder
         );
     }
 
+    public function countActiveSubscriptions(): int
+    {
+        return (int) $this->db->firstColumn(
+            'SELECT COUNT(*) FROM subscriptions WHERE user = ? AND deleted = 0',
+            $this->user->id
+        );
+    }
+
+    public function listActiveSubscriptionsPage(int $offset, int $limit): array
+    {
+        return $this->db->all(
+            'SELECT s.*,
+                COUNT(a.id) AS count,
+                f.title,
+                f.image_url,
+                f.description,
+                GREATEST(COALESCE(MAX(a.changed), 0), s.changed) AS last_change
+            FROM subscriptions s
+                LEFT JOIN episodes_actions a ON a.subscription = s.id
+                LEFT JOIN feeds f ON f.id = s.feed
+            WHERE s.user = ? AND s.deleted = 0
+            GROUP BY s.id, s.user, s.url, s.feed, s.changed, s.deleted, f.title
+            ORDER BY last_change DESC
+            LIMIT ? OFFSET ?',
+            $this->user->id,
+            $limit,
+            $offset
+        );
+    }
+
     public function listActions(int $subscription): array
     {
         return $this->db->all(
@@ -299,6 +329,64 @@ class GPodder
         $feed->load($data);
 
         return $feed;
+    }
+
+    public function getSubscriptionWithFeed(int $subscriptionId): ?\stdClass
+    {
+        return $this->db->firstRow(
+            'SELECT s.id AS subscription_id, s.feed AS feed_id, f.title, f.image_url, f.description, f.url, f.feed_url
+             FROM subscriptions s
+             LEFT JOIN feeds f ON f.id = s.feed
+             WHERE s.id = ? AND s.user = ? AND s.deleted = 0',
+            $subscriptionId,
+            $this->user->id
+        );
+    }
+
+    public function listEpisodesByFeed(int $feedId, int $offset, int $limit): array
+    {
+        return $this->db->all(
+            'SELECT e.*,
+                (SELECT a.action FROM episodes_actions a WHERE a.episode = e.id AND a.user = ? ORDER BY a.changed DESC LIMIT 1) AS last_action,
+                (SELECT a.changed FROM episodes_actions a WHERE a.episode = e.id AND a.user = ? ORDER BY a.changed DESC LIMIT 1) AS last_action_time
+             FROM episodes e
+             WHERE e.feed = ?
+             ORDER BY e.pubdate DESC
+             LIMIT ? OFFSET ?',
+            $this->user->id,
+            $this->user->id,
+            $feedId,
+            $limit,
+            $offset
+        );
+    }
+
+    public function countEpisodesByFeed(int $feedId): int
+    {
+        return (int) $this->db->firstColumn(
+            'SELECT COUNT(*) FROM episodes WHERE feed = ?',
+            $feedId
+        );
+    }
+
+    public function listEpisodeActions(int $subscriptionId, int $episodeId): array
+    {
+        return $this->db->all(
+            'SELECT a.*,
+                d.name AS device_name,
+                e.title,
+                e.image_url,
+                e.duration,
+                e.url AS episode_url
+             FROM episodes_actions a
+                LEFT JOIN devices d ON d.id = a.device AND a.user = d.user
+                LEFT JOIN episodes e ON e.id = a.episode
+             WHERE a.user = ? AND a.subscription = ? AND a.episode = ?
+             ORDER BY a.changed DESC',
+            $this->user->id,
+            $subscriptionId,
+            $episodeId
+        );
     }
 
 

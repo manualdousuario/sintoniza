@@ -31,6 +31,8 @@ return [
         'send_reset_link' => 'Send reset link',
         'reset_password' => 'Reset password',
         'new_password' => 'New password',
+        'history' => 'History',
+        'episodes' => 'Episodes',
     ],
     'errors' => [
         'schema_file_not_found' => 'MySQL schema file not found',
