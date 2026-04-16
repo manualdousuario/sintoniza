@@ -17,7 +17,6 @@ define('BASE_URL', $_ENV['BASE_URL'] ?? '');
 define('TITLE', $_ENV['TITLE'] ?? 'Sintoniza');
 define('ENABLE_SUBSCRIPTIONS', isset($_ENV['ENABLE_SUBSCRIPTIONS']) ? filter_var($_ENV['ENABLE_SUBSCRIPTIONS'], FILTER_VALIDATE_BOOLEAN) : false);
 define('DEBUG', isset($_ENV['DEBUG']) ? filter_var($_ENV['DEBUG'], FILTER_VALIDATE_BOOLEAN) : false);
-define('DISABLE_USER_METADATA_UPDATE', isset($_ENV['DISABLE_USER_METADATA_UPDATE']) ? filter_var($_ENV['DISABLE_USER_METADATA_UPDATE'], FILTER_VALIDATE_BOOLEAN) : false);
 
 // PHPMailer SMTP
 define('SMTP_USER', $_ENV['SMTP_USER'] ?? '');

@@ -96,12 +96,6 @@ class DashboardController
         $updateOutput = null;
         $body         = $request->getParsedBody() ?? [];
 
-        if (isset($body['update']) && !DISABLE_USER_METADATA_UPDATE) {
-            ob_start();
-            $gpodder->updateAllFeeds();
-            $updateOutput = ob_get_clean();
-        }
-
         ob_start();
         html_head('Inscrições', $gpodder->isLogged());
         require_once __DIR__ . '/../../views/dashboard/subscriptions.php';

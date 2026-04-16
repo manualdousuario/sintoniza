@@ -79,16 +79,8 @@ if (isset($updateOutput)) {
         <div class="flex-wrap d-flex gap-2 pb-4">
             <a href="/dashboard" class="btn btn-danger" aria-label="<?php echo __('general.back'); ?>"><?php echo __('general.back'); ?></a>
             <a href="/subscriptions/<?php echo htmlspecialchars($gpodder->user->name); ?>.opml" target="_blank" class="btn btn-secondary">Feed OPML</a>
-            <?php if(DISABLE_USER_METADATA_UPDATE == false) { ?>
-                <button type="submit" class="btn btn-info" name="update" value=1><?php echo __('dashboard.update_all_metadata'); ?></button>
-            <?php } ?>
         </div>
     </form>
-    <?php if(DISABLE_USER_METADATA_UPDATE) { ?>
-        <div class="alert alert-warning">
-            <?php echo __('dashboard.cron_notice'); ?>
-        </div>
-    <?php } ?>
     <?php
 
     echo '<ul class="list-group">';

@@ -14,7 +14,6 @@ services:
       TITLE: Sintoniza
       DEBUG: true
       ENABLE_SUBSCRIPTIONS: true
-      DISABLE_USER_METADATA_UPDATE: false
       SMTP_USER: email@email.com
       SMTP_PASS: password
       SMTP_HOST: smtp.email.com

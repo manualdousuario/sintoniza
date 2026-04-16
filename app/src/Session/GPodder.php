@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 namespace Sintoniza\Session;
 
-use Exception;
-use GuzzleHttp\Client;
 use Josantonius\Session\Session;
-use Monolog\Logger as MonologLogger;
 use Sintoniza\Database\DB;
 use Sintoniza\Feed\Feed;
 use Sintoniza\Library\Language;
@@ -16,16 +13,12 @@ use stdClass;
 class GPodder
 {
     protected DB $db;
-    protected MonologLogger $logger;
-    protected Client $client;
     protected Session $session;
     public ?stdClass $user = null;
 
-    public function __construct(DB $db, MonologLogger $logger, Client $client, Session $session)
+    public function __construct(DB $db, Session $session)
     {
         $this->db      = $db;
-        $this->logger  = $logger;
-        $this->client  = $client;
         $this->session = $session;
 
         if (!empty($_POST['login']) || isset($_COOKIE[$this->session->getName()])) {
@@ -291,36 +284,6 @@ class GPodder
         );
     }
 
-    public function updateFeedForSubscription(int $subscription): ?Feed
-    {
-        try {
-            $url = $this->db->firstColumn('SELECT url FROM subscriptions WHERE id = ?', $subscription);
-
-            if (!$url) {
-                return null;
-            }
-
-            $feed = new Feed($url);
-
-            if (!$feed->fetch($this->client)) {
-                $this->logger->warning('Failed to fetch feed', ['subscription' => $subscription, 'url' => $url]);
-                return null;
-            }
-
-            $feed->sync($this->db);
-
-            return $feed;
-        } catch (Exception $e) {
-            $this->logger->error('Error updating feed', [
-                'subscription' => $subscription,
-                'message'      => $e->getMessage(),
-                'file'         => $e->getFile(),
-                'line'         => $e->getLine(),
-            ]);
-            return null;
-        }
-    }
-
     public function getFeedForSubscription(int $subscription): ?Feed
     {
         $data = $this->db->firstRow(
@@ -338,51 +301,5 @@ class GPodder
         return $feed;
     }
 
-    public function updateAllFeeds(bool $cli = false): void
-    {
-        $sql = 'SELECT s.id AS subscription, s.url,
-            GREATEST(COALESCE(MAX(a.changed), 0), s.changed) AS changed
-            FROM subscriptions s
-                LEFT JOIN episodes_actions a ON a.subscription = s.id
-                LEFT JOIN feeds f ON f.id = s.feed
-            WHERE f.last_fetch IS NULL
-                OR f.last_fetch < s.changed
-                OR f.last_fetch < COALESCE(a.changed, 0)
-            GROUP BY s.id, s.url, s.changed';
 
-        @ini_set('max_execution_time', '3600');
-        @ob_end_flush();
-        @ob_implicit_flush(true);
-        $i = 0;
-
-        foreach ($this->db->iterate($sql) as $row) {
-            @set_time_limit(30);
-
-            if ($cli) {
-                printf("Atualizando %s\n", $row->url);
-            } else {
-                printf("<h4>Atualizando %s</h4>", htmlspecialchars($row->url));
-                echo str_pad(' ', 4096);
-                flush();
-            }
-
-            try {
-                $this->updateFeedForSubscription($row->subscription);
-                $i++;
-            } catch (Exception $e) {
-                $this->logger->error('ERRO ao atualizar feed', ['url' => $row->url, 'message' => $e->getMessage()]);
-
-                if ($cli) {
-                    printf("  ERRO: %s\n", $e->getMessage());
-                } else {
-                    printf("<p style='color:red'>ERRO: %s</p>", htmlspecialchars($e->getMessage()));
-                    flush();
-                }
-            }
-        }
-
-        if (!$i) {
-            echo "Nada para atualizar\n";
-        }
-    }
 }
