@@ -1,3 +1,5 @@
+<div class="container">
+    
 <h2 class="fs-3 mb-3"><?php echo __('general.latest_updates'); ?></h2>
 
 <?php
@@ -55,3 +57,5 @@ if (!empty($actions)) { ?>
     ?>
     </ul>
 <?php } ?>
+
+</div>

@@ -1,4 +1,6 @@
 
+<div class="container">
+    
 <div class="d-flex gap-2 pb-4 align-items-center">
     <h2 class="fs-3"><?php echo __('general.subscriptions');?></h2>
     <a href="/subscriptions/<?php echo htmlspecialchars($gpodder->user->name); ?>.opml" target="_blank" class="btn btn-outline btn-secondary"><i class="bi bi-rss-fill"></i></a>
@@ -49,3 +51,5 @@
         </nav>
     <?php endif; ?>
 <?php endif; ?>
+
+</div>

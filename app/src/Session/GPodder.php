@@ -334,7 +334,7 @@ class GPodder
     public function getSubscriptionWithFeed(int $subscriptionId): ?\stdClass
     {
         return $this->db->firstRow(
-            'SELECT s.id AS subscription_id, s.feed AS feed_id, f.title, f.image_url, f.description, f.url, f.feed_url
+            'SELECT s.id AS subscription_id, s.feed AS feed_id, s.url AS subscription_url, f.title, f.image_url, f.description, f.url, f.feed_url
              FROM subscriptions s
              LEFT JOIN feeds f ON f.id = s.feed
              WHERE s.id = ? AND s.user = ? AND s.deleted = 0',
@@ -371,7 +371,7 @@ class GPodder
 
     public function listEpisodeActions(int $subscriptionId, int $episodeId): array
     {
-        return $this->db->all(
+        $rows = $this->db->all(
             'SELECT a.*,
                 d.name AS device_name,
                 e.title,
@@ -387,6 +387,23 @@ class GPodder
             $subscriptionId,
             $episodeId
         );
+
+        foreach ($rows as $row) {
+            if (!empty($row->data)) {
+                try {
+                    $decoded = json_decode($row->data, true, 512, JSON_THROW_ON_ERROR);
+                    foreach ($decoded as $key => $value) {
+                        if (!isset($row->$key)) {
+                            $row->$key = $value;
+                        }
+                    }
+                } catch (\JsonException) {
+                    // ignore malformed data
+                }
+            }
+        }
+
+        return $rows;
     }
 
 

@@ -1,0 +1,26 @@
+{
+  "name": "Sintoniza",
+  "version": "1.5",
+  "description": "Sintoniza",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/manualdousuario/sintoniza.git"
+  },
+  "author": "Catraca Livre",
+  "license": "ISC",
+  "devDependencies": {
+    "gulp": "^5.0.0",
+    "gulp-clean-css": "^4.3.0",
+    "gulp-cli": "^3.0.0",
+    "gulp-concat": "^2.6.1",
+    "gulp-plumber": "^1.2.1",
+    "gulp-sass": "^5.1.0",
+    "gulp-sourcemaps": "^2.6.5",
+    "gulp-terser": "^2.1.0",
+    "sass": "^1.79.5",
+    "autoprefixer": "^10.4.21",
+    "gulp-csso": "^4.0.1",
+    "gulp-postcss": "^10.0.0",
+    "gulp-rename": "^2.0.0"
+  }
+}

@@ -1,0 +1,815 @@
+// =============================================
+//  SINTONIZA — Stylesheet
+//  Compiled by Gulp → public/assets/css/styles.css
+// =============================================
+
+@use 'sass:color';
+
+// ----- Variables -----
+$indigo: #6366f1;
+$indigo-light: #818cf8;
+$indigo-dark: #4f46e5;
+$indigo-deeper: #4338ca;
+$green: #10b981;
+$green-light: #34d399;
+$amber: #f59e0b;
+$amber-light: #fbbf24;
+$red: #ef4444;
+$red-light: #f87171;
+$sky: #0ea5e9;
+$violet: #8b5cf6;
+
+$slate-900: #0f172a;
+$slate-800: #1e293b;
+$slate-700: #334155;
+$slate-600: #475569;
+$slate-500: #64748b;
+$slate-400: #94a3b8;
+$slate-300: #cbd5e1;
+$slate-200: #e2e8f0;
+$slate-100: #f1f5f9;
+$slate-50: #f8fafc;
+
+$hero-bg-start: #1a1a2e;
+$hero-bg-mid: #16213e;
+$hero-bg-end: #0f3460;
+
+$radius-sm: 7px;
+$radius-md: 9px;
+$radius-lg: 14px;
+$radius-xl: 16px;
+$radius-2xl: 20px;
+
+$transition-fast: 0.15s ease;
+$transition-base: 0.2s ease;
+
+// ----- Mixins -----
+@mixin gradient-indigo {
+	background: linear-gradient(135deg, $indigo, $indigo-light);
+}
+
+@mixin gradient-hero {
+	background: linear-gradient(135deg, $hero-bg-start 0%, $hero-bg-mid 40%, $hero-bg-end 100%);
+}
+
+@mixin card-base {
+	border-color: $slate-200;
+	border-radius: $radius-lg;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+	transition: box-shadow $transition-base;
+}
+
+@mixin btn-gradient($from, $to, $shadow-color) {
+	background: linear-gradient(135deg, $from, $to);
+	border: none;
+
+	&:hover {
+		background: linear-gradient(135deg, color.scale($from, $lightness: -8%), $from);
+		box-shadow: 0 4px 14px rgba($shadow-color, 0.35);
+		transform: translateY(-1px);
+	}
+
+	&:active,
+	&:focus {
+		background: linear-gradient(135deg, color.scale($from, $lightness: -15%), $from) !important;
+		border: none !important;
+		box-shadow: 0 0 0 3px rgba($shadow-color, 0.2) !important;
+	}
+}
+
+// =============================================
+//  BASE
+// =============================================
+body {
+	background-color: $slate-50;
+	color: $slate-800;
+	font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+a {
+	color: $indigo;
+
+	&:hover {
+		color: $indigo-dark;
+	}
+}
+
+// =============================================
+//  NAVBAR
+// =============================================
+.navbar.bg-dark {
+	background: linear-gradient(90deg, $slate-900, $slate-800) !important;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+	box-shadow: 0 2px 16px rgba(0, 0, 0, 0.25) !important;
+
+	.navbar-brand,
+	.fs-4 {
+		letter-spacing: -0.02em;
+	}
+}
+
+// =============================================
+//  FOOTER
+// =============================================
+footer.border-top {
+	background: #fff;
+	border-top-color: $slate-200 !important;
+	color: $slate-400;
+	font-size: 0.875rem;
+
+	a.link-secondary {
+		color: $indigo !important;
+		text-decoration: none;
+
+		&:hover {
+			text-decoration: underline;
+		}
+	}
+}
+
+// =============================================
+//  CARDS
+// =============================================
+.card {
+	@include card-base;
+
+	&:hover {
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
+	}
+
+	.card-header {
+		font-weight: 600;
+		background-color: $slate-50;
+		border-bottom-color: $slate-200;
+		border-radius: $radius-lg $radius-lg 0 0 !important;
+		padding: 0.85rem 1.25rem;
+	}
+
+	.card-body {
+		padding: 1.4rem;
+	}
+}
+
+// =============================================
+//  FORMS
+// =============================================
+.form-control,
+.form-select {
+	border-color: $slate-200;
+	border-radius: $radius-md;
+	padding: 0.55rem 0.9rem;
+	font-size: 0.95rem;
+	transition: border-color $transition-fast, box-shadow $transition-fast;
+	background-color: #fff;
+
+	&:focus {
+		border-color: $indigo-light;
+		box-shadow: 0 0 0 3px rgba($indigo, 0.12);
+	}
+
+	&.is-invalid {
+		border-color: $red-light;
+		box-shadow: none;
+
+		&:focus {
+			box-shadow: 0 0 0 3px rgba($red-light, 0.12);
+		}
+	}
+}
+
+.form-label {
+	font-weight: 500;
+	font-size: 0.875rem;
+	color: $slate-600;
+	margin-bottom: 0.35rem;
+}
+
+// =============================================
+//  BUTTONS
+// =============================================
+.btn {
+	border-radius: $radius-md;
+	font-weight: 500;
+	font-size: 0.9rem;
+	transition: transform $transition-fast, box-shadow $transition-fast, background $transition-fast;
+
+	&:active {
+		transform: translateY(1px);
+	}
+
+	&.btn-sm {
+		border-radius: $radius-sm;
+		font-size: 0.82rem;
+		padding: 0.3rem 0.7rem;
+	}
+}
+
+.btn-primary {
+	@include btn-gradient($indigo, $indigo-light, $indigo);
+}
+
+.btn-danger {
+	@include btn-gradient($red, $red-light, $red);
+}
+
+.btn-success {
+	@include btn-gradient($green, $green-light, $green);
+}
+
+.btn-warning {
+	@include btn-gradient($amber, $amber-light, $amber);
+	color: #fff;
+
+	&:hover {
+		color: #fff;
+	}
+}
+
+.btn-secondary {
+	background: $slate-100;
+	border-color: $slate-200;
+	color: $slate-600;
+
+	&:hover {
+		background: $slate-200;
+		border-color: $slate-300;
+		color: $slate-700;
+	}
+}
+
+.btn-outline-secondary {
+	border-color: rgba(255, 255, 255, 0.2);
+	color: #e2e8f0;
+
+	&:hover {
+		background: rgba(255, 255, 255, 0.08);
+		border-color: rgba(255, 255, 255, 0.35);
+		color: #fff;
+	}
+}
+
+// =============================================
+//  ALERTS
+// =============================================
+%alert-base {
+	border-radius: 10px;
+	border: none;
+	font-size: 0.9rem;
+	padding: 0.85rem 1.1rem;
+}
+
+.alert {
+	@extend %alert-base;
+}
+
+.alert-danger {
+	background: #fef2f2;
+	color: #b91c1c;
+	border-left: 3px solid $red;
+}
+
+.alert-success {
+	background: #f0fdf4;
+	color: #15803d;
+	border-left: 3px solid #22c55e;
+}
+
+.alert-warning {
+	background: #fffbeb;
+	color: #b45309;
+	border-left: 3px solid $amber;
+}
+
+.alert-info {
+	background: #f0f9ff;
+	color: #0369a1;
+	border-left: 3px solid #38bdf8;
+}
+
+.alert-secondary {
+	background: $slate-50;
+	color: $slate-600;
+	border-left: 3px solid $slate-400;
+}
+
+// =============================================
+//  BADGES
+// =============================================
+.badge {
+	border-radius: 6px;
+	font-weight: 600;
+	font-size: 0.72rem;
+	padding: 0.3em 0.55em;
+	letter-spacing: 0.01em;
+
+	&.rounded-pill {
+		border-radius: 50rem;
+	}
+}
+
+// =============================================
+//  LIST GROUPS
+// =============================================
+.list-group-item {
+	border-color: $slate-200;
+	padding: 0.85rem 1.1rem;
+	transition: background $transition-fast;
+
+	&:first-child {
+		border-radius: 10px 10px 0 0;
+	}
+
+	&:last-child {
+		border-radius: 0 0 10px 10px;
+	}
+
+	&:only-child {
+		border-radius: 10px;
+	}
+
+	&.list-group-item-action:hover {
+		background: $slate-50;
+	}
+}
+
+// =============================================
+//  TABLES
+// =============================================
+.table {
+	font-size: 0.9rem;
+	border-color: $slate-200;
+
+	>thead {
+		background: $slate-800;
+		color: #fff;
+
+		>tr>th {
+			border-bottom: none;
+			font-weight: 600;
+			font-size: 0.8rem;
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+			padding: 0.85rem 1rem;
+		}
+	}
+
+	>tbody>tr>td {
+		vertical-align: middle;
+		padding: 0.75rem 1rem;
+		border-color: $slate-200;
+	}
+
+	&.table-hover>tbody>tr:hover>td {
+		background: $slate-50;
+	}
+}
+
+// =============================================
+//  PAGINATION
+// =============================================
+.pagination {
+	gap: 0.25rem;
+}
+
+.page-link {
+	border-radius: 8px !important;
+	border-color: $slate-200;
+	color: $indigo;
+	font-size: 0.875rem;
+	padding: 0.4rem 0.75rem;
+	transition: background $transition-fast;
+
+	&:hover {
+		background: #eef2ff;
+		border-color: #c7d2fe;
+		color: $indigo-dark;
+	}
+}
+
+.page-item {
+	&.active .page-link {
+		@include gradient-indigo;
+		border-color: transparent;
+	}
+
+	&.disabled .page-link {
+		color: $slate-300;
+		background: $slate-50;
+	}
+}
+
+// =============================================
+//  TABS
+// =============================================
+.nav-tabs {
+	border-bottom-color: $slate-200;
+	gap: 0.25rem;
+
+	.nav-link {
+		border-radius: 8px 8px 0 0;
+		border: 1px solid transparent;
+		color: $slate-500;
+		font-weight: 500;
+		font-size: 0.9rem;
+		padding: 0.55rem 1rem;
+		transition: color $transition-fast, background $transition-fast;
+
+		&:hover {
+			color: $indigo;
+			background: #eef2ff;
+			border-color: transparent;
+		}
+
+		&.active {
+			color: $indigo;
+			background: #fff;
+			border-color: $slate-200 $slate-200 #fff;
+			font-weight: 600;
+		}
+	}
+}
+
+// =============================================
+//  AUTH PAGES (login, register, etc.)
+// =============================================
+.auth-wrapper {
+	min-height: calc(100vh - 130px);
+	display: flex;
+	align-items: center;
+}
+
+.auth-card {
+	max-width: 420px;
+	width: 100%;
+	margin: 0 auto;
+
+	.card {
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+	}
+}
+
+// =============================================
+//  ADMIN STAT CARDS
+// =============================================
+.stat-card {
+	text-align: center;
+	padding: 1.5rem 1rem;
+	border-radius: $radius-lg;
+	background: #fff;
+	border: 1px solid $slate-200;
+	transition: transform $transition-base, box-shadow $transition-base;
+
+	&:hover {
+		transform: translateY(-3px);
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+	}
+
+	.stat-value {
+		font-size: 2rem;
+		font-weight: 800;
+		color: $slate-800;
+		line-height: 1;
+	}
+
+	.stat-label {
+		font-size: 0.8rem;
+		color: $slate-400;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		margin-top: 0.3rem;
+	}
+}
+
+// =============================================
+//  DANGER ZONE
+// =============================================
+.danger-zone {
+	border: 1px solid #fecaca !important;
+	border-radius: $radius-lg;
+	background: #fff;
+
+	.card-header {
+		color: $red;
+		background: #fff5f5;
+		border-bottom-color: #fecaca;
+	}
+}
+
+// =============================================
+//  SUBSCRIPTIONS / SHOWS
+// =============================================
+.sub-thumbnail {
+	width: 56px;
+	height: 56px;
+	border-radius: 10px;
+	object-fit: cover;
+	border: 1px solid $slate-200;
+	flex-shrink: 0;
+}
+
+.show-cover {
+	border-radius: 12px;
+	object-fit: cover;
+	border: 1px solid $slate-200;
+}
+
+// =============================================
+//  LANDING PAGE — HERO
+// =============================================
+.hero-section {
+	@include gradient-hero;
+	padding: 5rem 1rem 4rem;
+	position: relative;
+	overflow: hidden;
+
+	&::before {
+		content: '';
+		position: absolute;
+		top: -50%;
+		left: -50%;
+		width: 200%;
+		height: 200%;
+		background:
+			radial-gradient(circle at 30% 50%, rgba($indigo, 0.15) 0%, transparent 50%),
+			radial-gradient(circle at 70% 20%, rgba($green, 0.1) 0%, transparent 40%);
+		pointer-events: none;
+	}
+}
+
+.hero-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	background: rgba(255, 255, 255, 0.08);
+	border: 1px solid rgba(255, 255, 255, 0.15);
+	border-radius: 50px;
+	padding: 0.35rem 1rem;
+	font-size: 0.82rem;
+	color: #a5b4fc;
+	margin-bottom: 1.5rem;
+}
+
+.hero-title {
+	font-size: clamp(2.2rem, 5vw, 3.5rem);
+	font-weight: 800;
+	color: #fff;
+	line-height: 1.15;
+	letter-spacing: -0.03em;
+	margin-bottom: 1.25rem;
+
+	span {
+		background: linear-gradient(90deg, $indigo-light, $green-light);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+	}
+}
+
+.hero-subtitle {
+	font-size: 1.15rem;
+	color: $slate-400;
+	max-width: 540px;
+	line-height: 1.7;
+	margin-bottom: 2rem;
+}
+
+.hero-cta {
+
+	.btn-primary-custom,
+	.btn-outline-custom {
+		padding: 0.75rem 2rem;
+		border-radius: 10px;
+		font-size: 1rem;
+		font-weight: 600;
+		text-decoration: none;
+		display: inline-flex;
+		align-items: center;
+		transition: transform $transition-base, box-shadow $transition-base, background $transition-base;
+	}
+
+	.btn-primary-custom {
+		@include gradient-indigo;
+		color: #fff;
+		border: none;
+
+		&:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 8px 25px rgba($indigo, 0.4);
+			color: #fff;
+		}
+	}
+
+	.btn-outline-custom {
+		background: transparent;
+		border: 1px solid rgba(255, 255, 255, 0.25);
+		color: #e2e8f0;
+
+		&:hover {
+			background: rgba(255, 255, 255, 0.08);
+			border-color: rgba(255, 255, 255, 0.4);
+			color: #fff;
+		}
+	}
+}
+
+// ----- Hero visual card -----
+.device-card {
+	background: rgba(255, 255, 255, 0.05);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: $radius-xl;
+	padding: 1.25rem;
+	backdrop-filter: blur(10px);
+
+	.device-card-header {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		margin-bottom: 1rem;
+		padding-bottom: 0.75rem;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+	}
+}
+
+.device-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+}
+
+.sync-item {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 0.5rem 0;
+
+	&+& {
+		border-top: 1px solid rgba(255, 255, 255, 0.05);
+	}
+}
+
+.sync-icon {
+	width: 32px;
+	height: 32px;
+	border-radius: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 0.9rem;
+	flex-shrink: 0;
+}
+
+.sync-label {
+	font-size: 0.82rem;
+	color: $slate-300;
+	flex: 1;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.sync-status {
+	font-size: 0.68rem;
+	font-weight: 600;
+	padding: 0.2rem 0.5rem;
+	border-radius: 20px;
+}
+
+// =============================================
+//  LANDING PAGE — FEATURES
+// =============================================
+.feature-card {
+	background: #fff;
+	border: 1px solid $slate-200;
+	border-radius: $radius-xl;
+	padding: 2rem;
+	height: 100%;
+	transition: border-color $transition-base, box-shadow $transition-base, transform $transition-base;
+
+	&:hover {
+		border-color: $indigo-light;
+		box-shadow: 0 8px 30px rgba($indigo, 0.1);
+		transform: translateY(-3px);
+	}
+}
+
+.feature-icon {
+	width: 52px;
+	height: 52px;
+	border-radius: 14px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 1.4rem;
+	margin-bottom: 1.25rem;
+}
+
+.feature-title {
+	font-size: 1.05rem;
+	font-weight: 700;
+	color: $slate-800;
+	margin-bottom: 0.5rem;
+}
+
+.feature-desc {
+	font-size: 0.9rem;
+	color: $slate-500;
+	line-height: 1.65;
+	margin: 0;
+}
+
+// =============================================
+//  LANDING PAGE — SECTION TYPOGRAPHY
+// =============================================
+.section-title {
+	font-size: clamp(1.6rem, 3vw, 2.2rem);
+	font-weight: 800;
+	color: $indigo;
+	letter-spacing: -0.02em;
+	margin-bottom: 0.75rem;
+}
+
+// =============================================
+//  LANDING PAGE — HOW IT WORKS
+// =============================================
+.step-number {
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	@include gradient-indigo;
+	color: #fff;
+	font-weight: 800;
+	font-size: 0.9rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+// =============================================
+//  LANDING PAGE — COMPATIBLE CLIENTS
+// =============================================
+.client-card {
+	background: #fff;
+	border: 1px solid $slate-200;
+	border-radius: $radius-lg;
+	padding: 1.5rem;
+	height: 100%;
+	transition: border-color $transition-base, box-shadow $transition-base;
+
+	&:hover {
+		border-color: $indigo-light;
+		box-shadow: 0 4px 20px rgba($indigo, 0.08);
+	}
+}
+
+.client-icon {
+	width: 44px;
+	height: 44px;
+	border-radius: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 1.3rem;
+	flex-shrink: 0;
+}
+
+.client-name {
+	font-weight: 700;
+	font-size: 1rem;
+	color: $slate-800;
+}
+
+.client-version {
+	font-size: 0.78rem;
+	color: $slate-400;
+	margin-top: 0.15rem;
+}
+
+.platform-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.3rem;
+	background: $slate-100;
+	color: $slate-600;
+	font-size: 0.72rem;
+	font-weight: 600;
+	padding: 0.2rem 0.55rem;
+	border-radius: 6px;
+	margin: 0.15rem 0.1rem 0 0;
+}
+
+// =============================================
+//  LANDING PAGE — PROTOCOL BADGES
+// =============================================
+.protocol-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	border-radius: 8px;
+	padding: 0.5rem 1rem;
+	font-size: 0.82rem;
+	margin: 0.25rem;
+}
