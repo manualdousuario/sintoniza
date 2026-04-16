@@ -94,7 +94,7 @@ class DashboardController
             }
         } elseif (isset($body['timezone'])) {
             try {
-                $this->userService->updateTimezone($gpodder->user->id, $body['timezone'] ?? '');
+                $this->userService->updateTimezone((int) $gpodder->user->id, $body['timezone'] ?? '');
                 $gpodder->user->timezone = $body['timezone'];
                 $this->session->set('user', $gpodder->user);
                 date_default_timezone_set($gpodder->user->timezone);
@@ -104,7 +104,7 @@ class DashboardController
             }
         } elseif (isset($body['language'])) {
             try {
-                $this->userService->updateLanguage($gpodder->user->id, $body['language'] ?? '');
+                $this->userService->updateLanguage((int) $gpodder->user->id, $body['language'] ?? '');
                 $gpodder->user->language = $body['language'];
                 $this->session->set('user', $gpodder->user);
                 $success                 = __('messages.language_updated');

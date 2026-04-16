@@ -54,7 +54,7 @@ class UserService
         }
 
         $hash = password_hash($newPassword, PASSWORD_DEFAULT);
-        $this->userRepository->updatePassword($user->id, $hash);
+        $this->userRepository->updatePassword((int) $user->id, $hash);
     }
 
     public function updateTimezone(int $userId, string $timezone): void
@@ -118,7 +118,7 @@ class UserService
         }
 
         $hash = password_hash($newPassword, PASSWORD_DEFAULT);
-        $this->userRepository->updatePassword($user->id, $hash);
+        $this->userRepository->updatePassword((int) $user->id, $hash);
         $this->userRepository->clearResetToken($user->id);
     }
 
