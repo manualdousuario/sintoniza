@@ -34,11 +34,11 @@ function buildRouter(): Router
 
     // Protected routes
     $router->group('/dashboard', function ($group) {
-        $group->map('GET',  '/',             [DashboardController::class, 'index']);
-        $group->map('GET',  '/subscriptions', [DashboardController::class, 'subscriptions']);
-        $group->map('POST', '/subscriptions', [DashboardController::class, 'subscriptions']);
-        $group->map('GET',  '/profile',       [DashboardController::class, 'profile']);
-        $group->map('POST', '/profile',       [DashboardController::class, 'profile']);
+        $group->map('GET',  '/',                        [DashboardController::class, 'index']);
+        $group->map('GET',  '/profile',                 [DashboardController::class, 'profile']);
+        $group->map('POST', '/profile',                 [DashboardController::class, 'profile']);
+        $group->map('GET',  '/profile/latest-updates',  [DashboardController::class, 'latestUpdates']);
+        $group->map('GET',  '/profile/devices',         [DashboardController::class, 'devices']);
     })->middleware(new AuthMiddleware());
 
     // Admin routes

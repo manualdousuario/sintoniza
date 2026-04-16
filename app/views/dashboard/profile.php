@@ -28,6 +28,11 @@
             <?php echo __('profile.change_password'); ?>
         </button>
     </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="api_token-tab" data-bs-toggle="tab" data-bs-target="#api_token" type="button" role="tab" aria-controls="api_token" aria-selected="false">
+            <?php echo __('profile.api_token'); ?>
+        </button>
+    </li>
 </ul>
 <div class="tab-content" id="dashboard">
     <div class="tab-pane fade show active border border-top-0 bg-white rounded-bottom" id="language_settings" role="tabpanel" aria-labelledby="language_settings-tab">
@@ -82,5 +87,10 @@
                 <?php echo __('general.save'); ?>
             </button>
         </form>
+    </div>
+
+    <div class="tab-pane fade border border-top-0 bg-white rounded-bottom p-3" id="api_token" role="tabpanel" aria-labelledby="api_token-tab">
+        <?php echo __('dashboard.secret_user'); ?>: <strong><?php echo $gpodder->getUserToken(); ?></strong>
+        <small class="d-block"><?php echo __('dashboard.secret_user_note'); ?></small>
     </div>
 </div>

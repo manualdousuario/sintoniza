@@ -25,8 +25,6 @@ class DashboardController
     {
         $gpodder = $request->getAttribute('gpodder');
 
-        $db = $this->db;
-
         ob_start();
         html_head('Painel', $gpodder->isLogged());
 
@@ -34,7 +32,31 @@ class DashboardController
             echo '<div class="alert alert-success" role="alert">Você está logado, pode fechar isso e voltar para o aplicativo.</div>';
         }
 
-        require_once __DIR__ . '/../../views/dashboard.php';
+        require_once __DIR__ . '/../../views/dashboard/subscriptions.php';
+        html_foot();
+        return new HtmlResponse(ob_get_clean());
+    }
+
+    public function latestUpdates(ServerRequestInterface $request, array $args = []): ResponseInterface
+    {
+        $gpodder = $request->getAttribute('gpodder');
+
+        ob_start();
+        html_head('Últimas atualizações', $gpodder->isLogged());
+        require_once __DIR__ . '/../../views/dashboard/latest-updates.php';
+        html_foot();
+        return new HtmlResponse(ob_get_clean());
+    }
+
+    public function devices(ServerRequestInterface $request, array $args = []): ResponseInterface
+    {
+        $gpodder = $request->getAttribute('gpodder');
+
+        $db = $this->db;
+
+        ob_start();
+        html_head('Dispositivos', $gpodder->isLogged());
+        require_once __DIR__ . '/../../views/dashboard/devices.php';
         html_foot();
         return new HtmlResponse(ob_get_clean());
     }
@@ -90,14 +112,4 @@ class DashboardController
         return new HtmlResponse(ob_get_clean());
     }
 
-    public function subscriptions(ServerRequestInterface $request, array $args = []): ResponseInterface
-    {
-        $gpodder = $request->getAttribute('gpodder');
-
-        ob_start();
-        html_head('Inscrições', $gpodder->isLogged());
-        require_once __DIR__ . '/../../views/dashboard/subscriptions.php';
-        html_foot();
-        return new HtmlResponse(ob_get_clean());
-    }
 }

@@ -51,7 +51,8 @@ return [
         'min_password_length' => 'Minimum 8 characters',
         'timezone_settings' => 'Timezone Settings',
         'select_timezone' => 'Select Timezone',
-        'timezone_updated' => 'Timezone updated successfully'
+        'timezone_updated' => 'Timezone updated successfully',
+        'api_token' => 'API Token'
     ],
     'languages' => [
         'en' => 'English',

@@ -4,7 +4,7 @@
 if (isset($_GET['id'])) {
     ?>
         <p>
-            <a href="/dashboard/subscriptions"class="btn btn-danger" aria-label="<?php echo __('general.back');?>"><?php echo __('general.back');?></a>
+            <a href="/dashboard" class="btn btn-danger" aria-label="<?php echo __('general.back');?>"><?php echo __('general.back');?></a>
         </p>
     <?php
     $feed = $gpodder->getFeedForSubscription((int)$_GET['id']);
@@ -73,7 +73,6 @@ if (isset($_GET['id'])) {
 <?php } else {
     ?>
     <div class="flex-wrap d-flex gap-2 pb-4">
-        <a href="/dashboard" class="btn btn-danger" aria-label="<?php echo __('general.back'); ?>"><?php echo __('general.back'); ?></a>
         <a href="/subscriptions/<?php echo htmlspecialchars($gpodder->user->name); ?>.opml" target="_blank" class="btn btn-secondary">Feed OPML</a>
     </div>
     <?php
@@ -88,7 +87,7 @@ if (isset($_GET['id'])) {
                 <div class="episode_info d-flex gap-3">
                     <?php echo $image_url; ?>
                     <div class="data">
-                        <h2 class="fs-5"><a class="link-dark" href="/dashboard/subscriptions?id=<?php echo $row->id; ?>"><?php echo htmlspecialchars($title); ?></a></h2>
+                        <h2 class="fs-5"><a class="link-dark" href="/dashboard?id=<?php echo $row->id; ?>"><?php echo htmlspecialchars($title); ?></a></h2>
                         <small class="d-block"><?php echo format_description($row->description); ?></small>
                         <small><strong><?php echo __('dashboard.last_update'); ?></strong>: <time datetime="<?php echo date(DATE_ISO8601, $row->last_change); ?>" class="text-nowrap"><?php echo date('d/m/Y \à\s H:i', $row->last_change); ?></time></small>
                     </div>

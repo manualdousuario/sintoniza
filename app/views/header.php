@@ -52,9 +52,19 @@ function html_head($page_name = null, $logged = false)
 						<a href="/login" class="btn btn-sm btn-outline-secondary me-2"><i class="bi bi-box-arrow-in-right"></i> <?php echo __('general.login'); ?></a>
 						<a href="/register" class="btn btn-sm btn-outline-secondary me-2"><i class="bi bi-person-plus"></i> <?php echo __('general.register'); ?></a>
 					<?php } else { ?>
-						<a href="/dashboard/subscriptions" class="btn btn-sm btn-outline-secondary me-2"><i class="bi bi-mic-fill"></i> <?php echo __('general.subscriptions'); ?></a>
-						<a href="/dashboard/profile" class="btn btn-sm btn-outline-secondary me-2"><i class="bi bi-nut"></i> <?php echo __('general.profile'); ?></a>
-						<a href="/logout" class="btn btn-sm btn-outline-secondary me-2"><i class="bi bi-box-arrow-right"></i> <?php echo __('general.logout'); ?></a>
+						<a href="/dashboard" class="btn btn-sm btn-outline-secondary me-2"><i class="bi bi-mic-fill"></i> <?php echo __('general.subscriptions'); ?></a>
+						<div class="dropdown me-2">
+							<button class="btn btn-sm btn-outline-secondary dropdown-toggle" alt="<?php echo __('general.profile'); ?>" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+								<i class="bi bi-person-circle"></i>
+							</button>
+							<ul class="dropdown-menu dropdown-menu-end">
+								<li><a class="dropdown-item" href="/dashboard/profile/latest-updates"><i class="bi bi-clock-history me-2"></i><?php echo __('general.latest_updates'); ?></a></li>
+								<li><a class="dropdown-item" href="/dashboard/profile/devices"><i class="bi bi-phone me-2"></i><?php echo __('general.devices'); ?></a></li>
+								<li><hr class="dropdown-divider"></li>
+								<li><a class="dropdown-item" href="/dashboard/profile"><i class="bi bi-gear me-2"></i><?php echo __('general.profile'); ?></a></li>
+							</ul>
+						</div>
+						<a href="/logout" class="btn btn-sm btn-outline-secondary me-2" alt="<?php echo __('general.logout'); ?>"><i class="bi bi-door-closed"></i></a>
 					<?php }
 					?>
 				</div>

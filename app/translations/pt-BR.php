@@ -51,7 +51,8 @@ return [
         'min_password_length' => 'Mínimo de 8 caracteres',
         'timezone_settings' => 'Configuração de fuso horário',
         'select_timezone' => 'Selecionar fuso horário',
-        'timezone_updated' => 'Fuso horário atualizado com sucesso'
+        'timezone_updated' => 'Fuso horário atualizado com sucesso',
+        'api_token' => 'Token de API'
     ],
     'languages' => [
         'en' => 'Inglês',
