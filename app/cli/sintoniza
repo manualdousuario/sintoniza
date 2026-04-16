@@ -1,10 +1,23 @@
+#!/usr/bin/env php
 <?php
-require_once __DIR__ . '/../config.php';
 
-$db = new DB(SINTONIZA_DB_HOST, SINTONIZA_DB_NAME, SINTONIZA_DB_USER, SINTONIZA_DB_PASS, SINTONIZA_DB_PORT);
-$gpodder = new GPodder($db);
+declare(strict_types=1);
 
-if (PHP_SAPI === 'cli') {
-	$gpodder->updateAllFeeds(true);
+if (PHP_SAPI !== 'cli') {
+    exit(1);
 }
-echo "Feeds metadata updated successfully at " . date('Y-m-d H:i:s') . "\n";
+
+require_once __DIR__ . '/../config/config.php';
+
+use League\CLImate\CLImate;
+use Sintoniza\Cli\UpdateFeeds;
+use Sintoniza\Library\Container;
+use Sintoniza\Service\FeedService;
+
+$container = Container::getInstance();
+$runner    = new UpdateFeeds(
+    $container->get(FeedService::class),
+    new CLImate()
+);
+
+$runner->run();
