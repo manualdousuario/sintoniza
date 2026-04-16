@@ -78,7 +78,7 @@ class GpodderApi
         $this->base_url  = $url;
 
         $this->authHandler          = new GpodderAuthHandler($this, $db, $logger, $client, $session);
-        $this->devicesHandler       = new GpodderDevicesHandler($this, $db, $logger);
+        $this->devicesHandler       = new GpodderDevicesHandler($this, $db);
         $this->subscriptionsHandler = new GpodderSubscriptionsHandler($this, $db, $logger);
         $this->episodesHandler      = new GpodderEpisodesHandler($this, $db, $logger);
     }

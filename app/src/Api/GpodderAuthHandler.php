@@ -78,7 +78,7 @@ class GpodderAuthHandler
         }
 
         if ($username && str_contains($username, '__')) {
-            $gpodder = new GPodder($this->db, $this->logger, $this->client);
+            $gpodder = new GPodder($this->db, $this->session);
             if (!$gpodder->validateToken($username)) {
                 $this->api->error(401, __('messages.invalid_gpodder_token'));
             }

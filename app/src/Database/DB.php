@@ -115,7 +115,7 @@ class DB
 
     private function toMeekroSql(string $sql): string
     {
-        return str_replace('?', '%?', $sql);
+        return str_replace('?', '%?', str_replace('%', '%%', $sql));
     }
 
     private function flattenParams(array $params): array

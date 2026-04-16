@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Sintoniza\Api;
 
-use JsonException;
-use Monolog\Logger as MonologLogger;
 use Sintoniza\Database\DB;
 use stdClass;
 
@@ -14,7 +12,6 @@ class GpodderDevicesHandler
     public function __construct(
         private GpodderApi $api,
         private DB $db,
-        private MonologLogger $logger
     ) {}
 
     public function handle(): array
@@ -29,7 +26,8 @@ class GpodderDevicesHandler
         }
 
         if ($method === 'POST') {
-            $deviceid = explode('/', $this->api->getPath())[1] ?? null;
+            $parts    = explode('/', $this->api->getPath());
+            $deviceid = $parts[1] ?? $parts[0] ?? null;
 
             if (!$deviceid) {
                 $this->api->error(400, __('messages.invalid_device_id'));
