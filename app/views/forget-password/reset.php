@@ -19,12 +19,6 @@
         <?php else: ?>
             <div class="row justify-content-center">
                 <div class="col-md-6 col-lg-4">
-                    <div class="auth-brand">
-                        <div class="auth-brand-icon">
-                            <i class="bi bi-lock-fill"></i>
-                        </div>
-                        <span><?= TITLE ?></span>
-                    </div>
                     <div class="card auth-card">
                         <div class="card-body">
                             <form method="post" action="">

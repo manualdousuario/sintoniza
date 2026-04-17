@@ -101,9 +101,9 @@ class UserService
         }
 
         $token     = bin2hex(random_bytes(32));
-        $expiresAt = date('Y-m-d H:i:s', strtotime('+1 hour'));
+        $expiresAt = time() + 3600;
 
-        $this->userRepository->updatePasswordResetToken($user->id, $token, $expiresAt);
+        $this->userRepository->updatePasswordResetToken((int) $user->id, $token, $expiresAt);
         $user->reset_token = $token;
 
         return $user;
@@ -119,7 +119,7 @@ class UserService
 
         $hash = password_hash($newPassword, PASSWORD_DEFAULT);
         $this->userRepository->updatePassword((int) $user->id, $hash);
-        $this->userRepository->clearResetToken($user->id);
+        $this->userRepository->clearResetToken((int) $user->id);
     }
 
     public function getUserToken(stdClass $user): string

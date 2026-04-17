@@ -83,10 +83,10 @@ class UserRepository
         $this->db->simple('UPDATE users SET active = ? WHERE id = ?', (int) $active, $id);
     }
 
-    public function updatePasswordResetToken(int $id, string $token, string $expiresAt): void
+    public function updatePasswordResetToken(int $id, string $token, int $expiresAt): void
     {
         $this->db->simple(
-            'UPDATE users SET password_reset_token = ?, password_reset_expires = ? WHERE id = ?',
+            'UPDATE users SET password_reset_token = ?, password_reset_token_expires_at = ? WHERE id = ?',
             $token,
             $expiresAt,
             $id
@@ -96,15 +96,16 @@ class UserRepository
     public function findByResetToken(string $token): ?stdClass
     {
         return $this->db->firstRow(
-            'SELECT * FROM users WHERE password_reset_token = ? AND password_reset_expires > NOW()',
-            $token
+            'SELECT * FROM users WHERE password_reset_token = ? AND password_reset_token_expires_at > ?',
+            $token,
+            time()
         );
     }
 
     public function clearResetToken(int $id): void
     {
         $this->db->simple(
-            'UPDATE users SET password_reset_token = NULL, password_reset_expires = NULL WHERE id = ?',
+            'UPDATE users SET password_reset_token = NULL, password_reset_token_expires_at = NULL WHERE id = ?',
             $id
         );
     }
