@@ -43,7 +43,7 @@ $this->layout('layout', ['title' => $this->__('general.profile'), 'logged' => $l
             </button>
         </li>
     </ul>
-    <div class="tab-content" id="dashboard">
+    <div class="tab-content mb-4" id="dashboard">
         <div class="tab-pane show active border border-top-0 bg-white rounded-bottom" id="language_settings"
             role="tabpanel" aria-labelledby="language_settings-tab">
             <form method="post" action="/dashboard/profile" class="p-3">

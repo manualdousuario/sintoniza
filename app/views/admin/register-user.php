@@ -15,7 +15,7 @@
         </div>
     <?php endif ?>
 
-    <div class="card" style="max-width: 480px;">
+    <div class="card mb-4">
         <div class="card-body p-4">
             <form method="post" action="">
                 <div class="mb-3">

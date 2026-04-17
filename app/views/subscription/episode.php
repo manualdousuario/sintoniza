@@ -72,9 +72,9 @@
     <h3 class="fs-5 fw-bold mb-3"><?= $this->__('general.history') ?></h3>
 
     <?php if (empty($actions)): ?>
-        <div class="alert alert-secondary"><?= $this->__('dashboard.no_info') ?></div>
+        <div class="alert alert-secondary mb-4"><?= $this->__('dashboard.no_info') ?></div>
     <?php else: ?>
-        <ul class="list-group">
+        <ul class="list-group mb-4">
             <?php foreach ($actions as $row):
                 if ($row->action === 'play') {
                     $actionBadge = '<div class="badge text-bg-success rounded-pill"><i class="bi bi-play"></i> ' . $this->__('actions.played') . '</div>';

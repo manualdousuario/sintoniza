@@ -7,7 +7,7 @@
     </div>
 
     <?php if (!empty($actions)): ?>
-        <ul class="list-group">
+        <ul class="list-group mb-4">
         <?php foreach ($actions as $row):
             $url = strtok(basename($row->url), '?');
             strtok('');
