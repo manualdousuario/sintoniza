@@ -10,6 +10,11 @@ services:
       MYSQL_PASSWORD: database_password
       MYSQL_DATABASE: database_name
       MYSQL_PORT: 3306
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+      REDIS_DATABASE: 0
+      REDIS_PREFIX: "sintoniza:"
       BASE_URL: https://sintoniza.xyz/
       TITLE: Sintoniza
       DEBUG: true
@@ -24,6 +29,7 @@ services:
       SMTP_AUTH: true
     depends_on:
       - db
+      - redis
   db:
     image: mariadb:10.11
     container_name: db
@@ -36,3 +42,10 @@ services:
       - 3306:3306
     volumes:
       - ./mariadb/data:/var/lib/mysql
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    volumes:
+      - ./redis/data:/data

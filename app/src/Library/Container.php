@@ -10,17 +10,18 @@ use League\Container\Container as LeagueContainer;
 use League\Container\ReflectionContainer;
 use League\Plates\Engine;
 use Monolog\Logger as MonologLogger;
+use Predis\Client as PredisClient;
 use Sintoniza\Api\GpodderApi;
+use Sintoniza\Cache\CacheInterface;
+use Sintoniza\Cache\RedisCache;
 use Sintoniza\Controller\AdminController;
 use Sintoniza\Controller\AuthController;
 use Sintoniza\Controller\DashboardController;
 use Sintoniza\Controller\GpodderController;
 use Sintoniza\Controller\SubscriptionController;
 use Sintoniza\Database\DB;
-use Sintoniza\Repository\EpisodeRepository;
 use Sintoniza\Feed\DescriptionFormatter;
 use Sintoniza\Repository\FeedRepository;
-use Sintoniza\Repository\SubscriptionRepository;
 use Sintoniza\Repository\UserRepository;
 use Sintoniza\Feed\PodcastIndexClient;
 use Sintoniza\Service\FeedService;
@@ -72,11 +73,22 @@ class Container
                 MYSQL_PORT
             ))->setShared(true);
 
+            $container->add(PredisClient::class, fn() => new PredisClient([
+                'scheme'   => 'tcp',
+                'host'     => REDIS_HOST,
+                'port'     => REDIS_PORT,
+                'password' => REDIS_PASSWORD ?: null,
+                'database' => REDIS_DATABASE,
+            ], ['prefix' => REDIS_PREFIX]))->setShared(true);
+
+            $container->add(CacheInterface::class, RedisCache::class)
+                ->addArgument(PredisClient::class)
+                ->addArgument(MonologLogger::class)
+                ->setShared(true);
+
             // Repositories
             $container->add(UserRepository::class)->addArgument(DB::class);
             $container->add(FeedRepository::class)->addArgument(DB::class);
-            $container->add(EpisodeRepository::class)->addArgument(DB::class);
-            $container->add(SubscriptionRepository::class)->addArgument(DB::class);
 
             // Services
             $container->add(UserService::class)
@@ -121,7 +133,8 @@ class Container
                 ->addArgument(DB::class)
                 ->addArgument(UserService::class)
                 ->addArgument(UserRepository::class)
-                ->addArgument(Engine::class);
+                ->addArgument(Engine::class)
+                ->addArgument(CacheInterface::class);
 
             $container->add(GpodderApi::class)
                 ->addArgument(DB::class)

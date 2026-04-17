@@ -9,6 +9,7 @@ use Laminas\Diactoros\Response\RedirectResponse;
 use League\Plates\Engine;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Sintoniza\Cache\CacheInterface;
 use Sintoniza\Database\DB;
 use Sintoniza\Exception\ValidationException;
 use Sintoniza\Repository\UserRepository;
@@ -17,12 +18,15 @@ use Sintoniza\Service\UserService;
 class AdminController
 {
     private const USERS_PER_PAGE = 20;
+    private const STATS_TTL      = 300;
+    private const TOP_FEEDS_TTL  = 900;
 
     public function __construct(
         private DB $db,
         private UserService $userService,
         private UserRepository $userRepository,
-        private Engine $plates
+        private Engine $plates,
+        private CacheInterface $cache
     ) {}
 
     private function baseData(ServerRequestInterface $request): array
@@ -36,17 +40,28 @@ class AdminController
 
     public function index(ServerRequestInterface $request, array $args = []): ResponseInterface
     {
-        $stats = [
-            'users'         => (int) $this->db->firstColumn('SELECT COUNT(*) FROM users'),
-            'subscriptions' => (int) $this->db->firstColumn('SELECT COUNT(*) FROM subscriptions WHERE deleted = 0'),
-            'feeds'         => (int) $this->db->firstColumn('SELECT COUNT(*) FROM feeds'),
-            'episodes'      => (int) $this->db->firstColumn('SELECT COUNT(*) FROM episodes'),
-            'subs_7d'       => (int) $this->db->firstColumn(
-                'SELECT COUNT(*) FROM subscriptions WHERE deleted = 0 AND changed >= UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 7 DAY))'
-            ),
-        ];
+        $stats = $this->cache->remember('admin:stats', self::STATS_TTL, function () {
+            $row = $this->db->firstRow(
+                'SELECT
+                    (SELECT COUNT(*) FROM users)                                            AS users,
+                    (SELECT COUNT(*) FROM subscriptions WHERE deleted = 0)                  AS subscriptions,
+                    (SELECT COUNT(*) FROM feeds)                                            AS feeds,
+                    (SELECT COUNT(*) FROM episodes)                                         AS episodes,
+                    (SELECT COUNT(*) FROM subscriptions
+                        WHERE deleted = 0
+                          AND changed >= UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 7 DAY)))   AS subs_7d'
+            );
 
-        $topFeeds = $this->db->all(
+            return [
+                'users'         => (int) ($row->users ?? 0),
+                'subscriptions' => (int) ($row->subscriptions ?? 0),
+                'feeds'         => (int) ($row->feeds ?? 0),
+                'episodes'      => (int) ($row->episodes ?? 0),
+                'subs_7d'       => (int) ($row->subs_7d ?? 0),
+            ];
+        });
+
+        $topFeeds = $this->cache->remember('admin:top_feeds', self::TOP_FEEDS_TTL, fn() => $this->db->all(
             'SELECT f.title, f.feed_url, COUNT(s.id) AS subscribers
              FROM subscriptions s
              JOIN feeds f ON s.feed = f.id
@@ -54,7 +69,7 @@ class AdminController
              GROUP BY f.id
              ORDER BY subscribers DESC
              LIMIT 10'
-        );
+        ));
 
         return new HtmlResponse($this->plates->render('admin::index', $this->baseData($request) + [
             'stats'    => $stats,

@@ -308,56 +308,24 @@ class Feed
                     continue;
                 }
 
-                $episode['pubdate']     = $episode['pubdate'] ? $episode['pubdate']->format('Y-m-d H:i:s') : null;
-                $episode['feed']        = $feed_id;
-                $episode['title']       = $episode['title'] ?? null;
-                $episode['description'] = $episode['description'] ?? null;
-                $episode['url']         = $episode['url'] ?? null;
-                $episode['image_url']   = $episode['image_url'] ?? null;
-                $episode['duration']    = $this->validateDuration($episode['duration']);
-                $episode_data[]         = $episode;
+                $episode_data[] = [
+                    'feed'        => $feed_id,
+                    'media_url'   => $episode['media_url'],
+                    'title'       => $episode['title'] ?? null,
+                    'description' => $episode['description'] ?? null,
+                    'url'         => $episode['url'] ?? null,
+                    'image_url'   => $episode['image_url'] ?? null,
+                    'pubdate'     => $episode['pubdate'] ? $episode['pubdate']->format('Y-m-d H:i:s') : null,
+                    'duration'    => $this->validateDuration($episode['duration']),
+                ];
             }
 
             if (!empty($episode_data)) {
-                $db->exec('CREATE TEMPORARY TABLE tmp_episodes (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    media_url TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-                    feed INT NOT NULL,
-                    title TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-                    description MEDIUMTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-                    url TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-                    image_url TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-                    pubdate DATETIME,
-                    duration INT,
-                    INDEX (id),
-                    INDEX (feed)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
-
-                foreach ($episode_data as $episode) {
-                    $db->simple(
-                        'INSERT INTO tmp_episodes (media_url, feed, title, description, url, image_url, pubdate, duration)
-                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-                        $episode['media_url'],
-                        $episode['feed'],
-                        $episode['title'],
-                        $episode['description'],
-                        $episode['url'],
-                        $episode['image_url'],
-                        $episode['pubdate'],
-                        $episode['duration']
-                    );
+                foreach (array_chunk($episode_data, 200) as $chunk) {
+                    $db->bulkUpsert('episodes', $chunk, [
+                        'title', 'description', 'url', 'image_url', 'pubdate', 'duration',
+                    ]);
                 }
-
-                $db->exec('INSERT INTO episodes (feed, media_url, title, description, url, image_url, pubdate, duration)
-                    SELECT tmp.feed, tmp.media_url, tmp.title, tmp.description, tmp.url, tmp.image_url, tmp.pubdate, tmp.duration
-                    FROM tmp_episodes tmp
-                    ON DUPLICATE KEY UPDATE
-                        title = VALUES(title),
-                        description = VALUES(description),
-                        url = VALUES(url),
-                        image_url = VALUES(image_url),
-                        pubdate = VALUES(pubdate),
-                        duration = VALUES(duration)');
 
                 $db->simple(
                     'UPDATE episodes_actions ea
@@ -366,14 +334,11 @@ class Feed
                      WHERE e.feed = ?',
                     $feed_id
                 );
-
-                $db->exec('DROP TEMPORARY TABLE IF EXISTS tmp_episodes');
             }
 
             $db->commit();
         } catch (Exception $e) {
             $db->rollBack();
-            $db->exec('DROP TEMPORARY TABLE IF EXISTS tmp_episodes');
             throw $e;
         }
     }

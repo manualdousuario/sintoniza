@@ -4,6 +4,7 @@
         "ext-json": "*",
         "ext-mbstring": "*",
         "ext-pdo": "*",
+        "ext-tidy": "*",
         "guzzlehttp/guzzle": "^7.10",
         "guzzlehttp/psr7": "^2.8",
         "jessedp/php-timezones": "^0.2.3",
@@ -18,6 +19,7 @@
         "middlewares/whoops": "^2.1",
         "monolog/monolog": "^3.9",
         "phpmailer/phpmailer": "^6.11",
+        "predis/predis": "^3.4",
         "robmorgan/phinx": "^0.16",
         "sergeytsalkov/meekrodb": "^3.1",
         "vlucas/phpdotenv": "^5.6"

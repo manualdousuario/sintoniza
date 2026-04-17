@@ -168,6 +168,33 @@ class DB
         $this->mdb->insertUpdate($table, $params);
     }
 
+    public function bulkUpsert(string $table, array $rows, array $update_columns): void
+    {
+        $this->validateString($table, 'Table name', 'identifier');
+        $table = $this->sanitizeIdentifier($table);
+
+        if (empty($rows)) {
+            return;
+        }
+
+        if (empty($update_columns)) {
+            throw new InvalidArgumentException("Update columns array cannot be empty");
+        }
+
+        $safeUpdateCols = [];
+        foreach ($update_columns as $column) {
+            $this->validateString($column, 'Update column', 'identifier');
+            $safeUpdateCols[] = $this->sanitizeIdentifier($column);
+        }
+
+        $updateClause = implode(', ', array_map(
+            fn($c) => "`$c` = VALUES(`$c`)",
+            $safeUpdateCols
+        ));
+
+        $this->mdb->insertUpdate($table, $rows, [$updateClause]);
+    }
+
     public function simple(string $sql, mixed ...$params): void
     {
         $this->validateString($sql, 'SQL query', 'sql_query');
