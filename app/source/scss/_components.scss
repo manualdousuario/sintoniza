@@ -1,0 +1,304 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
+// =============================================
+//  CARDS
+// =============================================
+.card {
+	@include card-base;
+
+	&:hover {
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
+	}
+
+	.card-header {
+		font-weight: 600;
+		background-color: $slate-50;
+		border-bottom-color: $slate-200;
+		border-radius: $radius-lg $radius-lg 0 0 !important;
+		padding: 0.85rem 1.25rem;
+	}
+
+	.card-body {
+		padding: 1.4rem;
+	}
+}
+
+// =============================================
+//  FORMS
+// =============================================
+.form-control,
+.form-select {
+	border-color: $slate-200;
+	border-radius: $radius-md;
+	padding: 0.55rem 0.9rem;
+	font-size: 0.95rem;
+	transition: border-color $transition-fast, box-shadow $transition-fast;
+	background-color: #fff;
+
+	&:focus {
+		border-color: $indigo-light;
+		box-shadow: 0 0 0 3px rgba($indigo, 0.12);
+	}
+
+	&.is-invalid {
+		border-color: $red-light;
+		box-shadow: none;
+
+		&:focus {
+			box-shadow: 0 0 0 3px rgba($red-light, 0.12);
+		}
+	}
+}
+
+.form-label {
+	font-weight: 500;
+	font-size: 0.875rem;
+	color: $slate-600;
+	margin-bottom: 0.35rem;
+}
+
+// =============================================
+//  BUTTONS
+// =============================================
+.btn {
+	border-radius: $radius-md;
+	font-weight: 500;
+	font-size: 0.9rem;
+	transition: transform $transition-fast, box-shadow $transition-fast, background $transition-fast;
+
+	&:active {
+		transform: translateY(1px);
+	}
+
+	&.btn-sm {
+		border-radius: $radius-sm;
+		font-size: 0.82rem;
+		padding: 0.3rem 0.7rem;
+	}
+}
+
+.btn-primary {
+	@include btn-gradient($indigo, $indigo-light, $indigo);
+}
+
+.btn-danger {
+	@include btn-gradient($red, $red-light, $red);
+}
+
+.btn-success {
+	@include btn-gradient($green, $green-light, $green);
+}
+
+.btn-warning {
+	@include btn-gradient($amber, $amber-light, $amber);
+	color: #fff;
+
+	&:hover {
+		color: #fff;
+	}
+}
+
+.btn-secondary {
+	background: $slate-100;
+	border-color: $slate-200;
+	color: $slate-600;
+
+	&:hover {
+		background: $slate-200;
+		border-color: $slate-300;
+		color: $slate-700;
+	}
+}
+
+.btn-outline-secondary {
+	border-color: rgba(255, 255, 255, 0.2);
+	color: #e2e8f0;
+
+	&:hover {
+		background: rgba(255, 255, 255, 0.08);
+		border-color: rgba(255, 255, 255, 0.35);
+		color: #fff;
+	}
+}
+
+// =============================================
+//  ALERTS
+// =============================================
+%alert-base {
+	border-radius: 10px;
+	border: none;
+	font-size: 0.9rem;
+	padding: 0.85rem 1.1rem;
+}
+
+.alert {
+	@extend %alert-base;
+}
+
+.alert-danger {
+	background: #fef2f2;
+	color: #b91c1c;
+	border-left: 3px solid $red;
+}
+
+.alert-success {
+	background: #f0fdf4;
+	color: #15803d;
+	border-left: 3px solid #22c55e;
+}
+
+.alert-warning {
+	background: #fffbeb;
+	color: #b45309;
+	border-left: 3px solid $amber;
+}
+
+.alert-info {
+	background: #f0f9ff;
+	color: #0369a1;
+	border-left: 3px solid #38bdf8;
+}
+
+.alert-secondary {
+	background: $slate-50;
+	color: $slate-600;
+	border-left: 3px solid $slate-400;
+}
+
+// =============================================
+//  BADGES
+// =============================================
+.badge {
+	border-radius: 6px;
+	font-weight: 600;
+	font-size: 0.72rem;
+	padding: 0.3em 0.55em;
+	letter-spacing: 0.01em;
+
+	&.rounded-pill {
+		border-radius: 50rem;
+	}
+}
+
+// =============================================
+//  LIST GROUPS
+// =============================================
+.list-group-item {
+	border-color: $slate-200;
+	padding: 0.85rem 1.1rem;
+	transition: background $transition-fast;
+
+	&:first-child {
+		border-radius: 10px 10px 0 0;
+	}
+
+	&:last-child {
+		border-radius: 0 0 10px 10px;
+	}
+
+	&:only-child {
+		border-radius: 10px;
+	}
+
+	&.list-group-item-action:hover {
+		background: $slate-50;
+	}
+}
+
+// =============================================
+//  TABLES
+// =============================================
+.table {
+	font-size: 0.9rem;
+	border-color: $slate-200;
+
+	>thead {
+		background: $slate-800;
+		color: #fff;
+
+		>tr>th {
+			border-bottom: none;
+			font-weight: 600;
+			font-size: 0.8rem;
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+			padding: 0.85rem 1rem;
+		}
+	}
+
+	>tbody>tr>td {
+		vertical-align: middle;
+		padding: 0.75rem 1rem;
+		border-color: $slate-200;
+	}
+
+	&.table-hover>tbody>tr:hover>td {
+		background: $slate-50;
+	}
+}
+
+// =============================================
+//  PAGINATION
+// =============================================
+.pagination {
+	gap: 0.25rem;
+}
+
+.page-link {
+	border-radius: 8px !important;
+	border-color: $slate-200;
+	color: $indigo;
+	font-size: 0.875rem;
+	padding: 0.4rem 0.75rem;
+	transition: background $transition-fast;
+
+	&:hover {
+		background: #eef2ff;
+		border-color: #c7d2fe;
+		color: $indigo-dark;
+	}
+}
+
+.page-item {
+	&.active .page-link {
+		@include gradient-indigo;
+		border-color: transparent;
+	}
+
+	&.disabled .page-link {
+		color: $slate-300;
+		background: $slate-50;
+	}
+}
+
+// =============================================
+//  TABS
+// =============================================
+.nav-tabs {
+	border-bottom-color: $slate-200;
+	gap: 0.25rem;
+
+	.nav-link {
+		border-radius: 8px 8px 0 0;
+		border: 1px solid transparent;
+		color: $slate-500;
+		font-weight: 500;
+		font-size: 0.9rem;
+		padding: 0.55rem 1rem;
+		transition: color $transition-fast, background $transition-fast;
+
+		&:hover {
+			color: $indigo;
+			background: #eef2ff;
+			border-color: transparent;
+		}
+
+		&.active {
+			color: $indigo;
+			background: #fff;
+			border-color: $slate-200 $slate-200 #fff;
+			font-weight: 600;
+		}
+	}
+}

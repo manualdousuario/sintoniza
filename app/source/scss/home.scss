@@ -1,0 +1,286 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
+// =============================================
+//  HERO
+// =============================================
+.hero-section {
+	@include gradient-hero;
+	padding: 5rem 1rem 4rem;
+	position: relative;
+	overflow: hidden;
+
+	&::before {
+		content: '';
+		position: absolute;
+		top: -50%;
+		left: -50%;
+		width: 200%;
+		height: 200%;
+		background:
+			radial-gradient(circle at 30% 50%, rgba($indigo, 0.15) 0%, transparent 50%),
+			radial-gradient(circle at 70% 20%, rgba($green, 0.1) 0%, transparent 40%);
+		pointer-events: none;
+	}
+}
+
+.hero-title {
+	font-size: clamp(2.2rem, 5vw, 3.5rem);
+	font-weight: 800;
+	color: #fff;
+	line-height: 1.15;
+	letter-spacing: -0.03em;
+	margin-bottom: 1.25rem;
+
+	span {
+		background: linear-gradient(90deg, $indigo-light, $green-light);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+	}
+}
+
+.hero-subtitle {
+	font-size: 1.15rem;
+	color: $slate-400;
+	max-width: 540px;
+	line-height: 1.7;
+	margin-bottom: 2rem;
+}
+
+.hero-cta {
+
+	.btn-primary-custom,
+	.btn-outline-custom {
+		padding: 0.75rem 2rem;
+		border-radius: 10px;
+		font-size: 1rem;
+		font-weight: 600;
+		text-decoration: none;
+		display: inline-flex;
+		align-items: center;
+		transition: transform $transition-base, box-shadow $transition-base, background $transition-base;
+	}
+
+	.btn-primary-custom {
+		@include gradient-indigo;
+		color: #fff;
+		border: none;
+
+		&:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 8px 25px rgba($indigo, 0.4);
+			color: #fff;
+		}
+	}
+
+	.btn-outline-custom {
+		background: transparent;
+		border: 1px solid rgba(255, 255, 255, 0.25);
+		color: #e2e8f0;
+
+		&:hover {
+			background: rgba(255, 255, 255, 0.08);
+			border-color: rgba(255, 255, 255, 0.4);
+			color: #fff;
+		}
+	}
+}
+
+.device-card {
+	background: rgba(255, 255, 255, 0.05);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: $radius-xl;
+	padding: 1.25rem;
+	backdrop-filter: blur(10px);
+
+	.device-card-header {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		margin-bottom: 1rem;
+		padding-bottom: 0.75rem;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+	}
+}
+
+.device-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+}
+
+.sync-item {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 0.5rem 0;
+
+	&+& {
+		border-top: 1px solid rgba(255, 255, 255, 0.05);
+	}
+}
+
+.sync-icon {
+	width: 32px;
+	height: 32px;
+	border-radius: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 0.9rem;
+	flex-shrink: 0;
+}
+
+.sync-label {
+	font-size: 0.82rem;
+	color: $slate-300;
+	flex: 1;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.sync-status {
+	font-size: 0.68rem;
+	font-weight: 600;
+	padding: 0.2rem 0.5rem;
+	border-radius: 20px;
+}
+
+// =============================================
+//  FEATURES
+// =============================================
+.feature-card {
+	background: #fff;
+	border: 1px solid $slate-200;
+	border-radius: $radius-xl;
+	padding: 2rem;
+	height: 100%;
+	transition: border-color $transition-base, box-shadow $transition-base, transform $transition-base;
+
+	&:hover {
+		border-color: $indigo-light;
+		box-shadow: 0 8px 30px rgba($indigo, 0.1);
+		transform: translateY(-3px);
+	}
+}
+
+.feature-icon {
+	width: 52px;
+	height: 52px;
+	border-radius: 14px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 1.4rem;
+	margin-bottom: 1.25rem;
+}
+
+.feature-title {
+	font-size: 1.05rem;
+	font-weight: 700;
+	color: $slate-800;
+	margin-bottom: 0.5rem;
+}
+
+.feature-desc {
+	font-size: 0.9rem;
+	color: $slate-500;
+	line-height: 1.65;
+	margin: 0;
+}
+
+// =============================================
+//  SECTIONS
+// =============================================
+.section-title {
+	font-size: clamp(1.6rem, 3vw, 2.2rem);
+	font-weight: 800;
+	color: $indigo;
+	letter-spacing: -0.02em;
+	margin-bottom: 0.75rem;
+}
+
+// =============================================
+//  HOW IT WORKS
+// =============================================
+.step-number {
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	@include gradient-indigo;
+	color: #fff;
+	font-weight: 800;
+	font-size: 0.9rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+// =============================================
+//  COMPATIBLE CLIENTS
+// =============================================
+.client-card {
+	background: #fff;
+	border: 1px solid $slate-200;
+	border-radius: $radius-lg;
+	padding: 1.5rem;
+	height: 100%;
+	transition: border-color $transition-base, box-shadow $transition-base;
+
+	&:hover {
+		border-color: $indigo-light;
+		box-shadow: 0 4px 20px rgba($indigo, 0.08);
+	}
+}
+
+.client-icon {
+	width: 44px;
+	height: 44px;
+	border-radius: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 1.3rem;
+	flex-shrink: 0;
+}
+
+.client-name {
+	font-weight: 700;
+	font-size: 1rem;
+	color: $slate-800;
+}
+
+.client-version {
+	font-size: 0.78rem;
+	color: $slate-400;
+	margin-top: 0.15rem;
+}
+
+.platform-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.3rem;
+	background: $slate-100;
+	color: $slate-600;
+	font-size: 0.72rem;
+	font-weight: 600;
+	padding: 0.2rem 0.55rem;
+	border-radius: 6px;
+	margin: 0.15rem 0.1rem 0 0;
+}
+
+// =============================================
+//  PROTOCOL BADGES
+// =============================================
+.protocol-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	border-radius: 8px;
+	padding: 0.5rem 1rem;
+	font-size: 0.82rem;
+	margin: 0.25rem;
+}

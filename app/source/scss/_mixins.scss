@@ -1,0 +1,35 @@
+@use 'sass:color';
+@use 'variables' as *;
+
+@mixin gradient-indigo {
+	background: linear-gradient(135deg, $indigo, $indigo-light);
+}
+
+@mixin gradient-hero {
+	background: linear-gradient(135deg, $hero-bg-start 0%, $hero-bg-mid 40%, $hero-bg-end 100%);
+}
+
+@mixin card-base {
+	border-color: $slate-200;
+	border-radius: $radius-lg;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+	transition: box-shadow $transition-base;
+}
+
+@mixin btn-gradient($from, $to, $shadow-color) {
+	background: linear-gradient(135deg, $from, $to);
+	border: none;
+
+	&:hover {
+		background: linear-gradient(135deg, color.scale($from, $lightness: -8%), $from);
+		box-shadow: 0 4px 14px rgba($shadow-color, 0.35);
+		transform: translateY(-1px);
+	}
+
+	&:active,
+	&:focus {
+		background: linear-gradient(135deg, color.scale($from, $lightness: -15%), $from) !important;
+		border: none !important;
+		box-shadow: 0 0 0 3px rgba($shadow-color, 0.2) !important;
+	}
+}

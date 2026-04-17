@@ -14,7 +14,7 @@ function css_styles() {
 	return gulp.src([
 		"./node_modules/bootstrap/dist/css/bootstrap.min.css",
 		"./node_modules/bootstrap-icons/font/bootstrap-icons.css",
-		"./source/scss/styles.scss",
+		"./source/scss/commons.scss",
 	])
 		.pipe(sourcemaps.init())
 		.pipe(sass({
@@ -53,7 +53,7 @@ function js_scripts() {
 // Watch files
 function watchFiles() {
 	gulp.watch(
-		["./source/scss/*.scss"],
+		["./source/scss/**/*.scss"],
 		{ usePolling: true },
 		gulp.parallel(css_styles)
 	);

@@ -1,0 +1,48 @@
+@use 'variables' as *;
+
+// =============================================
+//  ADMIN STAT CARDS
+// =============================================
+.stat-card {
+	text-align: center;
+	padding: 1.5rem 1rem;
+	border-radius: $radius-lg;
+	background: #fff;
+	border: 1px solid $slate-200;
+	transition: transform $transition-base, box-shadow $transition-base;
+
+	&:hover {
+		transform: translateY(-3px);
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+	}
+
+	.stat-value {
+		font-size: 2rem;
+		font-weight: 800;
+		color: $slate-800;
+		line-height: 1;
+	}
+
+	.stat-label {
+		font-size: 0.8rem;
+		color: $slate-400;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		margin-top: 0.3rem;
+	}
+}
+
+// =============================================
+//  DANGER ZONE
+// =============================================
+.danger-zone {
+	border: 1px solid #fecaca !important;
+	border-radius: $radius-lg;
+	background: #fff;
+
+	.card-header {
+		color: $red;
+		background: #fff5f5;
+		border-bottom-color: #fecaca;
+	}
+}
