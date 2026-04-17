@@ -9,7 +9,7 @@
     <?php endif ?>
 
     <div class="page-header d-flex gap-2 align-items-center">
-        <h2 class="page-title flex-grow-1"><i class="bi bi-people me-2"></i><?= $this->__('admin.users') ?></h2>
+        <h2 class="page-title flex-grow-1"><?= $this->__('admin.users') ?></h2>
         <a href="/admin/register-user" class="btn btn-primary btn-sm">
             <i class="bi bi-person-plus"></i> <?= $this->__('admin.new_user') ?>
         </a>

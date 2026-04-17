@@ -3,7 +3,7 @@
 <div class="container">
 
     <div class="page-header d-flex gap-2 align-items-center">
-        <h2 class="page-title flex-grow-1"><i class="bi bi-phone me-2"></i><?= $this->__('general.devices') ?></h2>
+        <h2 class="page-title flex-grow-1"><?= $this->__('general.devices') ?></h2>
     </div>
 
     <?php if (!empty($devices)): ?>

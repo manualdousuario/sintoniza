@@ -3,7 +3,7 @@
 <div class="container">
 
     <div class="page-header d-flex gap-2 align-items-center">
-        <h2 class="page-title flex-grow-1"><i class="bi bi-shield-lock me-2"></i><?= $this->__('general.administration') ?></h2>
+        <h2 class="page-title flex-grow-1"><?= $this->__('general.administration') ?></h2>
     </div>
 
     <div class="row g-3 mb-4">

@@ -7,7 +7,7 @@ $this->layout('layout', ['title' => $this->__('general.profile'), 'logged' => $l
 <div class="container">
 
     <div class="page-header d-flex gap-2 align-items-center">
-        <h2 class="page-title flex-grow-1"><i class="bi bi-gear me-2"></i><?= $this->__('general.profile') ?></h2>
+        <h2 class="page-title flex-grow-1"><?= $this->__('general.profile') ?></h2>
     </div>
 
     <?php if ($error): ?>

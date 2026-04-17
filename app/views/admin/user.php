@@ -6,7 +6,7 @@
         <a href="/admin/users" class="btn btn-sm btn-secondary">
             <i class="bi bi-arrow-left"></i>
         </a>
-        <h2 class="page-title flex-grow-1"><i class="bi bi-person-gear me-2"></i><?= $this->__('admin.edit_user') ?>: <?= $this->e($user->name) ?></h2>
+        <h2 class="page-title flex-grow-1"><?= $this->__('admin.edit_user') ?>: <?= $this->e($user->name) ?></h2>
     </div>
 
     <?php if ($message): ?>

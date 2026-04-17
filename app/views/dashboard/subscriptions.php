@@ -3,7 +3,7 @@
 <div class="container">
 
     <div class="page-header d-flex gap-2 align-items-center">
-        <h2 class="page-title flex-grow-1"><i class="bi bi-mic-fill me-2"></i><?= $this->__('general.subscriptions') ?></h2>
+        <h2 class="page-title flex-grow-1"><?= $this->__('general.subscriptions') ?></h2>
         <a href="/subscriptions/<?= $this->e($userName) ?>.opml" target="_blank" class="btn btn-sm btn-secondary"><i class="bi bi-rss-fill"></i></a>
     </div>
 

@@ -5,9 +5,9 @@
     <div class="page-header d-flex gap-2 align-items-center">
         <a href="/dashboard" class="btn btn-sm btn-secondary"><i class="bi bi-arrow-left"></i></a>
         <?php if (isset($subscription->title)): ?>
-            <h2 class="page-title flex-grow-1"><i class="bi bi-mic-fill me-2"></i><?= $this->e($subscription->title) ?></h2>
+            <h2 class="page-title flex-grow-1"><?= $this->e($subscription->title) ?></h2>
         <?php else: ?>
-            <h2 class="page-title flex-grow-1"><i class="bi bi-mic-fill me-2"></i><?= $this->__('general.subscriptions') ?></h2>
+            <h2 class="page-title flex-grow-1"><?= $this->__('general.subscriptions') ?></h2>
         <?php endif ?>
     </div>
 

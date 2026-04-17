@@ -6,7 +6,7 @@
         <a href="/admin/users" class="btn btn-sm btn-secondary">
             <i class="bi bi-arrow-left"></i>
         </a>
-        <h2 class="page-title flex-grow-1"><i class="bi bi-person-plus me-2"></i><?= $this->__('admin.register_user') ?></h2>
+        <h2 class="page-title flex-grow-1"><?= $this->__('admin.register_user') ?></h2>
     </div>
 
     <?php if ($message): ?>
