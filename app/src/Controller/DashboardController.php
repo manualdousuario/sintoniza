@@ -9,6 +9,7 @@ use Laminas\Diactoros\Response\HtmlResponse;
 use League\Plates\Engine;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Sintoniza\Cache\CacheInterface;
 use Sintoniza\Database\DB;
 use Sintoniza\Exception\AuthException;
 use Sintoniza\Exception\ValidationException;
@@ -21,11 +22,13 @@ class DashboardController
         private DB $db,
         private UserService $userService,
         private Session $session,
-        private Engine $plates
+        private Engine $plates,
+        private CacheInterface $cache
     ) {}
 
-    private const SUBS_PER_PAGE    = 20;
-    private const ACTIONS_PER_PAGE = 20;
+    private const SUBS_PER_PAGE         = 20;
+    private const ACTIONS_PER_PAGE      = 20;
+    private const ACTIONS_COUNT_TTL     = 30;
 
     private function isAdmin(ServerRequestInterface $request): bool
     {
@@ -59,7 +62,11 @@ class DashboardController
         $gpodder = $request->getAttribute('gpodder');
 
         $page    = max(1, (int) ($request->getQueryParams()['page'] ?? 1));
-        $total   = $gpodder->countActions();
+        $total   = $this->cache->remember(
+            "dashboard:actions_count:{$gpodder->user->id}",
+            self::ACTIONS_COUNT_TTL,
+            fn() => $gpodder->countActions()
+        );
         $pages   = (int) ceil($total / self::ACTIONS_PER_PAGE);
         $offset  = ($page - 1) * self::ACTIONS_PER_PAGE;
         $actions = $gpodder->listActionsPage($offset, self::ACTIONS_PER_PAGE);

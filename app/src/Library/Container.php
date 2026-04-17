@@ -123,7 +123,8 @@ class Container
                 ->addArgument(DB::class)
                 ->addArgument(UserService::class)
                 ->addArgument(Session::class)
-                ->addArgument(Engine::class);
+                ->addArgument(Engine::class)
+                ->addArgument(CacheInterface::class);
 
             $container->add(SubscriptionController::class)
                 ->addArgument(DB::class)
