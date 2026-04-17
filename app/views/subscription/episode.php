@@ -72,7 +72,7 @@
     <h3 class="fs-5 fw-bold mb-3"><?= $this->__('general.history') ?></h3>
 
     <?php if (empty($actions)): ?>
-        <div class="alert alert-secondary mb-4"><?= $this->__('dashboard.no_info') ?></div>
+        <div class="alert alert-primary mb-4"><?= $this->__('dashboard.no_info') ?></div>
     <?php else: ?>
         <ul class="list-group mb-4">
             <?php foreach ($actions as $row):

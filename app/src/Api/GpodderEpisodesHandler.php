@@ -49,35 +49,35 @@ class GpodderEpisodesHandler
         try {
             $this->db->beginTransaction();
             $timestamp = time();
+            $userId    = (int) $this->api->getUser()->id;
 
+            $valid = [];
             foreach ($input as $action) {
                 try {
                     $this->validateEpisodeAction($action);
+                    $valid[] = $action;
                 } catch (InvalidArgumentException) {
                     continue;
                 }
+            }
 
-                $subscription_id = $this->db->firstColumn(
-                    'SELECT id FROM subscriptions WHERE url = ? AND user = ?',
-                    $action->podcast,
-                    $this->api->getUser()->id
-                );
+            if (empty($valid)) {
+                $this->db->commit();
+                return ['timestamp' => $timestamp, 'update_urls' => []];
+            }
 
-                if (!$subscription_id) {
-                    $this->db->simple('INSERT INTO subscriptions (user, url, changed) VALUES (?, ?, ?)', $this->api->getUser()->id, $action->podcast, $timestamp);
-                    $subscription_id = $this->db->lastInsertId();
-                }
+            $subByUrl = $this->loadOrCreateSubscriptions($valid, $userId, $timestamp);
+            $episodes = $this->loadEpisodeIds($valid, $subByUrl);
 
-                $feed_id    = $this->db->firstColumn('SELECT feed FROM subscriptions WHERE id = ?', $subscription_id);
-                $episode_id = null;
-
-                if ($feed_id) {
-                    $episode_id = $this->db->firstColumn('SELECT id FROM episodes WHERE media_url = ? AND feed = ?', $action->episode, $feed_id);
-                }
+            foreach ($valid as $action) {
+                $sub        = $subByUrl[$action->podcast];
+                $episode_id = $sub['feed'] !== null
+                    ? ($episodes[$sub['feed'] . ':' . $action->episode] ?? null)
+                    : null;
 
                 $device_id = null;
                 if (!empty($action->device)) {
-                    $device_id = $this->api->getDeviceID($action->device, $this->api->getUser()->id);
+                    $device_id = $this->api->getDeviceID($action->device, $userId);
                 }
 
                 $actionData = clone $action;
@@ -86,8 +86,8 @@ class GpodderEpisodesHandler
                 $this->db->simple(
                     'INSERT INTO episodes_actions (user, subscription, url, episode, changed, action, data, device)
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-                    $this->api->getUser()->id,
-                    $subscription_id,
+                    $userId,
+                    $sub['id'],
                     $action->episode,
                     $episode_id,
                     !empty($action->timestamp) ? strtotime($action->timestamp) : $timestamp,
@@ -103,6 +103,68 @@ class GpodderEpisodesHandler
             $this->db->rollBack();
             throw $e;
         }
+    }
+
+    private function loadOrCreateSubscriptions(array $actions, int $userId, int $timestamp): array
+    {
+        $urls = array_values(array_unique(array_map(fn($a) => $a->podcast, $actions)));
+        $placeholders = implode(',', array_fill(0, count($urls), '?'));
+
+        $rows = $this->db->all(
+            "SELECT id, url, feed FROM subscriptions WHERE user = ? AND url IN ($placeholders)",
+            $userId,
+            ...$urls
+        );
+
+        $map = [];
+        foreach ($rows as $row) {
+            $map[$row->url] = [
+                'id'   => (int) $row->id,
+                'feed' => $row->feed !== null ? (int) $row->feed : null,
+            ];
+        }
+
+        foreach ($urls as $url) {
+            if (!isset($map[$url])) {
+                $this->db->simple(
+                    'INSERT INTO subscriptions (user, url, changed) VALUES (?, ?, ?)',
+                    $userId,
+                    $url,
+                    $timestamp
+                );
+                $map[$url] = ['id' => (int) $this->db->lastInsertId(), 'feed' => null];
+            }
+        }
+
+        return $map;
+    }
+
+    private function loadEpisodeIds(array $actions, array $subByUrl): array
+    {
+        $byFeed = [];
+        foreach ($actions as $action) {
+            $feedId = $subByUrl[$action->podcast]['feed'] ?? null;
+            if ($feedId === null) {
+                continue;
+            }
+            $byFeed[$feedId][$action->episode] = true;
+        }
+
+        $map = [];
+        foreach ($byFeed as $feedId => $urlSet) {
+            $urls         = array_keys($urlSet);
+            $placeholders = implode(',', array_fill(0, count($urls), '?'));
+            $rows = $this->db->all(
+                "SELECT id, media_url FROM episodes WHERE feed = ? AND media_url IN ($placeholders)",
+                $feedId,
+                ...$urls
+            );
+            foreach ($rows as $row) {
+                $map[$feedId . ':' . $row->media_url] = (int) $row->id;
+            }
+        }
+
+        return $map;
     }
 
     private function validateEpisodeAction(object $action): void

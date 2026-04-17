@@ -7,6 +7,19 @@
     var START_POS   = parseInt(playerEl.dataset.startPos, 10)  || 0;
     var TOTAL_DUR   = parseInt(playerEl.dataset.totalDur, 10)  || 0;
     var SYNC_EVERY  = 15000;
+    var DEVICE_ID   = 'web';
+
+    var devicePromise = null;
+    function ensureDevice() {
+        if (devicePromise) return devicePromise;
+        devicePromise = fetch('/api/2/devices/' + DEVICE_ID + '.json', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ caption: 'Web', type: 'desktop' })
+        }).catch(function () {});
+        return devicePromise;
+    }
 
     var btnPlay    = document.getElementById('btn-play-pause');
     var iconPlay   = document.getElementById('icon-play-pause');
@@ -20,6 +33,8 @@
     var startedAt  = START_POS;
     var seekPending = false;
 
+    ensureDevice();
+
     function fmt(s) {
         if (!isFinite(s) || s < 0) return '--:--';
         s = Math.floor(s);
@@ -30,18 +45,7 @@
         return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
     }
 
-    function syncAction(position) {
-        var total = TOTAL_DUR > 0 ? TOTAL_DUR : Math.floor(sound.duration() || 0);
-        var body  = JSON.stringify([{
-            podcast:   PODCAST_URL,
-            episode:   EPISODE_URL,
-            action:    'play',
-            timestamp: new Date().toISOString().replace(/\.\d{3}/, ''),
-            position:  Math.floor(position),
-            started:   Math.floor(startedAt),
-            total:     total
-        }]);
-
+    function sendAction(body) {
         if (navigator.sendBeacon) {
             navigator.sendBeacon('/api/2/episodes/current.json', new Blob([body], { type: 'application/json' }));
         } else {
@@ -53,6 +57,24 @@
                 keepalive: true
             }).catch(function () {});
         }
+    }
+
+    function syncAction(position) {
+        var total = TOTAL_DUR > 0 ? TOTAL_DUR : Math.floor(sound.duration() || 0);
+        var body  = JSON.stringify([{
+            podcast:   PODCAST_URL,
+            episode:   EPISODE_URL,
+            device:    DEVICE_ID,
+            action:    'play',
+            timestamp: new Date().toISOString().replace(/\.\d{3}/, ''),
+            position:  Math.floor(position),
+            started:   Math.floor(startedAt),
+            total:     total
+        }]);
+
+        ensureDevice().then(function () {
+            sendAction(body);
+        });
     }
 
     function startSyncTimer() {
@@ -148,9 +170,14 @@
     progressEl.addEventListener('input', function () {
         var dur = sound.duration();
         if (!dur) return;
+        timeCurrent.textContent = fmt((progressEl.value / 1000) * dur);
+    });
+
+    progressEl.addEventListener('change', function () {
+        var dur = sound.duration();
+        if (!dur) return;
         seekPending = true;
         sound.seek((progressEl.value / 1000) * dur);
-        timeCurrent.textContent = fmt((progressEl.value / 1000) * dur);
     });
 
     window.addEventListener('beforeunload', function () {
