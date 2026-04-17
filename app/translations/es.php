@@ -26,6 +26,7 @@ return [
         'email' => 'Email',
         'min_password_length' => 'Contraseña (mínimo 8 caracters)',
         'latest_updates' => 'Últimas actualizaciones',
+        'latest_updates_info' => 'Mostrando actividad de los últimos 7 días',
         'devices' => 'Dispositivos',
         'forgot_password' => '¿Olvidó su contraseña?',
         'send_reset_link' => 'Enviar enlace para restablecer',

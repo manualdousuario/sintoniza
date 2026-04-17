@@ -5,6 +5,9 @@
     <div class="page-header d-flex gap-2 align-items-center">
         <h2 class="page-title flex-grow-1"><?= $this->__('general.latest_updates') ?></h2>
     </div>
+    <p class="text-muted small mb-3">
+        <i class="bi bi-info-circle"></i> <?= $this->__('general.latest_updates_info') ?>
+    </p>
 
     <?php if (empty($actions)): ?>
         <div class="alert alert-warning"><?= $this->__('dashboard.no_info') ?></div>

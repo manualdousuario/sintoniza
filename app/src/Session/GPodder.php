@@ -327,8 +327,10 @@ class GPodder
                 INNER JOIN subscriptions s ON s.id = a.subscription
                 LEFT JOIN feeds f ON f.id = s.feed
              WHERE a.user = ? AND s.deleted = 0
-                AND (f.id IS NULL OR f.active = 1)',
-            $this->user->id
+                AND (f.id IS NULL OR f.active = 1)
+                AND a.changed >= ?',
+            $this->user->id,
+            time() - 7 * 86400
         );
     }
 
@@ -348,9 +350,11 @@ class GPodder
                 LEFT JOIN episodes e ON e.id = a.episode
             WHERE a.user = ? AND s.deleted = 0
                 AND (f.id IS NULL OR f.active = 1)
+                AND a.changed >= ?
             ORDER BY a.changed DESC
             LIMIT ? OFFSET ?',
             $this->user->id,
+            time() - 7 * 86400,
             $limit,
             $offset
         );
