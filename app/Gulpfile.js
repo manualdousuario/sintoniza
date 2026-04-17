@@ -13,7 +13,7 @@ const clean_css   = require('gulp-clean-css');
 function css_styles() {
 	return gulp.src([
 		"./node_modules/bootstrap/dist/css/bootstrap.min.css",
-		"./node_modules/bootstrap-icons/font/bootstrap-icons.css",
+		"./node_modules/bootstrap-icons/font/bootstrap-icons.scss",
 		"./source/scss/commons.scss",
 	])
 		.pipe(sourcemaps.init())
@@ -23,15 +23,14 @@ function css_styles() {
 		}))
 		.pipe(concat('styles.css'))
 		.pipe(clean_css())
-		.pipe(gulp.dest("./public/assets/css/"))
 		.pipe(sourcemaps.write('.'))
 		.pipe(gulp.dest("./public/assets/css/"))
 }
 
 // Fonts task
 function copy_fonts() {
-	return gulp.src("./node_modules/bootstrap-icons/font/fonts/*")
-		.pipe(gulp.dest("./public/assets/css/fonts/"))
+	return gulp.src("./node_modules/bootstrap-icons/font/fonts/*", { encoding: false })
+		.pipe(gulp.dest("./public/assets/css/fonts/", { encoding: false }))
 }
 
 // JS task
