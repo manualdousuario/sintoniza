@@ -18,6 +18,7 @@ use Sintoniza\Controller\GpodderController;
 use Sintoniza\Controller\SubscriptionController;
 use Sintoniza\Database\DB;
 use Sintoniza\Repository\EpisodeRepository;
+use Sintoniza\Feed\DescriptionFormatter;
 use Sintoniza\Repository\FeedRepository;
 use Sintoniza\Repository\SubscriptionRepository;
 use Sintoniza\Repository\UserRepository;
@@ -58,7 +59,7 @@ class Container
                 $engine->addFolder('subscription', APP_PATH . '/views/subscription');
                 $engine->addFolder('auth',         APP_PATH . '/views');
                 $engine->registerFunction('__',                 fn(string $key) => __($key));
-                $engine->registerFunction('format_description', fn(?string $s) => format_description($s));
+                $engine->registerFunction('format_description', fn(?string $s) => DescriptionFormatter::format($s));
                 return $engine;
             })->setShared(true);
 
