@@ -259,6 +259,7 @@ class GPodder
                 LEFT JOIN episodes_actions a ON a.subscription = s.id
                 LEFT JOIN feeds f ON f.id = s.feed
             WHERE s.user = ? AND s.deleted = 0
+                AND (f.id IS NULL OR f.active = 1)
             GROUP BY s.id, s.user, s.url, s.feed, s.changed, s.deleted, f.title
             ORDER BY last_change DESC',
             $this->user->id
@@ -268,7 +269,10 @@ class GPodder
     public function countActiveSubscriptions(): int
     {
         return (int) $this->db->firstColumn(
-            'SELECT COUNT(*) FROM subscriptions WHERE user = ? AND deleted = 0',
+            'SELECT COUNT(*) FROM subscriptions s
+                LEFT JOIN feeds f ON f.id = s.feed
+             WHERE s.user = ? AND s.deleted = 0
+                AND (f.id IS NULL OR f.active = 1)',
             $this->user->id
         );
     }
@@ -286,6 +290,7 @@ class GPodder
                 LEFT JOIN episodes_actions a ON a.subscription = s.id
                 LEFT JOIN feeds f ON f.id = s.feed
             WHERE s.user = ? AND s.deleted = 0
+                AND (f.id IS NULL OR f.active = 1)
             GROUP BY s.id, s.user, s.url, s.feed, s.changed, s.deleted, f.title
             ORDER BY last_change DESC
             LIMIT ? OFFSET ?',
@@ -320,7 +325,9 @@ class GPodder
             'SELECT COUNT(*)
              FROM episodes_actions a
                 INNER JOIN subscriptions s ON s.id = a.subscription
-             WHERE a.user = ? AND s.deleted = 0',
+                LEFT JOIN feeds f ON f.id = s.feed
+             WHERE a.user = ? AND s.deleted = 0
+                AND (f.id IS NULL OR f.active = 1)',
             $this->user->id
         );
     }
@@ -336,9 +343,11 @@ class GPodder
                 e.url AS episode_url
             FROM episodes_actions a
                 INNER JOIN subscriptions s ON s.id = a.subscription
+                LEFT JOIN feeds f ON f.id = s.feed
                 LEFT JOIN devices d ON d.id = a.device AND a.user = d.user
                 LEFT JOIN episodes e ON e.id = a.episode
             WHERE a.user = ? AND s.deleted = 0
+                AND (f.id IS NULL OR f.active = 1)
             ORDER BY a.changed DESC
             LIMIT ? OFFSET ?',
             $this->user->id,
@@ -370,7 +379,8 @@ class GPodder
             'SELECT s.id AS subscription_id, s.feed AS feed_id, s.url AS subscription_url, f.title, f.image_url, f.description, f.url, f.feed_url
              FROM subscriptions s
              LEFT JOIN feeds f ON f.id = s.feed
-             WHERE s.id = ? AND s.user = ? AND s.deleted = 0',
+             WHERE s.id = ? AND s.user = ? AND s.deleted = 0
+                AND (f.id IS NULL OR f.active = 1)',
             $subscriptionId,
             $this->user->id
         );

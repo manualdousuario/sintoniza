@@ -21,26 +21,37 @@ class FeedService
         private ?PodcastIndexClient $podcastIndexClient = null
     ) {}
 
-    public function fetchAndSync(string $url): ?Feed
+    public function fetchAndSync(string $url, ?string &$source = null): ?Feed
     {
+        $source = null;
+
         try {
-            $feed    = new Feed($url);
-            $fetched = false;
+            $feed         = new Feed($url);
+            $fetched      = false;
+            $piAttempted  = false;
 
             if ($this->podcastIndexClient && PODCAST_INDEX_USE_AS_PRIMARY) {
-                $fetched = $feed->fetchFromPodcastIndex($this->podcastIndexClient);
+                $piAttempted = true;
+                $fetched     = $feed->fetchFromPodcastIndex($this->podcastIndexClient);
 
-                if (!$fetched) {
+                if ($fetched) {
+                    $source = 'podcastindex';
+                } else {
                     $this->logger->warning('PodcastIndex fetch failed', ['url' => $url]);
                 }
             }
 
             if (!$fetched && (!$this->podcastIndexClient || !PODCAST_INDEX_USE_AS_PRIMARY || PODCAST_INDEX_FALLBACK_TO_RSS)) {
                 $fetched = $feed->fetch($this->client);
+
+                if ($fetched) {
+                    $source = $piAttempted ? 'rss-fallback' : 'rss';
+                }
             }
 
             if (!$fetched) {
                 $this->logger->warning('Failed to fetch feed', ['url' => $url]);
+                $this->feedRepository->recordFailure($url);
                 return null;
             }
 
@@ -53,6 +64,7 @@ class FeedService
                 'url'   => $url,
                 'error' => $e->getMessage(),
             ]);
+            $this->feedRepository->recordFailure($url);
 
             return null;
         }
@@ -65,9 +77,10 @@ class FeedService
             FROM subscriptions s
                 LEFT JOIN episodes_actions a ON a.subscription = s.id
                 LEFT JOIN feeds f ON f.id = s.feed
-            WHERE f.last_fetch IS NULL
-                OR f.last_fetch < s.changed
-                OR f.last_fetch < COALESCE(a.changed, 0)
+            WHERE (f.active IS NULL OR f.active = 1)
+                AND (f.last_fetch IS NULL
+                    OR f.last_fetch < s.changed
+                    OR f.last_fetch < COALESCE(a.changed, 0))
             GROUP BY s.id, s.url, s.changed';
 
         @ini_set('max_execution_time', '3600');
@@ -78,10 +91,23 @@ class FeedService
             @set_time_limit(30);
 
             if ($cli) {
-                printf("Atualizando %s\n", $row->url);
+                printf("Updating %s\n", $row->url);
+                @flush();
             }
 
-            $feed = $this->fetchAndSync($row->url);
+            $source = null;
+            $feed   = $this->fetchAndSync($row->url, $source);
+
+            if ($cli) {
+                $label = match ($source) {
+                    'podcastindex' => 'Podcast Index',
+                    'rss'          => 'RSS',
+                    'rss-fallback' => 'RSS (fallback Podcast Index failed)',
+                    default        => 'Failed',
+                };
+                printf("  -> Source: %s\n", $label);
+                @flush();
+            }
 
             if ($feed) {
                 $count++;

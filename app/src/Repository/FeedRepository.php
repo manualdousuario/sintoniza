@@ -67,4 +67,26 @@ class FeedRepository
             $minutes
         );
     }
+
+    public function recordFailure(string $url, int $maxFailures = 3): void
+    {
+        $this->db->simple(
+            'INSERT INTO feeds (feed_url, last_fetch, fetch_failures, active) VALUES (?, 0, 1, 1)
+             ON DUPLICATE KEY UPDATE
+                active = CASE WHEN fetch_failures + 1 >= ? THEN 0 ELSE active END,
+                fetch_failures = fetch_failures + 1',
+            $url,
+            $maxFailures
+        );
+
+        $feedId = (int) $this->db->firstColumn('SELECT id FROM feeds WHERE feed_url = ?', $url);
+
+        if ($feedId > 0) {
+            $this->db->simple(
+                'UPDATE subscriptions SET feed = ? WHERE url = ? AND feed IS NULL',
+                $feedId,
+                $url
+            );
+        }
+    }
 }

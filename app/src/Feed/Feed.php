@@ -21,6 +21,8 @@ class Feed
     public ?string $description = null;
     public ?DateTime $pubdate   = null;
     public int $last_fetch      = 0;
+    public int $fetch_failures  = 0;
+    public int $active          = 1;
 
     protected array $episodes = [];
 
@@ -49,7 +51,7 @@ class Feed
 
             if ($key === 'pubdate' && $value) {
                 $this->$key = new DateTime($value);
-            } elseif ($key === 'last_fetch') {
+            } elseif (in_array($key, ['last_fetch', 'fetch_failures', 'active'], true)) {
                 $this->$key = (int) $value;
             } else {
                 $this->$key = $value;

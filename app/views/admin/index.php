@@ -39,7 +39,7 @@
                 <div class="card-header fw-semibold">
                     <i class="bi bi-graph-up me-2"></i><?= $this->__('admin.last_7_days') ?>
                 </div>
-                <div class="card-body d-flex flex-column justify-content-center align-items-center py-4">
+                <div class="stat-card card-body d-flex flex-column justify-content-center align-items-center py-4">
                     <div class="stat-value"><?= $stats['subs_7d'] ?></div>
                     <div class="stat-label"><?= $this->__('admin.new_subscriptions') ?></div>
                 </div>
