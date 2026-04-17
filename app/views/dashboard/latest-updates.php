@@ -6,7 +6,9 @@
         <h2 class="page-title flex-grow-1"><i class="bi bi-clock-history me-2"></i><?= $this->__('general.latest_updates') ?></h2>
     </div>
 
-    <?php if (!empty($actions)): ?>
+    <?php if (empty($actions)): ?>
+        <div class="alert alert-warning"><?= $this->__('dashboard.no_info') ?></div>
+    <?php else: ?>
         <ul class="list-group mb-4">
         <?php foreach ($actions as $row):
             $url = strtok(basename($row->url), '?');
@@ -41,6 +43,30 @@
             </li>
         <?php endforeach ?>
         </ul>
+
+        <?php if ($pages > 1): ?>
+            <nav>
+                <ul class="pagination">
+                    <?php if ($page > 1): ?>
+                        <li class="page-item">
+                            <a class="page-link" href="/dashboard/profile/latest-updates?page=<?= $page - 1 ?>">&laquo;</a>
+                        </li>
+                    <?php endif ?>
+
+                    <?php for ($p = max(1, $page - 2); $p <= min($pages, $page + 2); $p++): ?>
+                        <li class="page-item <?= $p === $page ? 'active' : '' ?>">
+                            <a class="page-link" href="/dashboard/profile/latest-updates?page=<?= $p ?>"><?= $p ?></a>
+                        </li>
+                    <?php endfor ?>
+
+                    <?php if ($page < $pages): ?>
+                        <li class="page-item">
+                            <a class="page-link" href="/dashboard/profile/latest-updates?page=<?= $page + 1 ?>">&raquo;</a>
+                        </li>
+                    <?php endif ?>
+                </ul>
+            </nav>
+        <?php endif ?>
     <?php endif ?>
 
 </div>

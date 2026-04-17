@@ -314,6 +314,39 @@ class GPodder
         );
     }
 
+    public function countActions(): int
+    {
+        return (int) $this->db->firstColumn(
+            'SELECT COUNT(*)
+             FROM episodes_actions a
+                INNER JOIN subscriptions s ON s.id = a.subscription
+             WHERE a.user = ? AND s.deleted = 0',
+            $this->user->id
+        );
+    }
+
+    public function listActionsPage(int $offset, int $limit): array
+    {
+        return $this->db->all(
+            'SELECT a.*,
+                d.name AS device_name,
+                e.title,
+                e.image_url,
+                e.duration,
+                e.url AS episode_url
+            FROM episodes_actions a
+                INNER JOIN subscriptions s ON s.id = a.subscription
+                LEFT JOIN devices d ON d.id = a.device AND a.user = d.user
+                LEFT JOIN episodes e ON e.id = a.episode
+            WHERE a.user = ? AND s.deleted = 0
+            ORDER BY a.changed DESC
+            LIMIT ? OFFSET ?',
+            $this->user->id,
+            $limit,
+            $offset
+        );
+    }
+
     public function getFeedForSubscription(int $subscription): ?Feed
     {
         $data = $this->db->firstRow(

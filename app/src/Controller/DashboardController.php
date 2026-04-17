@@ -24,7 +24,8 @@ class DashboardController
         private Engine $plates
     ) {}
 
-    private const SUBS_PER_PAGE = 20;
+    private const SUBS_PER_PAGE    = 20;
+    private const ACTIONS_PER_PAGE = 20;
 
     private function isAdmin(ServerRequestInterface $request): bool
     {
@@ -55,21 +56,20 @@ class DashboardController
 
     public function latestUpdates(ServerRequestInterface $request, array $args = []): ResponseInterface
     {
-        $gpodder       = $request->getAttribute('gpodder');
-        $subscriptions = $gpodder->listActiveSubscriptions();
-        $actions       = [];
+        $gpodder = $request->getAttribute('gpodder');
 
-        foreach ($subscriptions as $sub) {
-            $actions = array_merge($actions, $gpodder->listActions((int) $sub->id));
-        }
-
-        usort($actions, fn($a, $b) => $b->changed - $a->changed);
-        $actions = array_slice($actions, 0, 10);
+        $page    = max(1, (int) ($request->getQueryParams()['page'] ?? 1));
+        $total   = $gpodder->countActions();
+        $pages   = (int) ceil($total / self::ACTIONS_PER_PAGE);
+        $offset  = ($page - 1) * self::ACTIONS_PER_PAGE;
+        $actions = $gpodder->listActionsPage($offset, self::ACTIONS_PER_PAGE);
 
         return new HtmlResponse($this->plates->render('dashboard::latest-updates', [
             'logged'  => $gpodder->isLogged(),
             'isAdmin' => $this->isAdmin($request),
             'actions' => $actions,
+            'page'    => $page,
+            'pages'   => $pages,
         ]));
     }
 
