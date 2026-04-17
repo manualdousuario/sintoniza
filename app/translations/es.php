@@ -110,6 +110,18 @@ return [
         'desktop' => 'Escritorio',
         'unavailable' => 'No disponible'
     ],
+    'player' => [
+        'loading' => 'Cargando audio...',
+        'resuming' => 'Reanudando desde %s',
+        'ready' => 'Listo',
+        'load_error' => 'Error al cargar el audio.',
+        'playing' => 'Reproduciendo',
+        'paused' => 'Pausado',
+        'stopped' => 'Detenido',
+        'ended' => 'Finalizado',
+        'play' => 'Reproducir',
+        'pause' => 'Pausar'
+    ],
     'actions' => [
         'played' => 'Reproducido',
         'downloaded' => 'Descargado',

@@ -110,6 +110,18 @@ return [
         'desktop' => 'Desktop',
         'unavailable' => 'Indisponível'
     ],
+    'player' => [
+        'loading' => 'Carregando áudio...',
+        'resuming' => 'Retomando do ponto %s',
+        'ready' => 'Pronto',
+        'load_error' => 'Erro ao carregar o áudio.',
+        'playing' => 'Reproduzindo',
+        'paused' => 'Pausado',
+        'stopped' => 'Parado',
+        'ended' => 'Concluído',
+        'play' => 'Reproduzir',
+        'pause' => 'Pausar'
+    ],
     'actions' => [
         'played' => 'Tocado',
         'downloaded' => 'Baixado',

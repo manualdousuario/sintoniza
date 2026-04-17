@@ -11,6 +11,18 @@
         }
     }
     $podcastUrl = $subscription->subscription_url ?? $subscription->feed_url ?? '';
+    $playerI18n = [
+        'loading'    => $this->__('player.loading'),
+        'resuming'   => $this->__('player.resuming'),
+        'ready'      => $this->__('player.ready'),
+        'load_error' => $this->__('player.load_error'),
+        'playing'    => $this->__('player.playing'),
+        'paused'     => $this->__('player.paused'),
+        'stopped'    => $this->__('player.stopped'),
+        'ended'      => $this->__('player.ended'),
+        'play'       => $this->__('player.play'),
+        'pause'      => $this->__('player.pause'),
+    ];
     ?>
 
     <div class="page-header d-flex gap-2 align-items-center">
@@ -39,12 +51,13 @@
                 data-episode-url="<?= $this->e($episode->media_url) ?>"
                 data-podcast-url="<?= $this->e($podcastUrl) ?>"
                 data-start-pos="<?= $lastPosition ?>"
-                data-total-dur="<?= (int) ($episode->duration ?? 0) ?>">
+                data-total-dur="<?= (int) ($episode->duration ?? 0) ?>"
+                data-i18n="<?= $this->e(json_encode($playerI18n, JSON_UNESCAPED_UNICODE)) ?>">
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-3">
                         <button id="btn-play-pause"
                             class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-                            style="width:52px;height:52px" disabled aria-label="Play">
+                            style="width:52px;height:52px" disabled aria-label="<?= $this->e($playerI18n['play']) ?>">
                             <i class="bi bi-play-fill fs-4" id="icon-play-pause"></i>
                         </button>
                         <div class="flex-grow-1">
@@ -56,7 +69,7 @@
                                 step="1" disabled>
                         </div>
                     </div>
-                    <p class="small text-muted mb-0 mt-2" id="player-status">Carregando áudio...</p>
+                    <p class="small text-muted mb-0 mt-2" id="player-status"><?= $this->e($playerI18n['loading']) ?></p>
                 </div>
             </div>
             <a href="<?= $this->e($episode->media_url) ?>" target="_blank"

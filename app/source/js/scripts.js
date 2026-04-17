@@ -9,6 +9,13 @@
     var SYNC_EVERY  = 15000;
     var DEVICE_ID   = 'web';
 
+    var I18N = {};
+    try { I18N = JSON.parse(playerEl.dataset.i18n || '{}'); } catch (e) {}
+    function t(key, arg) {
+        var s = I18N[key] || '';
+        return arg != null ? s.replace('%s', arg) : s;
+    }
+
     var devicePromise = null;
     function ensureDevice() {
         if (devicePromise) return devicePromise;
@@ -111,39 +118,39 @@
             progressEl.disabled   = false;
             btnPlay.disabled      = false;
             statusEl.textContent  = START_POS > 0
-                ? 'Retomando do ponto ' + fmt(START_POS)
-                : 'Pronto';
+                ? t('resuming', fmt(START_POS))
+                : t('ready');
             if (START_POS > 0) sound.seek(START_POS);
         },
         onloaderror: function () {
-            statusEl.textContent = 'Erro ao carregar o áudio.';
+            statusEl.textContent = t('load_error');
         },
         onplay: function () {
             iconPlay.className   = 'bi bi-pause-fill fs-4';
-            btnPlay.setAttribute('aria-label', 'Pause');
-            statusEl.textContent = 'Reproduzindo';
+            btnPlay.setAttribute('aria-label', t('pause'));
+            statusEl.textContent = t('playing');
             startSyncTimer();
             rafTimer = requestAnimationFrame(updateProgress);
         },
         onpause: function () {
             iconPlay.className   = 'bi bi-play-fill fs-4';
-            btnPlay.setAttribute('aria-label', 'Play');
-            statusEl.textContent = 'Pausado';
+            btnPlay.setAttribute('aria-label', t('play'));
+            statusEl.textContent = t('paused');
             stopSyncTimer();
             stopRaf();
             syncAction(sound.seek() || 0);
         },
         onstop: function () {
             iconPlay.className   = 'bi bi-play-fill fs-4';
-            btnPlay.setAttribute('aria-label', 'Play');
-            statusEl.textContent = 'Parado';
+            btnPlay.setAttribute('aria-label', t('play'));
+            statusEl.textContent = t('stopped');
             stopSyncTimer();
             stopRaf();
         },
         onend: function () {
             iconPlay.className      = 'bi bi-play-fill fs-4';
-            btnPlay.setAttribute('aria-label', 'Play');
-            statusEl.textContent    = 'Concluído';
+            btnPlay.setAttribute('aria-label', t('play'));
+            statusEl.textContent    = t('ended');
             progressEl.value        = 1000;
             timeCurrent.textContent = timeTotal.textContent;
             stopSyncTimer();
