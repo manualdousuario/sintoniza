@@ -35,6 +35,7 @@
                             ['icon' => 'bi-phone', 'color' => '#6366f1', 'bg' => 'rgba(99,102,241,0.15)', 'label' => 'AntennaPod (Android)', 'status' => $this->__('home.synced'), 'statusClass' => 'text-success', 'statusBg' => 'rgba(52,211,153,0.12)'],
                             ['icon' => 'bi-laptop', 'color' => '#f59e0b', 'bg' => 'rgba(245,158,11,0.15)', 'label' => 'gPodder (Desktop)', 'status' => $this->__('home.synced'), 'statusClass' => 'text-success', 'statusBg' => 'rgba(52,211,153,0.12)'],
                             ['icon' => 'bi-display', 'color' => '#10b981', 'bg' => 'rgba(16,185,129,0.15)', 'label' => 'Cardo (Windows)', 'status' => $this->__('home.synced'), 'statusClass' => 'text-success', 'statusBg' => 'rgba(52,211,153,0.12)'],
+                            ['icon' => 'bi-display', 'color' => '#10b981', 'bg' => 'rgba(16,185,129,0.15)', 'label' => 'YourPods (iOS)', 'status' => $this->__('home.synced'), 'statusClass' => 'text-success', 'statusBg' => 'rgba(52,211,153,0.12)'],
                             ['icon' => 'bi-tablet', 'color' => '#8b5cf6', 'bg' => 'rgba(139,92,246,0.15)', 'label' => 'Kasts (Linux)', 'status' => $this->__('home.syncing'), 'statusClass' => 'text-warning', 'statusBg' => 'rgba(251,191,36,0.12)'],
                         ];
                         foreach ($syncItems as $item): ?>
@@ -136,12 +137,12 @@
             <?php
             $clients = [
                 ['name' => 'AntennaPod', 'version' => '3.5.0', 'url' => 'https://github.com/AntennaPod/AntennaPod', 'icon' => 'bi-phone-fill', 'color' => '#f59e0b', 'bg' => '#fffbeb', 'platforms' => [['icon' => 'bi-android2', 'label' => 'Android']]],
-                ['name' => 'gPodder', 'version' => '3.11.4', 'url' => 'https://gpodder.github.io/', 'icon' => 'bi-laptop-fill', 'color' => '#6366f1', 'bg' => '#eef2ff', 'platforms' => [['icon' => 'bi-windows', 'label' => 'Windows'], ['icon' => 'bi-apple', 'label' => 'macOS'], ['icon' => 'bi-ubuntu', 'label' => 'Linux']]],
                 ['name' => 'Cardo', 'version' => '1.90', 'url' => 'https://cardo-podcast.github.io/', 'icon' => 'bi-display-fill', 'color' => '#10b981', 'bg' => '#f0fdf4', 'platforms' => [['icon' => 'bi-windows', 'label' => 'Windows'], ['icon' => 'bi-apple', 'label' => 'macOS'], ['icon' => 'bi-ubuntu', 'label' => 'Linux']]],
                 ['name' => 'Kasts', 'version' => '21.88', 'url' => 'https://invent.kde.org/multimedia/kasts', 'icon' => 'bi-collection-play-fill', 'color' => '#8b5cf6', 'bg' => '#f5f3ff', 'platforms' => [['icon' => 'bi-windows', 'label' => 'Windows'], ['icon' => 'bi-android2', 'label' => 'Android'], ['icon' => 'bi-ubuntu', 'label' => 'Linux']]],
+                ['name' => 'YourPods', 'version' => '2.0.2', 'url' => 'https://apps.apple.com/us/app/yourpods-podcast-player/id6757721236', 'icon' => 'bi-play-circle', 'color' => '#1f1c5d', 'bg' => '#cbfbf3', 'platforms' => [['icon' => 'bi-apple', 'label' => 'iOS']]],
             ];
             foreach ($clients as $c): ?>
-                <div class="col-sm-6 col-lg-3">
+                <div class="col-sm-3">
                     <a href="<?= $c['url'] ?>" target="_blank" class="text-decoration-none">
                         <div class="client-card">
                             <div class="d-flex align-items-center gap-3 mb-3">

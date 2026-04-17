@@ -1,9 +1,9 @@
 # 🎧 Sintoniza
 
-[![en](https://img.shields.io/badge/lang-en-red.svg)](https://github.com/manualdousuario/sintoniza/blob/master/README.md)
-[![pt-br](https://img.shields.io/badge/lang-pt--br-green.svg)](https://github.com/manualdousuario/sintoniza/blob/master/README.pt-br.md)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)](https://ghcr.io/butialabs/lastfm)
+[![PHP](https://img.shields.io/badge/PHP-8.4+-purple?logo=php)](https://php.net)
 
-Sintoniza is a powerful podcast synchronization server based on the gPodder protocol. It helps you keep your podcast subscriptions, episodes, and listening history in sync across all your devices.
+Sintoniza is a powerful podcast synchronization server based on the gPodder protocol. It helps you keep your podcast subscriptions, episodes, and listening history in sync across all your devices!
 
 A public instance is available at [PC do Manual](https://sintoniza.pcdomanual.com/)
 
@@ -22,7 +22,8 @@ A public instance is available at [PC do Manual](https://sintoniza.pcdomanual.co
 - [AntennaPod](https://github.com/AntennaPod/AntennaPod) 3.5.0+ - Android
 - [Cardo](https://cardo-podcast.github.io) 1.90+ - Windows/MacOS/Linux
 - [Kasts](https://invent.kde.org/multimedia/kasts) 21.88+ - [Windows](https://cdn.kde.org/ci-builds/multimedia/kasts/)/Android/Linux
-- [gPodder](https://gpodder.github.io/) 3.11.4+ - Windows/macOS/Linux/BSD
+- [gPodder](https://gpodder.github.io) 3.11.4+ - Windows/macOS/Linux
+- [YourPods](https://apps.apple.com/us/app/yourpods-podcast-player/id6757721236) 2+ - iOS
 
 ## 🐳 Docker Installation
 
