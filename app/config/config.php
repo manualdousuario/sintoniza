@@ -7,6 +7,8 @@ require_once __DIR__ . '/../vendor/autoload.php';
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->load();
 
+define('APP_PATH', dirname(__DIR__));
+
 // Define
 define('MYSQL_HOST', $_ENV['MYSQL_HOST'] ?? 'localhost');
 define('MYSQL_USER', $_ENV['MYSQL_USER'] ?? 'root');
@@ -35,7 +37,3 @@ define('SMTP_SECURE', $_ENV['SMTP_SECURE'] ?? 'tls');
 define('SMTP_AUTH', isset($_ENV['SMTP_AUTH']) ? filter_var($_ENV['SMTP_AUTH'], FILTER_VALIDATE_BOOLEAN) : true);
 
 \Sintoniza\Library\Language::getInstance();
-
-// Templates (define html_head / html_foot functions)
-require_once __DIR__ . '/../views/header.php';
-require_once __DIR__ . '/../views/footer.php';

@@ -1,3 +1,5 @@
+<?php $this->layout('layout', ['title' => $title, 'logged' => $logged, 'isAdmin' => $isAdmin]) ?>
+
 <div class="container my-4">
 
     <?php
@@ -11,33 +13,33 @@
     $podcastUrl = $subscription->subscription_url ?? $subscription->feed_url ?? '';
     ?>
     <p>
-        <a href="/subscription/<?php echo $subscription->subscription_id; ?>"
-            class="btn btn-danger"><?php echo __('general.back'); ?></a>
+        <a href="/subscription/<?= $subscription->subscription_id ?>"
+            class="btn btn-danger"><?= $this->__('general.back') ?></a>
     </p>
 
     <div class="row mb-4">
         <?php if (!empty($episode->image_url)): ?>
             <div class="col-12 col-md-2">
                 <img class="rounded w-100 h-auto border" width="150" height="150"
-                    src="<?php echo htmlspecialchars($episode->image_url); ?>">
+                    src="<?= $this->e($episode->image_url) ?>">
             </div>
-        <?php endif; ?>
+        <?php endif ?>
         <div class="col-12 col-md-10">
             <h2 class="fs-3">
-                <?php echo htmlspecialchars($episode->title ?? basename(strtok($episode->media_url, '?'))); ?>
+                <?= $this->e($episode->title ?? basename(strtok($episode->media_url, '?'))) ?>
             </h2>
             <p class="text-muted mb-1">
-                <?php echo __('general.duration'); ?>:
-                <?php echo $episode->duration ? gmdate('H:i:s', (int) $episode->duration) : '—'; ?>
+                <?= $this->__('general.duration') ?>:
+                <?= $episode->duration ? gmdate('H:i:s', (int) $episode->duration) : '—' ?>
                 <?php if ($episode->pubdate): ?>
-                    &middot; <?php echo date('d/m/Y', strtotime($episode->pubdate)); ?>
-                <?php endif; ?>
+                    &middot; <?= date('d/m/Y', strtotime($episode->pubdate)) ?>
+                <?php endif ?>
             </p>
             <div class="card mb-4 shadow-sm" id="audio-player"
-                data-episode-url="<?php echo htmlspecialchars($episode->media_url); ?>"
-                data-podcast-url="<?php echo htmlspecialchars($podcastUrl); ?>"
-                data-start-pos="<?php echo $lastPosition; ?>"
-                data-total-dur="<?php echo (int) ($episode->duration ?? 0); ?>">
+                data-episode-url="<?= $this->e($episode->media_url) ?>"
+                data-podcast-url="<?= $this->e($podcastUrl) ?>"
+                data-start-pos="<?= $lastPosition ?>"
+                data-total-dur="<?= (int) ($episode->duration ?? 0) ?>">
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-3">
                         <button id="btn-play-pause"
@@ -57,55 +59,55 @@
                     <p class="small text-muted mb-0 mt-2" id="player-status">Carregando áudio...</p>
                 </div>
             </div>
-            <a href="<?php echo htmlspecialchars($episode->media_url); ?>" target="_blank"
+            <a href="<?= $this->e($episode->media_url) ?>" target="_blank"
                 class="btn btn-sm btn-secondary">
-                <i class="bi bi-cloud-arrow-down-fill"></i> <?php echo __('general.download'); ?>
+                <i class="bi bi-cloud-arrow-down-fill"></i> <?= $this->__('general.download') ?>
             </a>
             <?php if (!empty($episode->description)): ?>
-                <div class="mt-3"><?php echo format_description($episode->description); ?></div>
-            <?php endif; ?>
+                <div class="mt-3"><?= $this->format_description($episode->description) ?></div>
+            <?php endif ?>
         </div>
     </div>
 
-    <h3 class="fs-4 mb-3"><?php echo __('general.history'); ?></h3>
+    <h3 class="fs-4 mb-3"><?= $this->__('general.history') ?></h3>
 
     <?php if (empty($actions)): ?>
-        <div class="alert alert-secondary"><?php echo __('dashboard.no_info'); ?></div>
+        <div class="alert alert-secondary"><?= $this->__('dashboard.no_info') ?></div>
     <?php else: ?>
         <ul class="list-group">
             <?php foreach ($actions as $row):
                 if ($row->action === 'play') {
-                    $actionBadge = '<div class="badge text-bg-success rounded-pill"><i class="bi bi-play"></i> ' . __('actions.played') . '</div>';
+                    $actionBadge = '<div class="badge text-bg-success rounded-pill"><i class="bi bi-play"></i> ' . $this->__('actions.played') . '</div>';
                 } elseif ($row->action === 'download') {
-                    $actionBadge = '<div class="badge text-bg-primary rounded-pill"><i class="bi bi-download"></i> ' . __('actions.downloaded') . '</div>';
+                    $actionBadge = '<div class="badge text-bg-primary rounded-pill"><i class="bi bi-download"></i> ' . $this->__('actions.downloaded') . '</div>';
                 } elseif ($row->action === 'delete') {
-                    $actionBadge = '<div class="badge text-bg-danger rounded-pill"><i class="bi bi-trash-fill"></i> ' . __('actions.deleted') . '</div>';
+                    $actionBadge = '<div class="badge text-bg-danger rounded-pill"><i class="bi bi-trash-fill"></i> ' . $this->__('actions.deleted') . '</div>';
                 } else {
-                    $actionBadge = '<div class="badge text-bg-secondary rounded-pill"><i class="bi bi-motherboard"></i> ' . __('actions.unavailable') . '</div>';
+                    $actionBadge = '<div class="badge text-bg-secondary rounded-pill"><i class="bi bi-motherboard"></i> ' . $this->__('actions.unavailable') . '</div>';
                 }
 
                 $deviceBadge = $row->device_name
-                    ? '<div class="badge text-bg-primary rounded-pill">' . htmlspecialchars($row->device_name) . '</div>'
+                    ? '<div class="badge text-bg-primary rounded-pill">' . $this->e($row->device_name) . '</div>'
                     : '<div class="badge text-bg-secondary rounded-pill"><i class="bi bi-motherboard"></i> Indisponível</div>';
-                ?>
+            ?>
                 <li class="list-group-item p-3">
                     <div class="meta">
-                        <?php echo $actionBadge; ?>
-                        <?php echo __('actions.from'); ?>         <?php echo $deviceBadge; ?>
-                        <?php echo __('actions.on'); ?>
+                        <?= $actionBadge ?>
+                        <?= $this->__('actions.from') ?> <?= $deviceBadge ?>
+                        <?= $this->__('actions.on') ?>
                         <small>
-                            <time datetime="<?php echo date(DATE_ISO8601, $row->changed); ?>">
-                                <?php echo date('d/m/Y', $row->changed); ?>         <?php echo __('actions.at'); ?>
-                                <?php echo date('H:i', $row->changed); ?>
+                            <time datetime="<?= date(DATE_ISO8601, $row->changed) ?>">
+                                <?= date('d/m/Y', $row->changed) ?> <?= $this->__('actions.at') ?>
+                                <?= date('H:i', $row->changed) ?>
                             </time>
                         </small>
                         <?php if ($row->action === 'play' && !empty($row->position)): ?>
-                            &middot; <small><?php echo gmdate('H:i:s', (int) $row->position); ?></small>
-                        <?php endif; ?>
+                            &middot; <small><?= gmdate('H:i:s', (int) $row->position) ?></small>
+                        <?php endif ?>
                     </div>
                 </li>
-            <?php endforeach; ?>
+            <?php endforeach ?>
         </ul>
-    <?php endif; ?>
+    <?php endif ?>
 
 </div>

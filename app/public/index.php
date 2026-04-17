@@ -60,13 +60,6 @@ if ($gpodder->isLogged()) {
 	date_default_timezone_set('UTC');
 }
 
-// Helper functions used by views (will be removed in Fase 6 — Plates)
-function isAdmin(): bool
-{
-	global $gpodder;
-	return $gpodder->user && (int) $gpodder->user->admin === 1;
-}
-
 function format_description(?string $str): string
 {
 	if ($str === null) {

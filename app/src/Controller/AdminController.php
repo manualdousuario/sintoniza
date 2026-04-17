@@ -6,6 +6,7 @@ namespace Sintoniza\Controller;
 
 use Laminas\Diactoros\Response\HtmlResponse;
 use Laminas\Diactoros\Response\RedirectResponse;
+use League\Plates\Engine;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Sintoniza\Database\DB;
@@ -20,13 +21,21 @@ class AdminController
     public function __construct(
         private DB $db,
         private UserService $userService,
-        private UserRepository $userRepository
+        private UserRepository $userRepository,
+        private Engine $plates
     ) {}
+
+    private function baseData(ServerRequestInterface $request): array
+    {
+        $gpodder = $request->getAttribute('gpodder');
+        return [
+            'logged'  => $gpodder->isLogged(),
+            'isAdmin' => $gpodder->user && (int) $gpodder->user->admin === 1,
+        ];
+    }
 
     public function index(ServerRequestInterface $request, array $args = []): ResponseInterface
     {
-        $gpodder = $request->getAttribute('gpodder');
-
         $stats = [
             'users'         => (int) $this->db->firstColumn('SELECT COUNT(*) FROM users'),
             'subscriptions' => (int) $this->db->firstColumn('SELECT COUNT(*) FROM subscriptions WHERE deleted = 0'),
@@ -47,16 +56,14 @@ class AdminController
              LIMIT 10'
         );
 
-        ob_start();
-        html_head('Administração', $gpodder->isLogged());
-        require_once __DIR__ . '/../../views/admin/index.php';
-        html_foot();
-        return new HtmlResponse(ob_get_clean());
+        return new HtmlResponse($this->plates->render('admin::index', $this->baseData($request) + [
+            'stats'    => $stats,
+            'topFeeds' => $topFeeds,
+        ]));
     }
 
     public function users(ServerRequestInterface $request, array $args = []): ResponseInterface
     {
-        $gpodder = $request->getAttribute('gpodder');
         $query   = $request->getQueryParams();
         $page    = max(1, (int) ($query['page'] ?? 1));
         $total   = $this->userRepository->count();
@@ -65,19 +72,17 @@ class AdminController
         $users   = $this->userRepository->findPaginated($offset, self::USERS_PER_PAGE);
         $message = isset($query['deleted']) ? 'Usuário deletado com sucesso!' : null;
 
-        ob_start();
-        html_head('Usuários', $gpodder->isLogged());
-        if ($message) {
-            printf('<div class="alert alert-success" role="alert">%s</div>', htmlspecialchars($message));
-        }
-        require_once __DIR__ . '/../../views/admin/users.php';
-        html_foot();
-        return new HtmlResponse(ob_get_clean());
+        return new HtmlResponse($this->plates->render('admin::users', $this->baseData($request) + [
+            'users'       => $users,
+            'page'        => $page,
+            'pages'       => $pages,
+            'message'     => $message,
+            'messageType' => 'success',
+        ]));
     }
 
     public function registerUser(ServerRequestInterface $request, array $args = []): ResponseInterface
     {
-        $gpodder     = $request->getAttribute('gpodder');
         $message     = null;
         $messageType = 'success';
         $body        = $request->getParsedBody() ?? [];
@@ -96,19 +101,14 @@ class AdminController
             }
         }
 
-        ob_start();
-        html_head('Registrar Usuário', $gpodder->isLogged());
-        if ($message) {
-            printf('<div class="alert alert-%s" role="alert">%s</div>', $messageType, htmlspecialchars($message));
-        }
-        require_once __DIR__ . '/../../views/admin/register-user.php';
-        html_foot();
-        return new HtmlResponse(ob_get_clean());
+        return new HtmlResponse($this->plates->render('admin::register-user', $this->baseData($request) + [
+            'message'     => $message,
+            'messageType' => $messageType,
+        ]));
     }
 
     public function editUser(ServerRequestInterface $request, array $args = []): ResponseInterface
     {
-        $gpodder     = $request->getAttribute('gpodder');
         $userId      = (int) $args['id'];
         $message     = null;
         $messageType = 'success';
@@ -120,7 +120,7 @@ class AdminController
         }
 
         if (isset($body['toggle_active'])) {
-            $active = (int) $body['toggle_active'] === 1;
+            $active  = (int) $body['toggle_active'] === 1;
             $this->userRepository->setActive($userId, $active);
             $message = $active ? 'Conta ativada com sucesso!' : 'Conta desabilitada com sucesso!';
         } elseif (isset($body['email'])) {
@@ -135,13 +135,10 @@ class AdminController
             return new RedirectResponse('/admin/users');
         }
 
-        ob_start();
-        html_head('Editar Usuário', $gpodder->isLogged());
-        if ($message) {
-            printf('<div class="alert alert-%s" role="alert">%s</div>', $messageType, htmlspecialchars($message));
-        }
-        require_once __DIR__ . '/../../views/admin/user.php';
-        html_foot();
-        return new HtmlResponse(ob_get_clean());
+        return new HtmlResponse($this->plates->render('admin::user', $this->baseData($request) + [
+            'user'        => $user,
+            'message'     => $message,
+            'messageType' => $messageType,
+        ]));
     }
 }

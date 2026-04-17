@@ -8,6 +8,7 @@ use GuzzleHttp\Client;
 use Josantonius\Session\Session;
 use League\Container\Container as LeagueContainer;
 use League\Container\ReflectionContainer;
+use League\Plates\Engine;
 use Monolog\Logger as MonologLogger;
 use Sintoniza\Api\GpodderApi;
 use Sintoniza\Controller\AdminController;
@@ -48,6 +49,18 @@ class Container
                 'headers'         => ['User-Agent' => 'Sintoniza'],
                 'verify'          => true,
             ]))->setShared(true);
+
+            // Views
+            $container->add(Engine::class, function () {
+                $engine = new Engine(APP_PATH . '/views');
+                $engine->addFolder('admin',        APP_PATH . '/views/admin');
+                $engine->addFolder('dashboard',    APP_PATH . '/views/dashboard');
+                $engine->addFolder('subscription', APP_PATH . '/views/subscription');
+                $engine->addFolder('auth',         APP_PATH . '/views');
+                $engine->registerFunction('__',                 fn(string $key) => __($key));
+                $engine->registerFunction('format_description', fn(?string $s) => format_description($s));
+                return $engine;
+            })->setShared(true);
 
             // Database
             $container->add(DB::class, fn() => new DB(
@@ -90,20 +103,24 @@ class Container
                 ->addArgument(DB::class)
                 ->addArgument(UserService::class)
                 ->addArgument(MailService::class)
-                ->addArgument(Session::class);
+                ->addArgument(Session::class)
+                ->addArgument(Engine::class);
 
             $container->add(DashboardController::class)
                 ->addArgument(DB::class)
                 ->addArgument(UserService::class)
-                ->addArgument(Session::class);
+                ->addArgument(Session::class)
+                ->addArgument(Engine::class);
 
             $container->add(SubscriptionController::class)
-                ->addArgument(DB::class);
+                ->addArgument(DB::class)
+                ->addArgument(Engine::class);
 
             $container->add(AdminController::class)
                 ->addArgument(DB::class)
                 ->addArgument(UserService::class)
-                ->addArgument(UserRepository::class);
+                ->addArgument(UserRepository::class)
+                ->addArgument(Engine::class);
 
             $container->add(GpodderApi::class)
                 ->addArgument(DB::class)

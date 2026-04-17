@@ -1,4 +1,12 @@
+<?php $this->layout('layout', ['title' => 'Registrar Usuário', 'logged' => $logged, 'isAdmin' => $isAdmin]) ?>
+
 <div class="container my-4">
+
+    <?php if ($message): ?>
+        <div class="alert alert-<?= $this->e($messageType ?? 'success') ?>" role="alert">
+            <?= $this->e($message) ?>
+        </div>
+    <?php endif ?>
 
     <div class="d-flex align-items-center mb-4 gap-2">
         <a href="/admin/users" class="btn btn-sm btn-outline-secondary">

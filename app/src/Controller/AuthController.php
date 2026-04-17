@@ -7,6 +7,7 @@ namespace Sintoniza\Controller;
 use Josantonius\Session\Session;
 use Laminas\Diactoros\Response\HtmlResponse;
 use Laminas\Diactoros\Response\RedirectResponse;
+use League\Plates\Engine;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Sintoniza\Database\DB;
@@ -21,8 +22,15 @@ class AuthController
         private DB $db,
         private UserService $userService,
         private MailService $mailService,
-        private Session $session
+        private Session $session,
+        private Engine $plates
     ) {}
+
+    private function isAdmin(ServerRequestInterface $request): bool
+    {
+        $gpodder = $request->getAttribute('gpodder');
+        return $gpodder->user && (int) $gpodder->user->admin === 1;
+    }
 
     public function showHome(ServerRequestInterface $request, array $args = []): ResponseInterface
     {
@@ -32,11 +40,10 @@ class AuthController
             return new RedirectResponse('/dashboard');
         }
 
-        ob_start();
-        html_head();
-        require_once __DIR__ . '/../../views/index.php';
-        html_foot();
-        return new HtmlResponse(ob_get_clean());
+        return new HtmlResponse($this->plates->render('index', [
+            'logged'  => false,
+            'isAdmin' => false,
+        ]));
     }
 
     public function showLogin(ServerRequestInterface $request, array $args = []): ResponseInterface
@@ -47,8 +54,9 @@ class AuthController
             return new RedirectResponse('/dashboard');
         }
 
-        $error = null;
-        $body  = $request->getParsedBody() ?? [];
+        $error       = null;
+        $body        = $request->getParsedBody() ?? [];
+        $queryParams = $request->getQueryParams();
 
         if (!empty($body['login'])) {
             try {
@@ -56,7 +64,6 @@ class AuthController
                 $gpodder->user = $user;
                 $this->session->set('user', $user);
 
-                $queryParams = $request->getQueryParams();
                 if (!empty($queryParams['token'])) {
                     $token = $queryParams['token'];
                     $this->session->set('app_password', "{$token}:" . sha1($user->password . $token));
@@ -68,26 +75,31 @@ class AuthController
             }
         }
 
-        ob_start();
-        html_head('Entrar');
-        require_once __DIR__ . '/../../views/login.php';
-        html_foot();
-        return new HtmlResponse(ob_get_clean());
+        return new HtmlResponse($this->plates->render('auth::login', [
+            'logged'   => false,
+            'isAdmin'  => false,
+            'error'    => $error,
+            'hasToken' => isset($queryParams['token']),
+        ]));
     }
 
     public function showRegister(ServerRequestInterface $request, array $args = []): ResponseInterface
     {
-        if (!$this->userService->canSubscribe()) {
-            ob_start();
-            html_head('Registrar');
-            echo '<div class="alert alert-success" role="alert">As assinaturas estão desabilitadas.</div>';
-            html_foot();
-            return new HtmlResponse(ob_get_clean());
-        }
-
         $gpodder = $request->getAttribute('gpodder');
         $error   = null;
+        $notice  = null;
         $body    = $request->getParsedBody() ?? [];
+
+        if (!$this->userService->canSubscribe()) {
+            return new HtmlResponse($this->plates->render('auth::register', [
+                'logged'   => $gpodder->isLogged(),
+                'isAdmin'  => $this->isAdmin($request),
+                'disabled' => true,
+                'notice'   => 'As assinaturas estão desabilitadas.',
+                'error'    => null,
+                'captcha'  => null,
+            ]));
+        }
 
         if (!empty($body['username'])) {
             if (!$this->userService->checkCaptcha($body['captcha'] ?? '', $body['cc'] ?? '')) {
@@ -106,11 +118,14 @@ class AuthController
             }
         }
 
-        ob_start();
-        html_head('Registrar');
-        require_once __DIR__ . '/../../views/register.php';
-        html_foot();
-        return new HtmlResponse(ob_get_clean());
+        return new HtmlResponse($this->plates->render('auth::register', [
+            'logged'   => $gpodder->isLogged(),
+            'isAdmin'  => $this->isAdmin($request),
+            'disabled' => false,
+            'notice'   => $notice,
+            'error'    => $error,
+            'captcha'  => $gpodder->generateCaptcha(),
+        ]));
     }
 
     public function logout(ServerRequestInterface $request, array $args = []): ResponseInterface
@@ -122,6 +137,7 @@ class AuthController
 
     public function showForgotPassword(ServerRequestInterface $request, array $args = []): ResponseInterface
     {
+        $gpodder     = $request->getAttribute('gpodder');
         $message     = null;
         $messageType = 'success';
         $body        = $request->getParsedBody() ?? [];
@@ -137,15 +153,17 @@ class AuthController
             $message = __('forget_password.email_sent');
         }
 
-        ob_start();
-        html_head('Recuperar Senha');
-        require_once __DIR__ . '/../../views/forget-password.php';
-        html_foot();
-        return new HtmlResponse(ob_get_clean());
+        return new HtmlResponse($this->plates->render('auth::forget-password', [
+            'logged'      => $gpodder->isLogged(),
+            'isAdmin'     => $this->isAdmin($request),
+            'message'     => $message,
+            'messageType' => $messageType,
+        ]));
     }
 
     public function showResetPassword(ServerRequestInterface $request, array $args = []): ResponseInterface
     {
+        $gpodder     = $request->getAttribute('gpodder');
         $message     = null;
         $messageType = 'success';
         $body        = $request->getParsedBody() ?? [];
@@ -169,10 +187,11 @@ class AuthController
             }
         }
 
-        ob_start();
-        html_head('Recuperar Senha');
-        require_once __DIR__ . '/../../views/forget-password/reset.php';
-        html_foot();
-        return new HtmlResponse(ob_get_clean());
+        return new HtmlResponse($this->plates->render('auth::forget-password/reset', [
+            'logged'      => $gpodder->isLogged(),
+            'isAdmin'     => $this->isAdmin($request),
+            'message'     => $message,
+            'messageType' => $messageType,
+        ]));
     }
 }

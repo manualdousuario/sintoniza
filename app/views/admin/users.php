@@ -1,4 +1,12 @@
+<?php $this->layout('layout', ['title' => 'Usuários', 'logged' => $logged, 'isAdmin' => $isAdmin]) ?>
+
 <div class="container my-4">
+
+    <?php if ($message): ?>
+        <div class="alert alert-<?= $this->e($messageType ?? 'success') ?>" role="alert">
+            <?= $this->e($message) ?>
+        </div>
+    <?php endif ?>
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fs-3 m-0">Usuários</h2>
@@ -23,33 +31,33 @@
                 <tbody>
                     <?php foreach ($users as $u): ?>
                         <tr>
-                            <td class="text-muted small"><?php echo $u->id; ?></td>
-                            <td><?php echo htmlspecialchars($u->name); ?></td>
-                            <td><?php echo htmlspecialchars($u->email); ?></td>
+                            <td class="text-muted small"><?= $u->id ?></td>
+                            <td><?= $this->e($u->name) ?></td>
+                            <td><?= $this->e($u->email) ?></td>
                             <td>
                                 <?php if ($u->admin): ?>
                                     <span class="badge bg-danger">Admin</span>
-                                <?php endif; ?>
+                                <?php endif ?>
                             </td>
                             <td>
                                 <?php if ($u->active ?? 1): ?>
                                     <span class="badge bg-success">Ativo</span>
                                 <?php else: ?>
                                     <span class="badge bg-secondary">Inativo</span>
-                                <?php endif; ?>
+                                <?php endif ?>
                             </td>
                             <td class="text-end">
-                                <a href="/admin/user/<?php echo $u->id; ?>" class="btn btn-sm btn-outline-secondary">
+                                <a href="/admin/user/<?= $u->id ?>" class="btn btn-sm btn-outline-secondary">
                                     <i class="bi bi-pencil"></i> Editar
                                 </a>
                             </td>
                         </tr>
-                    <?php endforeach; ?>
+                    <?php endforeach ?>
                     <?php if (empty($users)): ?>
                         <tr>
                             <td colspan="6" class="text-center text-muted py-4">Nenhum usuário encontrado.</td>
                         </tr>
-                    <?php endif; ?>
+                    <?php endif ?>
                 </tbody>
             </table>
         </div>
@@ -60,23 +68,23 @@
             <ul class="pagination">
                 <?php if ($page > 1): ?>
                     <li class="page-item">
-                        <a class="page-link" href="/admin/users?page=<?php echo $page - 1; ?>">&laquo;</a>
+                        <a class="page-link" href="/admin/users?page=<?= $page - 1 ?>">&laquo;</a>
                     </li>
-                <?php endif; ?>
+                <?php endif ?>
 
                 <?php for ($p = max(1, $page - 2); $p <= min($pages, $page + 2); $p++): ?>
-                    <li class="page-item <?php echo $p === $page ? 'active' : ''; ?>">
-                        <a class="page-link" href="/admin/users?page=<?php echo $p; ?>"><?php echo $p; ?></a>
+                    <li class="page-item <?= $p === $page ? 'active' : '' ?>">
+                        <a class="page-link" href="/admin/users?page=<?= $p ?>"><?= $p ?></a>
                     </li>
-                <?php endfor; ?>
+                <?php endfor ?>
 
                 <?php if ($page < $pages): ?>
                     <li class="page-item">
-                        <a class="page-link" href="/admin/users?page=<?php echo $page + 1; ?>">&raquo;</a>
+                        <a class="page-link" href="/admin/users?page=<?= $page + 1 ?>">&raquo;</a>
                     </li>
-                <?php endif; ?>
+                <?php endif ?>
             </ul>
         </nav>
-    <?php endif; ?>
+    <?php endif ?>
 
 </div>

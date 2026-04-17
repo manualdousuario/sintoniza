@@ -6,6 +6,7 @@ namespace Sintoniza\Controller;
 
 use Laminas\Diactoros\Response\HtmlResponse;
 use Laminas\Diactoros\Response\RedirectResponse;
+use League\Plates\Engine;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Sintoniza\Database\DB;
@@ -14,7 +15,19 @@ class SubscriptionController
 {
     private const PER_PAGE = 20;
 
-    public function __construct(private DB $db) {}
+    public function __construct(
+        private DB $db,
+        private Engine $plates
+    ) {}
+
+    private function baseData(ServerRequestInterface $request): array
+    {
+        $gpodder = $request->getAttribute('gpodder');
+        return [
+            'logged'  => $gpodder->isLogged(),
+            'isAdmin' => $gpodder->user && (int) $gpodder->user->admin === 1,
+        ];
+    }
 
     public function show(ServerRequestInterface $request, array $args = []): ResponseInterface
     {
@@ -38,11 +51,13 @@ class SubscriptionController
             $episodes = $gpodder->listEpisodesByFeed((int) $subscription->feed_id, $offset, self::PER_PAGE);
         }
 
-        ob_start();
-        html_head(htmlspecialchars($subscription->title ?? 'Assinatura'), $gpodder->isLogged());
-        require_once __DIR__ . '/../../views/subscription/show.php';
-        html_foot();
-        return new HtmlResponse(ob_get_clean());
+        return new HtmlResponse($this->plates->render('subscription::show', $this->baseData($request) + [
+            'title'        => $subscription->title ?? 'Assinatura',
+            'subscription' => $subscription,
+            'episodes'     => $episodes,
+            'page'         => $page,
+            'pages'        => $pages,
+        ]));
     }
 
     public function episode(ServerRequestInterface $request, array $args = []): ResponseInterface
@@ -68,10 +83,11 @@ class SubscriptionController
 
         $actions = $gpodder->listEpisodeActions($subscriptionId, $episodeId);
 
-        ob_start();
-        html_head(htmlspecialchars($episode->title ?? 'Episódio'), $gpodder->isLogged());
-        require_once __DIR__ . '/../../views/subscription/episode.php';
-        html_foot();
-        return new HtmlResponse(ob_get_clean());
+        return new HtmlResponse($this->plates->render('subscription::episode', $this->baseData($request) + [
+            'title'        => $episode->title ?? 'Episódio',
+            'subscription' => $subscription,
+            'episode'      => $episode,
+            'actions'      => $actions,
+        ]));
     }
 }

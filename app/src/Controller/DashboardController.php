@@ -6,11 +6,13 @@ namespace Sintoniza\Controller;
 
 use Josantonius\Session\Session;
 use Laminas\Diactoros\Response\HtmlResponse;
+use League\Plates\Engine;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Sintoniza\Database\DB;
 use Sintoniza\Exception\AuthException;
 use Sintoniza\Exception\ValidationException;
+use Sintoniza\Library\Language;
 use Sintoniza\Service\UserService;
 
 class DashboardController
@@ -18,10 +20,17 @@ class DashboardController
     public function __construct(
         private DB $db,
         private UserService $userService,
-        private Session $session
+        private Session $session,
+        private Engine $plates
     ) {}
 
     private const SUBS_PER_PAGE = 20;
+
+    private function isAdmin(ServerRequestInterface $request): bool
+    {
+        $gpodder = $request->getAttribute('gpodder');
+        return $gpodder->user && (int) $gpodder->user->admin === 1;
+    }
 
     public function index(ServerRequestInterface $request, array $args = []): ResponseInterface
     {
@@ -33,40 +42,47 @@ class DashboardController
         $offset        = ($page - 1) * self::SUBS_PER_PAGE;
         $subscriptions = $gpodder->listActiveSubscriptionsPage($offset, self::SUBS_PER_PAGE);
 
-        ob_start();
-        html_head('Painel', $gpodder->isLogged());
-
-        if (isset($request->getQueryParams()['oktoken'])) {
-            echo '<div class="alert alert-success" role="alert">Você está logado, pode fechar isso e voltar para o aplicativo.</div>';
-        }
-
-        require_once __DIR__ . '/../../views/dashboard/subscriptions.php';
-        html_foot();
-        return new HtmlResponse(ob_get_clean());
+        return new HtmlResponse($this->plates->render('dashboard::subscriptions', [
+            'logged'        => $gpodder->isLogged(),
+            'isAdmin'       => $this->isAdmin($request),
+            'subscriptions' => $subscriptions,
+            'page'          => $page,
+            'pages'         => $pages,
+            'userName'      => $gpodder->user->name,
+            'okToken'       => isset($request->getQueryParams()['oktoken']),
+        ]));
     }
 
     public function latestUpdates(ServerRequestInterface $request, array $args = []): ResponseInterface
     {
-        $gpodder = $request->getAttribute('gpodder');
+        $gpodder       = $request->getAttribute('gpodder');
+        $subscriptions = $gpodder->listActiveSubscriptions();
+        $actions       = [];
 
-        ob_start();
-        html_head('Últimas atualizações', $gpodder->isLogged());
-        require_once __DIR__ . '/../../views/dashboard/latest-updates.php';
-        html_foot();
-        return new HtmlResponse(ob_get_clean());
+        foreach ($subscriptions as $sub) {
+            $actions = array_merge($actions, $gpodder->listActions($sub->id));
+        }
+
+        usort($actions, fn($a, $b) => $b->changed - $a->changed);
+        $actions = array_slice($actions, 0, 10);
+
+        return new HtmlResponse($this->plates->render('dashboard::latest-updates', [
+            'logged'  => $gpodder->isLogged(),
+            'isAdmin' => $this->isAdmin($request),
+            'actions' => $actions,
+        ]));
     }
 
     public function devices(ServerRequestInterface $request, array $args = []): ResponseInterface
     {
         $gpodder = $request->getAttribute('gpodder');
+        $devices = $this->db->all('SELECT * FROM devices WHERE user = ? ORDER BY name', $gpodder->user->id);
 
-        $db = $this->db;
-
-        ob_start();
-        html_head('Dispositivos', $gpodder->isLogged());
-        require_once __DIR__ . '/../../views/dashboard/devices.php';
-        html_foot();
-        return new HtmlResponse(ob_get_clean());
+        return new HtmlResponse($this->plates->render('dashboard::devices', [
+            'logged'  => $gpodder->isLogged(),
+            'isAdmin' => $this->isAdmin($request),
+            'devices' => $devices,
+        ]));
     }
 
     public function profile(ServerRequestInterface $request, array $args = []): ResponseInterface
@@ -113,11 +129,17 @@ class DashboardController
             }
         }
 
-        ob_start();
-        html_head('Perfil', $gpodder->isLogged());
-        require_once __DIR__ . '/../../views/dashboard/profile.php';
-        html_foot();
-        return new HtmlResponse(ob_get_clean());
-    }
+        $lang = Language::getInstance();
 
+        return new HtmlResponse($this->plates->render('dashboard::profile', [
+            'logged'             => $gpodder->isLogged(),
+            'isAdmin'            => $this->isAdmin($request),
+            'error'              => $error,
+            'success'            => $success,
+            'currentTimezone'    => $gpodder->user->timezone,
+            'currentLang'        => $lang->getCurrentLanguage(),
+            'availableLanguages' => $lang->getAvailableLanguages(),
+            'userToken'          => $gpodder->getUserToken(),
+        ]));
+    }
 }
