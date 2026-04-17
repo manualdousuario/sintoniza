@@ -29,7 +29,13 @@
         <a href="/subscription/<?= $subscription->subscription_id ?>" class="btn btn-sm btn-secondary">
             <i class="bi bi-arrow-left"></i>
         </a>
-        <h2 class="page-title flex-grow-1"><i class="bi bi-play-circle me-2"></i><?= $this->e($episode->title ?? basename(strtok($episode->media_url, '?'))) ?></h2>
+        <div>
+            <h2 class="page-title flex-grow-1"><?= $this->e($episode->title ?? basename(strtok($episode->media_url, '?'))) ?></h2>
+            <?php if ($episode->pubdate): ?>
+            <p class="m-0"><?= date('d/m/Y', strtotime($episode->pubdate)) ?></p>
+            <?php endif ?>
+        </div>
+
     </div>
 
     <div class="row mb-4">
@@ -44,13 +50,6 @@
             </div>
         <?php endif ?>
         <div class="col-12 col-md-10">
-            <p class="text-muted mb-1">
-                <?= $this->__('general.duration') ?>:
-                <?= $episode->duration ? gmdate('H:i:s', (int) $episode->duration) : '—' ?>
-                <?php if ($episode->pubdate): ?>
-                    &middot; <?= date('d/m/Y', strtotime($episode->pubdate)) ?>
-                <?php endif ?>
-            </p>
             <div class="card mb-4" id="audio-player"
                 data-episode-url="<?= $this->e($episode->media_url) ?>"
                 data-podcast-url="<?= $this->e($podcastUrl) ?>"
