@@ -35,8 +35,12 @@
     <div class="row mb-4">
         <?php if (!empty($episode->image_url)): ?>
             <div class="col-12 col-md-2">
-                <img class="rounded w-100 h-auto border" width="150" height="150"
-                    src="<?= $this->e($episode->image_url) ?>">
+                <a href="#" data-bs-toggle="modal" data-bs-target="#episodeImageModal"
+                    class="d-block" style="cursor: zoom-in;"
+                    aria-label="<?= $this->e($this->__('general.view_image') ?? 'View image') ?>">
+                    <img class="rounded w-100 h-auto border" width="150" height="150"
+                        src="<?= $this->e($episode->image_url) ?>" alt="">
+                </a>
             </div>
         <?php endif ?>
         <div class="col-12 col-md-10">
@@ -124,3 +128,15 @@
     <?php endif ?>
 
 </div>
+
+<?php if (!empty($episode->image_url)): ?>
+    <div class="modal fade" id="episodeImageModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content bg-transparent border-0">
+                <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3"
+                    data-bs-dismiss="modal" aria-label="Close" style="z-index:1;"></button>
+                <img src="<?= $this->e($episode->image_url) ?>" class="img-fluid rounded" alt="">
+            </div>
+        </div>
+    </div>
+<?php endif ?>
