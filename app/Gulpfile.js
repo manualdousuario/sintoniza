@@ -53,7 +53,7 @@ function watchFiles() {
 	gulp.watch(
 		["./source/scss/**/*.scss"],
 		{ usePolling: true },
-		gulp.parallel(css_commons, css_home, css_admin, css_dashboard, css_auth)
+		gulp.parallel(css_commons)
 	);
 
 	gulp.watch(

@@ -5,7 +5,7 @@
 
         <?php if ($error): ?>
             <div class="row justify-content-center mb-3">
-                <div class="col-md-6 col-lg-4">
+                <div class="col-md-4">
                     <div class="alert alert-danger" role="alert"><?= $this->e($error) ?></div>
                 </div>
             </div>
@@ -13,20 +13,14 @@
 
         <?php if ($hasToken): ?>
             <div class="row justify-content-center mb-3">
-                <div class="col-md-6 col-lg-4">
+                <div class="col-md-4">
                     <div class="alert alert-warning" role="alert"><?= $this->__('messages.app_requesting_access') ?></div>
                 </div>
             </div>
         <?php endif ?>
 
         <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-4">
-                <div class="auth-brand">
-                    <div class="auth-brand-icon">
-                        <i class="bi bi-broadcast"></i>
-                    </div>
-                    <span><?= TITLE ?></span>
-                </div>
+            <div class="col-md-4">
                 <div class="card auth-card">
                     <div class="card-body">
                         <form method="post" action="">

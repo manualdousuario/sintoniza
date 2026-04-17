@@ -5,7 +5,7 @@
 
         <?php if ($notice): ?>
             <div class="row justify-content-center mb-3">
-                <div class="col-md-6 col-lg-4">
+                <div class="col-md-4">
                     <div class="alert alert-warning" role="alert"><?= $this->e($notice) ?></div>
                 </div>
             </div>
@@ -13,7 +13,7 @@
 
         <?php if ($error): ?>
             <div class="row justify-content-center mb-3">
-                <div class="col-md-6 col-lg-4">
+                <div class="col-md-4">
                     <div class="alert alert-danger" role="alert"><?= $this->e($error) ?></div>
                 </div>
             </div>
@@ -21,13 +21,7 @@
 
         <?php if (!$disabled): ?>
         <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-4">
-                <div class="auth-brand">
-                    <div class="auth-brand-icon">
-                        <i class="bi bi-person-plus"></i>
-                    </div>
-                    <span><?= TITLE ?></span>
-                </div>
+            <div class="col-md-4">
                 <div class="card auth-card">
                     <div class="card-body">
                         <form method="post" action="">

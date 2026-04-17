@@ -1,6 +1,6 @@
 <?php $this->layout('layout', ['logged' => $logged, 'isAdmin' => $isAdmin, 'env' => 'home']) ?>
 
-<div class="hero-section mb-5 px-3">
+<div class="hero-section mb-4 px-3">
     <div class="container">
         <div class="row align-items-center g-4">
             <div class="col-lg-6">
@@ -70,7 +70,7 @@
 </div>
 
 <div class="container">
-    <div class="mb-5">
+    <div class="mb-4">
         <div class="text-center mb-4">
             <h2 class="section-title"><?= sprintf($this->__('home.why_use'), TITLE) ?></h2>
         </div>
@@ -98,7 +98,7 @@
         </div>
     </div>
 
-    <div class="mb-5 py-4 px-4 rounded-4"
+    <div class="mb-4 py-4 px-4 rounded-4"
         style="background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:1px solid #e2e8f0;">
         <div class="row align-items-center g-4">
             <div class="col-lg-4">
@@ -128,7 +128,7 @@
         </div>
     </div>
 
-    <div class="mb-5">
+    <div class="mb-4">
         <div class="text-center mb-4">
             <h2 class="section-title"><?= $this->__('home.compatible_apps') ?></h2>
         </div>
