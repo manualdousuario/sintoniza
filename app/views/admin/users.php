@@ -1,4 +1,4 @@
-<?php $this->layout('layout', ['title' => 'Usuários', 'logged' => $logged, 'isAdmin' => $isAdmin, 'env' => 'admin']) ?>
+<?php $this->layout('layout', ['title' => $this->__('admin.users'), 'logged' => $logged, 'isAdmin' => $isAdmin, 'env' => 'admin']) ?>
 
 <div class="container">
 
@@ -9,9 +9,9 @@
     <?php endif ?>
 
     <div class="page-header d-flex gap-2 align-items-center">
-        <h2 class="page-title flex-grow-1"><i class="bi bi-people me-2"></i>Usuários</h2>
+        <h2 class="page-title flex-grow-1"><i class="bi bi-people me-2"></i><?= $this->__('admin.users') ?></h2>
         <a href="/admin/register-user" class="btn btn-primary btn-sm">
-            <i class="bi bi-person-plus"></i> Novo Usuário
+            <i class="bi bi-person-plus"></i> <?= $this->__('admin.new_user') ?>
         </a>
     </div>
 
@@ -21,10 +21,10 @@
                 <thead class="table-dark">
                     <tr>
                         <th>#</th>
-                        <th>Nome</th>
-                        <th>Email</th>
-                        <th>Admin</th>
-                        <th>Status</th>
+                        <th><?= $this->__('admin.name') ?></th>
+                        <th><?= $this->__('general.email') ?></th>
+                        <th><?= $this->__('admin.admin') ?></th>
+                        <th><?= $this->__('admin.status') ?></th>
                         <th></th>
                     </tr>
                 </thead>
@@ -36,26 +36,26 @@
                             <td><?= $this->e($u->email) ?></td>
                             <td>
                                 <?php if ($u->admin): ?>
-                                    <span class="badge bg-danger">Admin</span>
+                                    <span class="badge bg-danger"><?= $this->__('admin.admin') ?></span>
                                 <?php endif ?>
                             </td>
                             <td>
                                 <?php if ($u->active ?? 1): ?>
-                                    <span class="badge bg-success">Ativo</span>
+                                    <span class="badge bg-success"><?= $this->__('admin.active') ?></span>
                                 <?php else: ?>
-                                    <span class="badge bg-secondary">Inativo</span>
+                                    <span class="badge bg-secondary"><?= $this->__('admin.inactive') ?></span>
                                 <?php endif ?>
                             </td>
                             <td class="text-end">
                                 <a href="/admin/user/<?= $u->id ?>" class="btn btn-sm btn-secondary">
-                                    <i class="bi bi-pencil"></i> Editar
+                                    <i class="bi bi-pencil"></i> <?= $this->__('admin.edit') ?>
                                 </a>
                             </td>
                         </tr>
                     <?php endforeach ?>
                     <?php if (empty($users)): ?>
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-4">Nenhum usuário encontrado.</td>
+                            <td colspan="6" class="text-center text-muted py-4"><?= $this->__('admin.no_users_found') ?></td>
                         </tr>
                     <?php endif ?>
                 </tbody>
