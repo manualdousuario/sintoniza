@@ -1,6 +1,6 @@
-<?php $this->layout('layout', ['title' => $title, 'logged' => $logged, 'isAdmin' => $isAdmin]) ?>
+<?php $this->layout('layout', ['title' => $title, 'logged' => $logged, 'isAdmin' => $isAdmin, 'env' => 'dashboard']) ?>
 
-<div class="container my-4">
+<div class="container">
 
     <?php
     $lastPosition = 0;
@@ -12,10 +12,13 @@
     }
     $podcastUrl = $subscription->subscription_url ?? $subscription->feed_url ?? '';
     ?>
-    <p>
-        <a href="/subscription/<?= $subscription->subscription_id ?>"
-            class="btn btn-danger"><?= $this->__('general.back') ?></a>
-    </p>
+
+    <div class="page-header d-flex gap-2 align-items-center">
+        <a href="/subscription/<?= $subscription->subscription_id ?>" class="btn btn-sm btn-secondary">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <h2 class="page-title flex-grow-1"><i class="bi bi-play-circle me-2"></i><?= $this->e($episode->title ?? basename(strtok($episode->media_url, '?'))) ?></h2>
+    </div>
 
     <div class="row mb-4">
         <?php if (!empty($episode->image_url)): ?>
@@ -25,9 +28,6 @@
             </div>
         <?php endif ?>
         <div class="col-12 col-md-10">
-            <h2 class="fs-3">
-                <?= $this->e($episode->title ?? basename(strtok($episode->media_url, '?'))) ?>
-            </h2>
             <p class="text-muted mb-1">
                 <?= $this->__('general.duration') ?>:
                 <?= $episode->duration ? gmdate('H:i:s', (int) $episode->duration) : '—' ?>
@@ -35,7 +35,7 @@
                     &middot; <?= date('d/m/Y', strtotime($episode->pubdate)) ?>
                 <?php endif ?>
             </p>
-            <div class="card mb-4 shadow-sm" id="audio-player"
+            <div class="card mb-4" id="audio-player"
                 data-episode-url="<?= $this->e($episode->media_url) ?>"
                 data-podcast-url="<?= $this->e($podcastUrl) ?>"
                 data-start-pos="<?= $lastPosition ?>"
@@ -43,7 +43,7 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-3">
                         <button id="btn-play-pause"
-                            class="btn btn-danger rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                            class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
                             style="width:52px;height:52px" disabled aria-label="Play">
                             <i class="bi bi-play-fill fs-4" id="icon-play-pause"></i>
                         </button>
@@ -69,7 +69,7 @@
         </div>
     </div>
 
-    <h3 class="fs-4 mb-3"><?= $this->__('general.history') ?></h3>
+    <h3 class="fs-5 fw-bold mb-3"><?= $this->__('general.history') ?></h3>
 
     <?php if (empty($actions)): ?>
         <div class="alert alert-secondary"><?= $this->__('dashboard.no_info') ?></div>

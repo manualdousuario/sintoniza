@@ -1,10 +1,15 @@
-<?php $this->layout('layout', ['title' => $title, 'logged' => $logged, 'isAdmin' => $isAdmin]) ?>
+<?php $this->layout('layout', ['title' => $title, 'logged' => $logged, 'isAdmin' => $isAdmin, 'env' => 'dashboard']) ?>
 
-<div class="container my-4">
+<div class="container">
 
-    <p>
-        <a href="/dashboard" class="btn btn-danger"><?= $this->__('general.back') ?></a>
-    </p>
+    <div class="page-header d-flex gap-2 align-items-center">
+        <a href="/dashboard" class="btn btn-sm btn-secondary"><i class="bi bi-arrow-left"></i></a>
+        <?php if (isset($subscription->title)): ?>
+            <h2 class="page-title flex-grow-1"><i class="bi bi-mic-fill me-2"></i><?= $this->e($subscription->title) ?></h2>
+        <?php else: ?>
+            <h2 class="page-title flex-grow-1"><i class="bi bi-mic-fill me-2"></i><?= $this->__('general.subscriptions') ?></h2>
+        <?php endif ?>
+    </div>
 
     <?php if (isset($subscription->title, $subscription->image_url)): ?>
         <div class="row mb-4">
@@ -13,14 +18,9 @@
                     src="<?= $this->e($subscription->image_url) ?>">
             </div>
             <div class="col-12 col-md-10">
-                <h2 class="fs-3">
-                    <?php if (!empty($subscription->url)): ?>
-                        <a href="<?= $this->e($subscription->url) ?>" class="link-dark"
-                            target="_blank"><?= $this->e($subscription->title) ?></a>
-                    <?php else: ?>
-                        <?= $this->e($subscription->title) ?>
-                    <?php endif ?>
-                </h2>
+                <?php if (!empty($subscription->url)): ?>
+                    <p><a href="<?= $this->e($subscription->url) ?>" class="link-dark" target="_blank"><?= $this->e($subscription->url) ?></a></p>
+                <?php endif ?>
                 <?php if (!empty($subscription->description)): ?>
                     <p><?= $this->format_description($subscription->description) ?></p>
                 <?php endif ?>
@@ -28,7 +28,7 @@
         </div>
     <?php endif ?>
 
-    <h3 class="fs-4 mb-3"><?= $this->__('general.episodes') ?></h3>
+    <h3 class="fs-5 fw-bold mb-3"><?= $this->__('general.episodes') ?></h3>
 
     <?php if (empty($episodes)): ?>
         <div class="alert alert-warning"><?= $this->__('dashboard.no_info') ?></div>

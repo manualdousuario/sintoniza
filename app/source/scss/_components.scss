@@ -212,7 +212,9 @@
 .table {
 	font-size: 0.9rem;
 	border-color: $slate-200;
-
+    border-radius: 13px;
+    overflow: hidden;
+	
 	>thead {
 		background: $slate-800;
 		color: #fff;
@@ -270,6 +272,40 @@
 		color: $slate-300;
 		background: $slate-50;
 	}
+}
+
+// =============================================
+//  PAGE HEADER
+// =============================================
+.page-header {
+	padding: 2rem 0 1.5rem;
+	margin-bottom: 1.75rem;
+	border-bottom: 1px solid $slate-200;
+
+	.page-title {
+		font-size: clamp(1.4rem, 2.5vw, 1.8rem);
+		font-weight: 800;
+		color: $slate-800;
+		letter-spacing: -0.02em;
+		margin: 0;
+
+		i {
+			color: $indigo;
+		}
+	}
+}
+
+// =============================================
+//  SECTION LABEL
+// =============================================
+.section-label {
+	display: inline-block;
+	font-size: 0.72rem;
+	font-weight: 700;
+	color: $indigo;
+	text-transform: uppercase;
+	letter-spacing: 0.1em;
+	margin-bottom: 0.35rem;
 }
 
 // =============================================

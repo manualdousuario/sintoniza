@@ -1,13 +1,14 @@
 <?php
 use jessedp\Timezones\Timezones;
-use Sintoniza\Library\Language;
 
-$this->layout('layout', ['title' => $this->__('general.profile'), 'logged' => $logged, 'isAdmin' => $isAdmin]);
+$this->layout('layout', ['title' => $this->__('general.profile'), 'logged' => $logged, 'isAdmin' => $isAdmin, 'env' => 'dashboard']);
 ?>
 
-<div class="container my-4">
+<div class="container">
 
-    <h2 class="fs-3 mb-3"><?= $this->__('general.profile') ?></h2>
+    <div class="page-header d-flex gap-2 align-items-center">
+        <h2 class="page-title flex-grow-1"><i class="bi bi-gear me-2"></i><?= $this->__('general.profile') ?></h2>
+    </div>
 
     <?php if ($error): ?>
         <div class="alert alert-danger" role="alert"><?= $this->e($error) ?></div>
@@ -43,7 +44,7 @@ $this->layout('layout', ['title' => $this->__('general.profile'), 'logged' => $l
         </li>
     </ul>
     <div class="tab-content" id="dashboard">
-        <div class="tab-pane fade show active border border-top-0 bg-white rounded-bottom" id="language_settings"
+        <div class="tab-pane show active border border-top-0 bg-white rounded-bottom" id="language_settings"
             role="tabpanel" aria-labelledby="language_settings-tab">
             <form method="post" action="/dashboard/profile" class="p-3">
                 <div class="form-group mb-3">
@@ -60,7 +61,7 @@ $this->layout('layout', ['title' => $this->__('general.profile'), 'logged' => $l
             </form>
         </div>
 
-        <div class="tab-pane fade border border-top-0 bg-white rounded-bottom" id="timezone_settings" role="tabpanel"
+        <div class="tab-pane border border-top-0 bg-white rounded-bottom" id="timezone_settings" role="tabpanel"
             aria-labelledby="timezone_settings-tab">
             <form method="post" action="/dashboard/profile" class="p-3">
                 <div class="form-group mb-3">
@@ -73,7 +74,7 @@ $this->layout('layout', ['title' => $this->__('general.profile'), 'logged' => $l
             </form>
         </div>
 
-        <div class="tab-pane fade border border-top-0 bg-white rounded-bottom" id="change_password" role="tabpanel"
+        <div class="tab-pane border border-top-0 bg-white rounded-bottom" id="change_password" role="tabpanel"
             aria-labelledby="change_password-tab">
             <form method="post" action="/dashboard/profile" class="p-3">
                 <div class="mb-3">
@@ -97,7 +98,7 @@ $this->layout('layout', ['title' => $this->__('general.profile'), 'logged' => $l
             </form>
         </div>
 
-        <div class="tab-pane fade border border-top-0 bg-white rounded-bottom p-3" id="api_token" role="tabpanel"
+        <div class="tab-pane border border-top-0 bg-white rounded-bottom p-3" id="api_token" role="tabpanel"
             aria-labelledby="api_token-tab">
             <?= $this->__('dashboard.secret_user') ?>: <strong><?= $this->e($userToken) ?></strong>
             <small class="d-block"><?= $this->__('dashboard.secret_user_note') ?></small>

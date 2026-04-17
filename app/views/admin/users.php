@@ -1,6 +1,6 @@
-<?php $this->layout('layout', ['title' => 'Usuários', 'logged' => $logged, 'isAdmin' => $isAdmin]) ?>
+<?php $this->layout('layout', ['title' => 'Usuários', 'logged' => $logged, 'isAdmin' => $isAdmin, 'env' => 'admin']) ?>
 
-<div class="container my-4">
+<div class="container">
 
     <?php if ($message): ?>
         <div class="alert alert-<?= $this->e($messageType ?? 'success') ?>" role="alert">
@@ -8,14 +8,14 @@
         </div>
     <?php endif ?>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fs-3 m-0">Usuários</h2>
+    <div class="page-header d-flex gap-2 align-items-center">
+        <h2 class="page-title flex-grow-1"><i class="bi bi-people me-2"></i>Usuários</h2>
         <a href="/admin/register-user" class="btn btn-primary btn-sm">
             <i class="bi bi-person-plus"></i> Novo Usuário
         </a>
     </div>
 
-    <div class="card shadow-sm">
+    <div class="card">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-dark">
@@ -47,7 +47,7 @@
                                 <?php endif ?>
                             </td>
                             <td class="text-end">
-                                <a href="/admin/user/<?= $u->id ?>" class="btn btn-sm btn-outline-secondary">
+                                <a href="/admin/user/<?= $u->id ?>" class="btn btn-sm btn-secondary">
                                     <i class="bi bi-pencil"></i> Editar
                                 </a>
                             </td>

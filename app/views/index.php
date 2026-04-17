@@ -1,4 +1,4 @@
-<?php $this->layout('layout', ['logged' => $logged, 'isAdmin' => $isAdmin]) ?>
+<?php $this->layout('layout', ['logged' => $logged, 'isAdmin' => $isAdmin, 'env' => 'home']) ?>
 
 <div class="hero-section mb-5 px-3">
     <div class="container">

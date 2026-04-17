@@ -60,7 +60,7 @@ class DashboardController
         $actions       = [];
 
         foreach ($subscriptions as $sub) {
-            $actions = array_merge($actions, $gpodder->listActions($sub->id));
+            $actions = array_merge($actions, $gpodder->listActions((int) $sub->id));
         }
 
         usort($actions, fn($a, $b) => $b->changed - $a->changed);

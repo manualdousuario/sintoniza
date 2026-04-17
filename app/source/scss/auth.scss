@@ -1,0 +1,76 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
+// =============================================
+//  AUTH SECTION
+// =============================================
+.auth-section {
+	min-height: calc(100vh - 180px);
+	display: flex;
+	align-items: center;
+	padding: 2.5rem 0;
+	position: relative;
+
+	&::before {
+		content: '';
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 3px;
+		@include gradient-indigo;
+		z-index: 1000;
+	}
+}
+
+// =============================================
+//  AUTH BRAND
+// =============================================
+.auth-brand {
+	text-align: center;
+	padding-bottom: 1.5rem;
+	margin-bottom: 1.5rem;
+	border-bottom: 1px solid $slate-100;
+
+	.auth-brand-icon {
+		width: 52px;
+		height: 52px;
+		@include gradient-indigo;
+		border-radius: $radius-lg;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin: 0 auto 0.75rem;
+
+		i {
+			font-size: 1.4rem;
+			color: #fff;
+		}
+	}
+
+	span {
+		font-size: 0.85rem;
+		color: $slate-500;
+		font-weight: 500;
+	}
+}
+
+// =============================================
+//  AUTH CARD
+// =============================================
+.auth-card {
+	border-radius: $radius-xl !important;
+	border-color: $slate-200 !important;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.07) !important;
+
+	.card-body {
+		padding: 2rem !important;
+	}
+
+	.card-title {
+		font-weight: 800;
+		color: $slate-800;
+		font-size: 1.35rem;
+		letter-spacing: -0.02em;
+	}
+}

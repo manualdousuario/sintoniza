@@ -9,7 +9,6 @@ $fullTitle = isset($title) ? TITLE . ' | ' . $title : TITLE;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><?= $this->e($fullTitle) ?></title>
-    <link rel="stylesheet" href="/assets/css/styles.css">
     <link rel="icon" type="image/png" href="/assets/favicon/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/assets/favicon/favicon.svg" />
     <link rel="shortcut icon" href="/assets/favicon/favicon.ico" />
@@ -21,9 +20,10 @@ $fullTitle = isset($title) ? TITLE . ' | ' . $title : TITLE;
     <meta property="og:title" content="<?= $this->e($fullTitle . ' - ' . $this->__('general.podcast_sync')) ?>" />
     <meta property="og:description" content="<?= $this->e($this->__('general.site_description')) ?>" />
     <meta property="og:image" content="/assets/opengraph.png" />
+    <style><?= file_get_contents(APP_PATH . '/public/assets/css/styles.css') ?></style>
 </head>
 
-<body class="bg-light">
+<body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom shadow">
         <div class="container">
             <div class="d-block d-md-flex">
@@ -95,7 +95,7 @@ $fullTitle = isset($title) ? TITLE . ' | ' . $title : TITLE;
         </div>
     </footer>
 
-    <script src="/assets/js/scripts.js"></script>
+    <script><?= file_get_contents(APP_PATH . '/public/assets/js/scripts.js') ?></script>
 </body>
 
 </html>

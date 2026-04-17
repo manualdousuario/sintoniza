@@ -1,6 +1,13 @@
-<?php $this->layout('layout', ['title' => 'Registrar Usuário', 'logged' => $logged, 'isAdmin' => $isAdmin]) ?>
+<?php $this->layout('layout', ['title' => 'Registrar Usuário', 'logged' => $logged, 'isAdmin' => $isAdmin, 'env' => 'admin']) ?>
 
-<div class="container my-4">
+<div class="container">
+
+    <div class="page-header d-flex gap-2 align-items-center">
+        <a href="/admin/users" class="btn btn-sm btn-secondary">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <h2 class="page-title flex-grow-1"><i class="bi bi-person-plus me-2"></i>Registrar Usuário</h2>
+    </div>
 
     <?php if ($message): ?>
         <div class="alert alert-<?= $this->e($messageType ?? 'success') ?>" role="alert">
@@ -8,14 +15,7 @@
         </div>
     <?php endif ?>
 
-    <div class="d-flex align-items-center mb-4 gap-2">
-        <a href="/admin/users" class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i>
-        </a>
-        <h2 class="fs-3 m-0">Registrar Usuário</h2>
-    </div>
-
-    <div class="card shadow-sm" style="max-width: 480px;">
+    <div class="card" style="max-width: 480px;">
         <div class="card-body p-4">
             <form method="post" action="">
                 <div class="mb-3">

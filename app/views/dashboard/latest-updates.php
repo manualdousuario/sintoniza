@@ -1,8 +1,10 @@
-<?php $this->layout('layout', ['title' => $this->__('general.latest_updates'), 'logged' => $logged, 'isAdmin' => $isAdmin]) ?>
+<?php $this->layout('layout', ['title' => $this->__('general.latest_updates'), 'logged' => $logged, 'isAdmin' => $isAdmin, 'env' => 'dashboard']) ?>
 
-<div class="container my-4">
+<div class="container">
 
-    <h2 class="fs-3 mb-3"><?= $this->__('general.latest_updates') ?></h2>
+    <div class="page-header d-flex gap-2 align-items-center">
+        <h2 class="page-title flex-grow-1"><i class="bi bi-clock-history me-2"></i><?= $this->__('general.latest_updates') ?></h2>
+    </div>
 
     <?php if (!empty($actions)): ?>
         <ul class="list-group">
@@ -32,9 +34,8 @@
                 <div class="episode_info d-flex gap-3">
                     <?= $image_url ?>
                     <div class="data">
-                        <a class="link-dark" target="_blank" href="<?= $this->e($row->episode_url) ?>"><?= $this->e($title) ?></a><br/>
-                        <?= $this->__('general.duration') ?>: <?= $duration ?><br/>
-                        <a href="<?= $this->e($row->url) ?>" target="_blank" class="btn btn-sm btn-secondary"><i class="bi bi-cloud-arrow-down-fill"></i> <?= $this->__('general.download') ?></a>
+                        <a class="link-dark" href="/subscription/<?= (int) $row->subscription ?>/episode/<?= (int) $row->episode ?>"><?= $this->e($title) ?></a><br/>
+                        <?= $this->__('general.duration') ?>: <?= $duration ?>
                     </div>
                 </div>
             </li>

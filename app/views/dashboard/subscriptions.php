@@ -1,15 +1,15 @@
-<?php $this->layout('layout', ['title' => $this->__('general.subscriptions'), 'logged' => $logged, 'isAdmin' => $isAdmin]) ?>
+<?php $this->layout('layout', ['title' => $this->__('general.subscriptions'), 'logged' => $logged, 'isAdmin' => $isAdmin, 'env' => 'dashboard']) ?>
 
-<div class="container my-4">
+<div class="container">
+
+    <div class="page-header d-flex gap-2 align-items-center">
+        <h2 class="page-title flex-grow-1"><i class="bi bi-mic-fill me-2"></i><?= $this->__('general.subscriptions') ?></h2>
+        <a href="/subscriptions/<?= $this->e($userName) ?>.opml" target="_blank" class="btn btn-sm btn-secondary"><i class="bi bi-rss-fill"></i></a>
+    </div>
 
     <?php if ($okToken): ?>
-        <div class="alert alert-success" role="alert">Você está logado, pode fechar isso e voltar para o aplicativo.</div>
+        <div class="alert alert-success mt-4" role="alert">Você está logado, pode fechar isso e voltar para o aplicativo.</div>
     <?php endif ?>
-
-    <div class="d-flex gap-2 pb-4 align-items-center">
-        <h2 class="fs-3"><?= $this->__('general.subscriptions') ?></h2>
-        <a href="/subscriptions/<?= $this->e($userName) ?>.opml" target="_blank" class="btn btn-outline btn-secondary"><i class="bi bi-rss-fill"></i></a>
-    </div>
 
     <?php if (empty($subscriptions)): ?>
         <div class="alert alert-warning"><?= $this->__('dashboard.no_info') ?></div>

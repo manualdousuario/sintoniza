@@ -9,12 +9,11 @@ const terser      = require('gulp-terser');
 const sourcemaps  = require("gulp-sourcemaps");
 const clean_css   = require('gulp-clean-css');
 
-// CSS task
-function css_styles() {
+// Commons
+function css_commons() {
 	return gulp.src([
 		"./node_modules/bootstrap/dist/css/bootstrap.min.css",
-		"./node_modules/bootstrap-icons/font/bootstrap-icons.scss",
-		"./source/scss/commons.scss",
+		"./source/scss/**/*.scss",
 	])
 		.pipe(sourcemaps.init())
 		.pipe(sass({
@@ -30,7 +29,7 @@ function css_styles() {
 // Fonts task
 function copy_fonts() {
 	return gulp.src("./node_modules/bootstrap-icons/font/fonts/*", { encoding: false })
-		.pipe(gulp.dest("./public/assets/css/fonts/", { encoding: false }))
+		.pipe(gulp.dest("./public/assets/fonts/"))
 }
 
 // JS task
@@ -54,7 +53,7 @@ function watchFiles() {
 	gulp.watch(
 		["./source/scss/**/*.scss"],
 		{ usePolling: true },
-		gulp.parallel(css_styles)
+		gulp.parallel(css_commons, css_home, css_admin, css_dashboard, css_auth)
 	);
 
 	gulp.watch(
@@ -64,7 +63,7 @@ function watchFiles() {
 	);
 }
 
-const css   = gulp.series(css_styles);
+const css   = gulp.series(gulp.parallel(css_commons));
 const fonts = gulp.series(copy_fonts);
 const js    = gulp.series(js_scripts);
 const build = gulp.series(gulp.parallel(css, fonts, js));

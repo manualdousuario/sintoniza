@@ -1,6 +1,13 @@
-<?php $this->layout('layout', ['title' => 'Editar Usuário', 'logged' => $logged, 'isAdmin' => $isAdmin]) ?>
+<?php $this->layout('layout', ['title' => 'Editar Usuário', 'logged' => $logged, 'isAdmin' => $isAdmin, 'env' => 'admin']) ?>
 
-<div class="container my-4">
+<div class="container">
+
+    <div class="page-header d-flex gap-2 align-items-center">
+        <a href="/admin/users" class="btn btn-sm btn-secondary">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <h2 class="page-title flex-grow-1"><i class="bi bi-person-gear me-2"></i>Editar Usuário: <?= $this->e($user->name) ?></h2>
+    </div>
 
     <?php if ($message): ?>
         <div class="alert alert-<?= $this->e($messageType ?? 'success') ?>" role="alert">
@@ -8,16 +15,9 @@
         </div>
     <?php endif ?>
 
-    <div class="d-flex align-items-center mb-4 gap-2">
-        <a href="/admin/users" class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i>
-        </a>
-        <h2 class="fs-3 m-0">Editar Usuário: <?= $this->e($user->name) ?></h2>
-    </div>
-
-    <div class="row g-3">
+    <div class="row">
         <div class="col-12 col-md-8">
-            <div class="card shadow-sm">
+            <div class="card">
                 <div class="card-header fw-semibold">Informações</div>
                 <div class="card-body p-4">
                     <form method="post" action="">
@@ -74,8 +74,8 @@
                 </div>
             </div>
 
-            <div class="card shadow-sm border-danger">
-                <div class="card-header text-danger fw-semibold">Zona de Perigo</div>
+            <div class="card danger-zone">
+                <div class="card-header">Zona de Perigo</div>
                 <div class="card-body">
                     <form method="post" onsubmit="return confirm('Tem certeza? Esta ação não pode ser desfeita.')">
                         <input type="hidden" name="delete_user" value="1">

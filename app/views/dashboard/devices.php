@@ -1,8 +1,10 @@
-<?php $this->layout('layout', ['title' => $this->__('general.devices'), 'logged' => $logged, 'isAdmin' => $isAdmin]) ?>
+<?php $this->layout('layout', ['title' => $this->__('general.devices'), 'logged' => $logged, 'isAdmin' => $isAdmin, 'env' => 'dashboard']) ?>
 
-<div class="container my-4">
+<div class="container">
 
-    <h2 class="fs-3 mb-3"><?= $this->__('general.devices') ?></h2>
+    <div class="page-header d-flex gap-2 align-items-center">
+        <h2 class="page-title flex-grow-1"><i class="bi bi-phone me-2"></i><?= $this->__('general.devices') ?></h2>
+    </div>
 
     <?php if (!empty($devices)): ?>
         <div class="list-group">
