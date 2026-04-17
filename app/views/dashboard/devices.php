@@ -10,7 +10,12 @@
         <div class="list-group">
             <?php foreach ($devices as $device):
                 $data = json_decode($device->data, true);
-                $device_type = ($data['type'] ?? '') === 'mobile' ? 'bi-phone' : 'bi-window';
+                $types = [
+                    'mobile' => 'bi-phone',
+                    'other' => 'bi-laptop',
+                    'desktop' => 'bi-browser-chrome'
+                ];
+                $device_type = $types[$data['type']] ?? 'bi-pc-display-horizontal';
             ?>
                 <div class="list-group-item py-2 px-3">
                     <div class="d-flex align-items-center">
