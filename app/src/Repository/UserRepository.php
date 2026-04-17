@@ -73,6 +73,44 @@ class UserRepository
         );
     }
 
+    public function countFiltered(?string $search, ?int $active): int
+    {
+        [$where, $params] = $this->buildFilter($search, $active);
+        return (int) $this->db->firstColumn("SELECT COUNT(*) FROM users $where", ...$params);
+    }
+
+    public function findFiltered(?string $search, ?int $active, int $offset, int $limit): array
+    {
+        [$where, $params] = $this->buildFilter($search, $active);
+        $params[] = $limit;
+        $params[] = $offset;
+        return $this->db->all(
+            "SELECT id, name, email, admin, active FROM users $where ORDER BY id DESC LIMIT ? OFFSET ?",
+            ...$params
+        );
+    }
+
+    private function buildFilter(?string $search, ?int $active): array
+    {
+        $conditions = [];
+        $params     = [];
+
+        if ($search !== null && $search !== '') {
+            $conditions[] = '(name LIKE ? OR email LIKE ?)';
+            $like         = '%' . $search . '%';
+            $params[]     = $like;
+            $params[]     = $like;
+        }
+
+        if ($active !== null) {
+            $conditions[] = 'active = ?';
+            $params[]     = $active;
+        }
+
+        $where = $conditions ? 'WHERE ' . implode(' AND ', $conditions) : '';
+        return [$where, $params];
+    }
+
     public function updateInfo(int $id, string $email, bool $admin): void
     {
         $this->db->simple('UPDATE users SET email = ?, admin = ? WHERE id = ?', $email, (int) $admin, $id);

@@ -54,6 +54,8 @@ function buildRouter(): Router
         $group->map('GET',  '/',                    [AdminController::class, 'index']);
         $group->map('POST', '/',                    [AdminController::class, 'index']);
         $group->map('GET',  '/users',               [AdminController::class, 'users']);
+        $group->map('GET',  '/subscriptions',       [AdminController::class, 'subscriptions']);
+        $group->map('POST', '/subscription/{id:number}/toggle', [AdminController::class, 'toggleSubscription']);
         $group->map('GET',  '/register-user',       [AdminController::class, 'registerUser']);
         $group->map('POST', '/register-user',       [AdminController::class, 'registerUser']);
         $group->map('GET',  '/user/{id:number}',    [AdminController::class, 'editUser']);

@@ -93,7 +93,22 @@ return [
         'name' => 'Name',
         'admin' => 'Admin',
         'edit' => 'Edit',
-        'no_users_found' => 'No users found.'
+        'no_users_found' => 'No users found.',
+        'subscriptions' => 'Subscriptions',
+        'search_by_name_or_email' => 'Search by name or email',
+        'search_by_name_or_email_placeholder' => 'Name or email',
+        'search_by_url_or_name' => 'Search by URL or name',
+        'search_by_url_or_name_placeholder' => 'Feed title or URL',
+        'filter' => 'Filter',
+        'clear_filters' => 'Clear filters',
+        'all' => 'All',
+        'feed_url' => 'Feed URL',
+        'subscribers' => 'Subscribers',
+        'last_fetch' => 'Last fetch',
+        'fetch_failures' => 'Fetch failures',
+        'no_subscriptions_found' => 'No subscriptions found.',
+        'disable_subscription_confirm' => 'Disable this subscription?',
+        'enable_subscription_confirm' => 'Enable this subscription?'
     ],
     'dashboard' => [
         'secret_user' => 'GPodder Secret User',

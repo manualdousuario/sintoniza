@@ -31,8 +31,6 @@
 .form-select {
 	border-color: $slate-200;
 	border-radius: $radius-md;
-	padding: 0.55rem 0.9rem;
-	font-size: 0.95rem;
 	transition: border-color $transition-fast, box-shadow $transition-fast;
 	background-color: #fff;
 
@@ -53,7 +51,6 @@
 
 .form-label {
 	font-weight: 500;
-	font-size: 0.875rem;
 	color: $slate-600;
 	margin-bottom: 0.35rem;
 }
@@ -64,7 +61,6 @@
 .btn {
 	border-radius: $radius-md;
 	font-weight: 500;
-	font-size: 0.9rem;
 	transition: transform $transition-fast, box-shadow $transition-fast, background $transition-fast;
 
 	&:active {
@@ -73,8 +69,6 @@
 
 	&.btn-sm {
 		border-radius: $radius-sm;
-		font-size: 0.82rem;
-		padding: 0.3rem 0.7rem;
 	}
 }
 
@@ -100,25 +94,38 @@
 }
 
 .btn-secondary {
-	background: $slate-100;
-	border-color: $slate-200;
-	color: $slate-600;
+	background: $slate-500;
+	border-color: $slate-600;
+	color: $slate-200;
 
 	&:hover {
-		background: $slate-200;
-		border-color: $slate-300;
-		color: $slate-700;
+		background: $slate-600;
+		border-color: $slate-700;
+		color: $slate-100;
 	}
 }
 
 .btn-outline-secondary {
-	border-color: rgba(255, 255, 255, 0.2);
-	color: #e2e8f0;
+	border-color: $slate-500;
+	color: $slate-600;
 
 	&:hover {
-		background: rgba(255, 255, 255, 0.08);
-		border-color: rgba(255, 255, 255, 0.35);
-		color: #fff;
+		background: $slate-800;
+		border-color:  $slate-700;
+		color: $slate-200;
+	}
+}
+
+.navbar {
+	.btn-outline-secondary {
+		border-color: $slate-600;
+		color: $slate-200;
+
+		&:hover {
+			background: $slate-700;
+			border-color: $slate-600;
+			color: $slate-100;
+		}
 	}
 }
 
@@ -128,7 +135,6 @@
 %alert-base {
 	border-radius: 10px;
 	border: none;
-	font-size: 0.9rem;
 	padding: 0.85rem 1.1rem;
 }
 
@@ -172,9 +178,6 @@
 .badge {
 	border-radius: 6px;
 	font-weight: 600;
-	font-size: 0.72rem;
-	padding: 0.3em 0.55em;
-	letter-spacing: 0.01em;
 
 	&.rounded-pill {
 		border-radius: 50rem;
@@ -210,7 +213,6 @@
 //  TABLES
 // =============================================
 .table {
-	font-size: 0.9rem;
 	border-color: $slate-200;
     border-radius: 13px;
     overflow: hidden;
@@ -222,10 +224,7 @@
 		>tr>th {
 			border-bottom: none;
 			font-weight: 600;
-			font-size: 0.8rem;
 			text-transform: uppercase;
-			letter-spacing: 0.05em;
-			padding: 0.85rem 1rem;
 		}
 	}
 
@@ -251,8 +250,6 @@
 	border-radius: 8px !important;
 	border-color: $slate-200;
 	color: $indigo;
-	font-size: 0.875rem;
-	padding: 0.4rem 0.75rem;
 	transition: background $transition-fast;
 
 	&:hover {
@@ -283,10 +280,8 @@
 	border-bottom: 1px solid $slate-200;
 
 	.page-title {
-		font-size: clamp(1.4rem, 2.5vw, 1.8rem);
 		font-weight: 800;
 		color: $slate-800;
-		letter-spacing: -0.02em;
 		margin: 0;
 
 		i {
@@ -300,7 +295,6 @@
 // =============================================
 .section-label {
 	display: inline-block;
-	font-size: 0.72rem;
 	font-weight: 700;
 	color: $indigo;
 	text-transform: uppercase;
@@ -320,8 +314,6 @@
 		border: 1px solid transparent;
 		color: $slate-500;
 		font-weight: 500;
-		font-size: 0.9rem;
-		padding: 0.55rem 1rem;
 		transition: color $transition-fast, background $transition-fast;
 
 		&:hover {

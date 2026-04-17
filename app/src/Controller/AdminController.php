@@ -12,12 +12,14 @@ use Psr\Http\Message\ServerRequestInterface;
 use Sintoniza\Cache\CacheInterface;
 use Sintoniza\Database\DB;
 use Sintoniza\Exception\ValidationException;
+use Sintoniza\Repository\FeedRepository;
 use Sintoniza\Repository\UserRepository;
 use Sintoniza\Service\UserService;
 
 class AdminController
 {
     private const USERS_PER_PAGE = 20;
+    private const FEEDS_PER_PAGE = 20;
     private const STATS_TTL      = 300;
     private const TOP_FEEDS_TTL  = 900;
 
@@ -25,6 +27,7 @@ class AdminController
         private DB $db,
         private UserService $userService,
         private UserRepository $userRepository,
+        private FeedRepository $feedRepository,
         private Engine $plates,
         private CacheInterface $cache
     ) {}
@@ -81,19 +84,92 @@ class AdminController
     {
         $query   = $request->getQueryParams();
         $page    = max(1, (int) ($query['page'] ?? 1));
-        $total   = $this->userRepository->count();
-        $pages   = (int) ceil($total / self::USERS_PER_PAGE);
+        $search  = isset($query['q']) ? trim((string) $query['q']) : '';
+        $active  = $this->parseActive($query['active'] ?? null);
+
+        $total   = $this->userRepository->countFiltered($search !== '' ? $search : null, $active);
+        $pages   = max(1, (int) ceil($total / self::USERS_PER_PAGE));
+        $page    = min($page, $pages);
         $offset  = ($page - 1) * self::USERS_PER_PAGE;
-        $users   = $this->userRepository->findPaginated($offset, self::USERS_PER_PAGE);
+        $users   = $this->userRepository->findFiltered(
+            $search !== '' ? $search : null,
+            $active,
+            $offset,
+            self::USERS_PER_PAGE
+        );
         $message = isset($query['deleted']) ? 'Usuário deletado com sucesso!' : null;
 
         return new HtmlResponse($this->plates->render('admin::users', $this->baseData($request) + [
             'users'       => $users,
             'page'        => $page,
             'pages'       => $pages,
+            'total'       => $total,
+            'search'      => $search,
+            'active'      => $active,
             'message'     => $message,
             'messageType' => 'success',
         ]));
+    }
+
+    public function subscriptions(ServerRequestInterface $request, array $args = []): ResponseInterface
+    {
+        $query  = $request->getQueryParams();
+        $page   = max(1, (int) ($query['page'] ?? 1));
+        $search = isset($query['q']) ? trim((string) $query['q']) : '';
+        $active = $this->parseActive($query['active'] ?? null);
+
+        $total  = $this->feedRepository->countFiltered($search !== '' ? $search : null, $active);
+        $pages  = max(1, (int) ceil($total / self::FEEDS_PER_PAGE));
+        $page   = min($page, $pages);
+        $offset = ($page - 1) * self::FEEDS_PER_PAGE;
+        $feeds  = $this->feedRepository->findFiltered(
+            $search !== '' ? $search : null,
+            $active,
+            $offset,
+            self::FEEDS_PER_PAGE
+        );
+
+        return new HtmlResponse($this->plates->render('admin::subscriptions', $this->baseData($request) + [
+            'feeds'  => $feeds,
+            'page'   => $page,
+            'pages'  => $pages,
+            'total'  => $total,
+            'search' => $search,
+            'active' => $active,
+        ]));
+    }
+
+    public function toggleSubscription(ServerRequestInterface $request, array $args = []): ResponseInterface
+    {
+        $feedId = (int) $args['id'];
+        $feed   = $this->feedRepository->findById($feedId);
+
+        if (!$feed) {
+            return new RedirectResponse('/admin/subscriptions');
+        }
+
+        $body   = $request->getParsedBody() ?? [];
+        $active = isset($body['active']) ? (int) $body['active'] === 1 : !((int) $feed->active === 1);
+
+        $this->feedRepository->setActive($feedId, $active);
+
+        $query = $request->getQueryParams();
+        $qs    = array_filter([
+            'q'      => $query['q']      ?? null,
+            'active' => $query['active'] ?? null,
+            'page'   => $query['page']   ?? null,
+        ], fn($v) => $v !== null && $v !== '');
+
+        $target = '/admin/subscriptions' . ($qs ? '?' . http_build_query($qs) : '');
+        return new RedirectResponse($target);
+    }
+
+    private function parseActive(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+        return in_array($value, ['1', 1, true, 'true'], true) ? 1 : 0;
     }
 
     public function registerUser(ServerRequestInterface $request, array $args = []): ResponseInterface

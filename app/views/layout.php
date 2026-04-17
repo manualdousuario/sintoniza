@@ -65,8 +65,9 @@ $__availableLangs   = $__lang->getAvailableLanguages();
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="/admin"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/admin/users"><i class="bi bi-people me-2"></i>Usuários</a></li>
-                            <li><a class="dropdown-item" href="/admin/register-user"><i class="bi bi-person-plus me-2"></i>Registrar Usuário</a></li>
+                            <li><a class="dropdown-item" href="/admin/users"><i class="bi bi-people me-2"></i><?= $this->__('admin.users') ?></a></li>
+                            <li><a class="dropdown-item" href="/admin/subscriptions"><i class="bi bi-rss me-2"></i><?= $this->__('admin.subscriptions') ?></a></li>
+                            <li><a class="dropdown-item" href="/admin/register-user"><i class="bi bi-person-plus me-2"></i><?= $this->__('admin.register_user') ?></a></li>
                         </ul>
                     </div>
                 <?php endif ?>

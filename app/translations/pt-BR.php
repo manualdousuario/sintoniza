@@ -93,7 +93,22 @@ return [
         'name' => 'Nome',
         'admin' => 'Admin',
         'edit' => 'Editar',
-        'no_users_found' => 'Nenhum usuário encontrado.'
+        'no_users_found' => 'Nenhum usuário encontrado.',
+        'subscriptions' => 'Inscrições',
+        'search_by_name_or_email' => 'Buscar por nome ou email',
+        'search_by_name_or_email_placeholder' => 'Nome ou email',
+        'search_by_url_or_name' => 'Buscar por URL ou nome',
+        'search_by_url_or_name_placeholder' => 'Título ou URL do feed',
+        'filter' => 'Filtrar',
+        'clear_filters' => 'Limpar filtros',
+        'all' => 'Todos',
+        'feed_url' => 'URL do Feed',
+        'subscribers' => 'Assinantes',
+        'last_fetch' => 'Última atualização',
+        'fetch_failures' => 'Falhas de busca',
+        'no_subscriptions_found' => 'Nenhuma inscrição encontrada.',
+        'disable_subscription_confirm' => 'Desativar esta inscrição?',
+        'enable_subscription_confirm' => 'Ativar esta inscrição?'
     ],
     'dashboard' => [
         'secret_user' => 'Usuário secreto do GPodder',

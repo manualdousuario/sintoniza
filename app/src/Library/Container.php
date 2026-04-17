@@ -133,6 +133,7 @@ class Container
                 ->addArgument(DB::class)
                 ->addArgument(UserService::class)
                 ->addArgument(UserRepository::class)
+                ->addArgument(FeedRepository::class)
                 ->addArgument(Engine::class)
                 ->addArgument(CacheInterface::class);
 
