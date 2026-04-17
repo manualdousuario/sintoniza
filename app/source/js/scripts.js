@@ -195,3 +195,60 @@
         stopRaf();
     });
 }());
+
+(function () {
+    var btn = document.getElementById('btn-download');
+    if (!btn) return;
+
+    var icon = document.getElementById('btn-download-icon');
+
+    function resolveName(url, fallback) {
+        try {
+            var u = new URL(url, window.location.href);
+            var base = u.pathname.split('/').pop() || fallback;
+            return decodeURIComponent(base) || fallback;
+        } catch (e) {
+            return fallback;
+        }
+    }
+
+    btn.addEventListener('click', function (ev) {
+        var url  = btn.dataset.url;
+        var name = btn.dataset.name || resolveName(url, 'download');
+        if (!url) return;
+
+        ev.preventDefault();
+
+        if (btn.dataset.loading === '1') return;
+        btn.dataset.loading = '1';
+        btn.classList.add('disabled');
+        btn.setAttribute('aria-disabled', 'true');
+        if (icon) icon.className = 'spinner-border spinner-border-sm';
+
+        fetch(url, { mode: 'cors', credentials: 'omit' })
+            .then(function (res) {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return res.blob();
+            })
+            .then(function (blob) {
+                var objectUrl = URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href     = objectUrl;
+                a.download = name;
+                a.rel      = 'noopener';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(function () { URL.revokeObjectURL(objectUrl); }, 2000);
+            })
+            .catch(function () {
+                window.location.href = url;
+            })
+            .finally(function () {
+                btn.dataset.loading = '';
+                btn.classList.remove('disabled');
+                btn.removeAttribute('aria-disabled');
+                if (icon) icon.className = 'bi bi-cloud-arrow-down-fill';
+            });
+    });
+}());

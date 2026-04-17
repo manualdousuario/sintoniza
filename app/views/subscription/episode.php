@@ -75,9 +75,16 @@
                     <p class="small text-muted mb-0 mt-2" id="player-status"><?= $this->e($playerI18n['loading']) ?></p>
                 </div>
             </div>
-            <a href="<?= $this->e($episode->media_url) ?>" target="_blank"
+            <?php $downloadName = $episode->title ?: basename(strtok($episode->media_url, '?')); ?>
+            <a href="<?= $this->e($episode->media_url) ?>"
+                id="btn-download"
+                data-url="<?= $this->e($episode->media_url) ?>"
+                data-name="<?= $this->e($downloadName) ?>"
+                download="<?= $this->e($downloadName) ?>"
+                rel="noopener"
                 class="btn btn-sm btn-secondary">
-                <i class="bi bi-cloud-arrow-down-fill"></i> <?= $this->__('general.download') ?>
+                <i class="bi bi-cloud-arrow-down-fill" id="btn-download-icon"></i>
+                <span id="btn-download-label"><?= $this->__('general.download') ?></span>
             </a>
             <?php if (!empty($episode->description)): ?>
                 <div class="mt-3"><?= $this->format_description($episode->description) ?></div>
