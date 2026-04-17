@@ -32,6 +32,7 @@ function buildRouter(): Router
     $router->map('POST', '/forget-password',        [AuthController::class, 'showForgotPassword']);
     $router->map('GET',  '/forget-password/reset',  [AuthController::class, 'showResetPassword']);
     $router->map('POST', '/forget-password/reset',  [AuthController::class, 'showResetPassword']);
+    $router->map('POST', '/language',               [AuthController::class, 'switchLanguage']);
 
     // Subscription routes
     $router->group('/subscription', function ($group) {

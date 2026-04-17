@@ -1,7 +1,10 @@
 <?php
 use Sintoniza\Library\Language;
 
-$fullTitle = isset($title) ? TITLE . ' | ' . $title : TITLE;
+$fullTitle          = isset($title) ? TITLE . ' | ' . $title : TITLE;
+$__lang             = Language::getInstance();
+$__currentLang      = $__lang->getCurrentLanguage();
+$__availableLangs   = $__lang->getAvailableLanguages();
 ?><!DOCTYPE html>
 <html lang="<?= Language::getInstance()->getCurrentLanguage() ?>">
 
@@ -33,6 +36,26 @@ $fullTitle = isset($title) ? TITLE . ' | ' . $title : TITLE;
                 </div>
             </div>
             <div class="d-flex align-items-center">
+                <div class="dropdown me-2">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                        data-bs-toggle="dropdown" aria-expanded="false"
+                        title="<?= $this->e($this->__('general.language')) ?>">
+                        <i class="bi bi-translate"></i>
+                        <span class="d-none d-md-inline"><?= $this->e($__availableLangs[$__currentLang] ?? $__currentLang) ?></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <?php foreach ($__availableLangs as $__code => $__label): ?>
+                            <li>
+                                <form method="POST" action="/language" class="m-0">
+                                    <input type="hidden" name="language" value="<?= $this->e($__code) ?>">
+                                    <button type="submit" class="dropdown-item<?= $__code === $__currentLang ? ' active' : '' ?>">
+                                        <?= $this->e($__label) ?>
+                                    </button>
+                                </form>
+                            </li>
+                        <?php endforeach ?>
+                    </ul>
+                </div>
                 <?php if ($isAdmin ?? false): ?>
                     <div class="dropdown me-2">
                         <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"

@@ -13,6 +13,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Sintoniza\Database\DB;
 use Sintoniza\Exception\AuthException;
 use Sintoniza\Exception\ValidationException;
+use Sintoniza\Library\Language;
 use Sintoniza\Service\MailService;
 use Sintoniza\Service\UserService;
 
@@ -135,6 +136,50 @@ class AuthController
         return new RedirectResponse('/');
     }
 
+    public function switchLanguage(ServerRequestInterface $request, array $args = []): ResponseInterface
+    {
+        $gpodder  = $request->getAttribute('gpodder');
+        $body     = $request->getParsedBody() ?? [];
+        $language = is_string($body['language'] ?? null) ? $body['language'] : '';
+
+        $available = Language::getInstance()->getAvailableLanguages();
+        if (array_key_exists($language, $available)) {
+            if ($gpodder->isLogged()) {
+                try {
+                    $this->userService->updateLanguage((int) $gpodder->user->id, $language);
+                    $gpodder->user->language = $language;
+                    $this->session->set('user', $gpodder->user);
+                } catch (ValidationException) {
+                }
+            } else {
+                $this->session->set('language', $language);
+                Language::getInstance()->setLanguage($language);
+            }
+        }
+
+        return new RedirectResponse($this->safeReferer($request));
+    }
+
+    private function safeReferer(ServerRequestInterface $request): string
+    {
+        $referer = $request->getHeaderLine('Referer');
+        if ($referer === '') {
+            return '/';
+        }
+
+        $parsed = parse_url($referer);
+        if ($parsed === false || empty($parsed['path'])) {
+            return '/';
+        }
+
+        $target = $parsed['path'];
+        if (!empty($parsed['query'])) {
+            $target .= '?' . $parsed['query'];
+        }
+
+        return $target;
+    }
+
     public function showForgotPassword(ServerRequestInterface $request, array $args = []): ResponseInterface
     {
         $gpodder     = $request->getAttribute('gpodder');
@@ -146,8 +191,11 @@ class AuthController
             $user = $this->userService->generatePasswordResetToken(trim($body['email']));
 
             if ($user && !empty($user->reset_token)) {
-                $resetLink = rtrim(BASE_URL, '/') . '/forget-password/reset?token=' . $user->reset_token;
-                $this->mailService->sendPasswordReset($user->email, $user->name, $resetLink);
+                $resetLink  = rtrim(BASE_URL, '/') . '/forget-password/reset?token=' . $user->reset_token;
+                $userLang   = isset($user->language) && is_string($user->language) && $user->language !== ''
+                    ? $user->language
+                    : Language::getInstance()->getCurrentLanguage();
+                $this->mailService->sendPasswordReset($user->email, $user->name, $resetLink, $userLang);
             }
 
             $message = __('forget_password.email_sent');

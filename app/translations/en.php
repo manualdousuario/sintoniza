@@ -227,6 +227,10 @@ return [
         'email_sent' => 'A password reset email has been sent to your email address.',
         'email_not_registered' => 'The email address you provided is not registered.'
     ],
+    'emails' => [
+        'password_reset_subject' => 'Password recovery - %s',
+        'password_reset_body'    => "Hello %s,\n\nClick the link below to reset your password:\n%s\n\nThis link will expire in 1 hour."
+    ],
     'db' => [
         'schema_not_found' => 'mysql.sql schema file not found'
     ],

@@ -6,10 +6,11 @@ namespace Sintoniza\Service;
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception as MailException;
+use Sintoniza\Library\Language;
 
 class MailService
 {
-    public function sendPasswordReset(string $toEmail, string $toName, string $resetLink): bool
+    public function sendPasswordReset(string $toEmail, string $toName, string $resetLink, string $language = 'en'): bool
     {
         if (empty(SMTP_HOST)) {
             return false;
@@ -30,12 +31,11 @@ class MailService
             $mail->setFrom(SMTP_FROM, SMTP_NAME ?: TITLE);
             $mail->addAddress($toEmail, $toName);
 
-            $mail->Subject = 'Recuperação de senha - ' . TITLE;
-            $mail->Body    = sprintf(
-                "Olá %s,\n\nClique no link abaixo para redefinir sua senha:\n%s\n\nEste link expira em 1 hora.",
-                $toName,
-                $resetLink
-            );
+            $subjectTpl = Language::translate($language, 'emails.password_reset_subject');
+            $bodyTpl    = Language::translate($language, 'emails.password_reset_body');
+
+            $mail->Subject = sprintf($subjectTpl, TITLE);
+            $mail->Body    = sprintf($bodyTpl, $toName, $resetLink);
 
             $mail->send();
 

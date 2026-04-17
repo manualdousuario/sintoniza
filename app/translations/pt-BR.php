@@ -227,6 +227,10 @@ return [
         'email_sent' => 'Um e-mail de redefinição de senha foi enviado para seu endereço de e-mail.',
         'email_not_registered' => 'O endereço de e-mail que você forneceu não está registrado.'
     ],
+    'emails' => [
+        'password_reset_subject' => 'Recuperação de senha - %s',
+        'password_reset_body'    => "Olá %s,\n\nClique no link abaixo para redefinir sua senha:\n%s\n\nEste link expira em 1 hora."
+    ],
     'db' => [
         'schema_not_found' => 'Arquivo de esquema mysql.sql não encontrado'
     ],

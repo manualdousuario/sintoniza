@@ -227,6 +227,10 @@ return [
         'email_sent' => 'Enviamos un correo electrónico de restablecimiento de contraseña a su dirección de correo.',
         'email_not_registered' => 'La dirección de correo electrónico que ingresó no está registrada.'
     ],
+    'emails' => [
+        'password_reset_subject' => 'Recuperación de contraseña - %s',
+        'password_reset_body'    => "Hola %s,\n\nHaga clic en el enlace de abajo para restablecer su contraseña:\n%s\n\nEste enlace expirará en 1 hora."
+    ],
     'db' => [
         'schema_not_found' => 'archivo de esquema mysql.sql no encontrado'
     ],
