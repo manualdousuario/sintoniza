@@ -225,27 +225,6 @@ class GPodder
         return null;
     }
 
-    public function generateCaptcha(): string
-    {
-        $c = '';
-        $n = '';
-
-        for ($i = 0; $i < 4; $i++) {
-            $j = random_int(0, 9);
-            $c .= $j;
-            $n .= sprintf('<b class="d-none">%d</b><i>%d</i>', random_int(0, 9), $j);
-        }
-
-        $n .= sprintf('<input type="hidden" name="cc" value="%s" />', sha1($c . __DIR__));
-
-        return $n;
-    }
-
-    public function checkCaptcha(string $captcha, string $check): bool
-    {
-        return sha1(trim($captcha) . __DIR__) === $check;
-    }
-
     public function listActiveSubscriptions(): array
     {
         return $this->db->all(

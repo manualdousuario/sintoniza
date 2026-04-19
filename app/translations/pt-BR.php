@@ -150,6 +150,7 @@ return [
     'messages' => [
         'subscriptions_disabled' => 'As assinaturas estão desabilitadas.',
         'invalid_captcha' => 'Captcha inválido.',
+        'user_registered' => 'Cadastro realizado com sucesso. Faça login para continuar.',
         'login_success' => 'Você está logado, pode fechar isso e voltar para o aplicativo.',
         'metadata_warning' => 'Os títulos e imagens dos episódios podem estar faltando devido a rastreadores/anúncios usados por alguns provedores de podcast.',
         'app_requesting_access' => 'Um aplicativo está solicitando acesso à sua conta.',

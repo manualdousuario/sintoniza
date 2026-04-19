@@ -24,6 +24,7 @@ use Sintoniza\Feed\DescriptionFormatter;
 use Sintoniza\Repository\FeedRepository;
 use Sintoniza\Repository\UserRepository;
 use Sintoniza\Feed\PodcastIndexClient;
+use Sintoniza\Service\CaptchaService;
 use Sintoniza\Service\FeedService;
 use Sintoniza\Service\MailService;
 use Sintoniza\Service\UserService;
@@ -111,11 +112,15 @@ class Container
 
             $container->add(MailService::class);
 
+            $container->add(CaptchaService::class)
+                ->addArgument(Session::class);
+
             // Controllers
             $container->add(AuthController::class)
                 ->addArgument(DB::class)
                 ->addArgument(UserService::class)
                 ->addArgument(MailService::class)
+                ->addArgument(CaptchaService::class)
                 ->addArgument(Session::class)
                 ->addArgument(Engine::class);
 

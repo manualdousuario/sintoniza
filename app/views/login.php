@@ -3,6 +3,14 @@
 <div class="auth-section">
     <div class="container">
 
+        <?php if (!empty($success)): ?>
+            <div class="row justify-content-center mb-3">
+                <div class="col-md-4">
+                    <div class="alert alert-success" role="alert"><?= $this->e($success) ?></div>
+                </div>
+            </div>
+        <?php endif ?>
+
         <?php if ($error): ?>
             <div class="row justify-content-center mb-3">
                 <div class="col-md-4">

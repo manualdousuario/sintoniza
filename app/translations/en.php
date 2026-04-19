@@ -150,6 +150,7 @@ return [
     'messages' => [
         'subscriptions_disabled' => 'Subscriptions are disabled.',
         'invalid_captcha' => 'Invalid captcha.',
+        'user_registered' => 'Registration completed successfully. Sign in to continue.',
         'login_success' => 'You are logged in, you can close this and return to the application.',
         'metadata_warning' => 'Episode titles and images may be missing due to trackers/ads used by some podcast providers.',
         'app_requesting_access' => 'An application is requesting access to your account.',

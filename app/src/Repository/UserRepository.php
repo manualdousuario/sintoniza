@@ -31,13 +31,21 @@ class UserRepository
         return $this->db->all('SELECT * FROM users ORDER BY id ASC');
     }
 
-    public function create(string $username, string $passwordHash, string $email, bool $admin = false): int
-    {
+    public function create(
+        string $username,
+        string $passwordHash,
+        string $email,
+        bool $admin = false,
+        string $language = 'en',
+        string $timezone = 'UTC'
+    ): int {
         $this->db->simple(
-            'INSERT INTO users (name, password, email, admin) VALUES (?, ?, ?, ?)',
+            'INSERT INTO users (name, password, email, language, timezone, admin) VALUES (?, ?, ?, ?, ?, ?)',
             $username,
             $passwordHash,
             $email,
+            $language,
+            $timezone,
             (int) $admin
         );
 

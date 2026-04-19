@@ -43,8 +43,9 @@ class UserService
 
         $isFirstUser  = $this->userRepository->count() === 0;
         $passwordHash = password_hash(trim($password), PASSWORD_DEFAULT);
+        $language     = Language::getInstance()->getCurrentLanguage();
 
-        $this->userRepository->create(trim($name), $passwordHash, trim($email), $isFirstUser);
+        $this->userRepository->create(trim($name), $passwordHash, trim($email), $isFirstUser, $language);
     }
 
     public function changePassword(stdClass $user, string $currentPassword, string $newPassword): void
@@ -141,27 +142,6 @@ class UserService
         $expected = $user->name . '__' . substr(sha1($user->password), 0, 10);
 
         return $username === $expected ? $user : null;
-    }
-
-    public function generateCaptcha(): string
-    {
-        $c = '';
-        $n = '';
-
-        for ($i = 0; $i < 4; $i++) {
-            $j = random_int(0, 9);
-            $c .= $j;
-            $n .= sprintf('<b class="d-none">%d</b><i>%d</i>', random_int(0, 9), $j);
-        }
-
-        $n .= sprintf('<input type="hidden" name="cc" value="%s" />', sha1($c . __DIR__));
-
-        return $n;
-    }
-
-    public function checkCaptcha(string $captcha, string $check): bool
-    {
-        return sha1(trim($captcha) . __DIR__) === $check;
     }
 
     private function validateRegistration(string $name, string $password, string $email): array

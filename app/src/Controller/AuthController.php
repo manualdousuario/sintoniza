@@ -14,6 +14,7 @@ use Sintoniza\Database\DB;
 use Sintoniza\Exception\AuthException;
 use Sintoniza\Exception\ValidationException;
 use Sintoniza\Library\Language;
+use Sintoniza\Service\CaptchaService;
 use Sintoniza\Service\MailService;
 use Sintoniza\Service\UserService;
 
@@ -23,6 +24,7 @@ class AuthController
         private DB $db,
         private UserService $userService,
         private MailService $mailService,
+        private CaptchaService $captchaService,
         private Session $session,
         private Engine $plates
     ) {}
@@ -56,8 +58,13 @@ class AuthController
         }
 
         $error       = null;
+        $success     = null;
         $body        = $request->getParsedBody() ?? [];
         $queryParams = $request->getQueryParams();
+
+        if ($this->session->isStarted() && $this->session->has('flash_success')) {
+            $success = $this->session->pull('flash_success');
+        }
 
         if (!empty($body['login'])) {
             try {
@@ -80,6 +87,7 @@ class AuthController
             'logged'   => false,
             'isAdmin'  => false,
             'error'    => $error,
+            'success'  => $success,
             'hasToken' => isset($queryParams['token']),
         ]));
     }
@@ -103,7 +111,7 @@ class AuthController
         }
 
         if (!empty($body['username'])) {
-            if (!$this->userService->checkCaptcha($body['captcha'] ?? '', $body['cc'] ?? '')) {
+            if (!$this->captchaService->check($body['captcha'] ?? '')) {
                 $error = __('messages.invalid_captcha');
             } else {
                 try {
@@ -112,6 +120,7 @@ class AuthController
                         $body['password'] ?? '',
                         $body['email'] ?? ''
                     );
+                    $this->session->set('flash_success', __('messages.user_registered'));
                     return new RedirectResponse('/login');
                 } catch (ValidationException $e) {
                     $error = implode(' ', $e->getErrors());
@@ -125,7 +134,9 @@ class AuthController
             'disabled' => false,
             'notice'   => $notice,
             'error'    => $error,
-            'captcha'  => $gpodder->generateCaptcha(),
+            'captcha'  => $this->captchaService->generate(),
+            'username' => $body['username'] ?? '',
+            'email'    => $body['email'] ?? '',
         ]));
     }
 
