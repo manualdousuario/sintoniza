@@ -152,6 +152,9 @@ class AuthController
                 } catch (ValidationException) {
                 }
             } else {
+                if (!$this->session->isStarted()) {
+                    $this->session->start();
+                }
                 $this->session->set('language', $language);
                 Language::getInstance()->setLanguage($language);
             }
