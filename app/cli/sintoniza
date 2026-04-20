@@ -7,6 +7,9 @@ if (PHP_SAPI !== 'cli') {
     exit(1);
 }
 
+ini_set('memory_limit', '256M');
+gc_enable();
+
 require_once __DIR__ . '/../config/config.php';
 
 use League\CLImate\CLImate;

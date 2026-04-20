@@ -77,41 +77,60 @@ class FeedService
             FROM subscriptions s
                 LEFT JOIN episodes_actions a ON a.subscription = s.id
                 LEFT JOIN feeds f ON f.id = s.feed
-            WHERE (f.active IS NULL OR f.active = 1)
+            WHERE s.id > ?
+                AND (f.active IS NULL OR f.active = 1)
                 AND (f.last_fetch IS NULL
                     OR f.last_fetch < s.changed
                     OR f.last_fetch < COALESCE(a.changed, 0))
-            GROUP BY s.id, s.url, s.changed';
+            GROUP BY s.id, s.url, s.changed
+            ORDER BY s.id
+            LIMIT ?';
 
         @ini_set('max_execution_time', '3600');
 
-        $count = 0;
+        $pageSize = 100;
+        $lastId   = 0;
+        $count    = 0;
 
-        foreach ($this->db->iterate($sql) as $row) {
-            @set_time_limit(30);
+        while (true) {
+            $rows = $this->db->all($sql, $lastId, $pageSize);
 
-            if ($cli) {
-                printf("Updating %s\n", $row->url);
-                @flush();
+            if (empty($rows)) {
+                break;
             }
 
-            $source = null;
-            $feed   = $this->fetchAndSync($row->url, $source);
+            foreach ($rows as $row) {
+                @set_time_limit(30);
 
-            if ($cli) {
-                $label = match ($source) {
-                    'podcastindex' => 'Podcast Index',
-                    'rss'          => 'RSS',
-                    'rss-fallback' => 'RSS (fallback Podcast Index failed)',
-                    default        => 'Failed',
-                };
-                printf("  -> Source: %s\n", $label);
-                @flush();
+                if ($cli) {
+                    printf("Updating %s\n", $row->url);
+                    @flush();
+                }
+
+                $source = null;
+                $feed   = $this->fetchAndSync($row->url, $source);
+
+                if ($cli) {
+                    $label = match ($source) {
+                        'podcastindex' => 'Podcast Index',
+                        'rss'          => 'RSS',
+                        'rss-fallback' => 'RSS (fallback Podcast Index failed)',
+                        default        => 'Failed',
+                    };
+                    printf("  -> Source: %s\n", $label);
+                    @flush();
+                }
+
+                if ($feed) {
+                    $count++;
+                }
+
+                $lastId = (int) $row->subscription;
+                unset($feed, $source);
+                gc_collect_cycles();
             }
 
-            if ($feed) {
-                $count++;
-            }
+            unset($rows);
         }
 
         return $count;

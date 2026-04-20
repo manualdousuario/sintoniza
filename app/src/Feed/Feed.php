@@ -61,21 +61,27 @@ class Feed
 
     public function fetch(Client $client): bool
     {
+        $tmp = tempnam(sys_get_temp_dir(), 'sintoniza_feed_');
+        if ($tmp === false) {
+            return false;
+        }
+
         try {
-            $response         = $client->get($this->feed_url);
-            $body             = (string) $response->getBody();
+            $client->get($this->feed_url, ['sink' => $tmp]);
             $this->last_fetch = time();
         } catch (RequestException $e) {
             Logger::getInstance()->warning('Feed fetch failed', ['url' => $this->feed_url, 'error' => $e->getMessage()]);
+            @unlink($tmp);
             return false;
         }
 
-        if (!$body) {
+        if (!filesize($tmp)) {
+            @unlink($tmp);
             return false;
         }
 
-        $body = preg_replace("/^(\xef\xbb\xbf|\\x00\\x00\\xfe\\xff|\\xff\\xfe\\x00\\x00|\\xff\\xfe|\\xfe\\xff)/", '', $body);
-        $xml  = @simplexml_load_string($body);
+        $xml = @simplexml_load_file($tmp);
+        @unlink($tmp);
 
         if (!$xml) {
             return false;
@@ -300,7 +306,10 @@ class Feed
 
             $db->simple('UPDATE subscriptions SET feed = ? WHERE url = ?', $feed_id, $this->feed_url);
 
-            $episode_data = [];
+            $updateCols = ['title', 'description', 'url', 'image_url', 'pubdate', 'duration'];
+            $buffer     = [];
+            $flushed    = false;
+
             foreach ($this->episodes as $episode) {
                 $episode = (array) $episode;
 
@@ -308,7 +317,7 @@ class Feed
                     continue;
                 }
 
-                $episode_data[] = [
+                $buffer[] = [
                     'feed'        => $feed_id,
                     'media_url'   => $episode['media_url'],
                     'title'       => $episode['title'] ?? null,
@@ -318,15 +327,21 @@ class Feed
                     'pubdate'     => $episode['pubdate'] ? $episode['pubdate']->format('Y-m-d H:i:s') : null,
                     'duration'    => $this->validateDuration($episode['duration']),
                 ];
+
+                if (count($buffer) >= 200) {
+                    $db->bulkUpsert('episodes', $buffer, $updateCols);
+                    $buffer  = [];
+                    $flushed = true;
+                }
             }
 
-            if (!empty($episode_data)) {
-                foreach (array_chunk($episode_data, 200) as $chunk) {
-                    $db->bulkUpsert('episodes', $chunk, [
-                        'title', 'description', 'url', 'image_url', 'pubdate', 'duration',
-                    ]);
-                }
+            if (!empty($buffer)) {
+                $db->bulkUpsert('episodes', $buffer, $updateCols);
+                $flushed = true;
+                $buffer  = [];
+            }
 
+            if ($flushed) {
                 $db->simple(
                     'UPDATE episodes_actions ea
                      INNER JOIN episodes e ON e.media_url = ea.url
@@ -335,6 +350,8 @@ class Feed
                     $feed_id
                 );
             }
+
+            $this->episodes = [];
 
             $db->commit();
         } catch (Exception $e) {
