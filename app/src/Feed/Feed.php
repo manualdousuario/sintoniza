@@ -10,6 +10,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Sintoniza\Database\DB;
 use Sintoniza\Library\Logger;
+use Sintoniza\Library\Url;
 
 class Feed
 {
@@ -39,7 +40,7 @@ class Feed
 
     public function __construct(string $url)
     {
-        $this->feed_url = $url;
+        $this->feed_url = Url::normalize($url);
     }
 
     public function load(\stdClass $data): void

@@ -7,6 +7,7 @@ namespace Sintoniza\Api;
 use Exception;
 use Monolog\Logger as MonologLogger;
 use Sintoniza\Database\DB;
+use Sintoniza\Library\Url;
 
 class GpodderSubscriptionsHandler
 {
@@ -64,7 +65,7 @@ class GpodderSubscriptionsHandler
                     $this->db->simple(
                         'INSERT IGNORE INTO subscriptions (user, url, changed) VALUES (?, ?, ?)',
                         $this->api->getUser()->id,
-                        $url,
+                        Url::normalize($url),
                         $ts
                     );
                 }
@@ -87,14 +88,14 @@ class GpodderSubscriptionsHandler
                 if (!empty($input->add) && is_array($input->add)) {
                     foreach ($input->add as $url) {
                         if (!$this->api->validateURL($url)) continue;
-                        $this->db->upsert('subscriptions', ['user' => $this->api->getUser()->id, 'url' => $url, 'changed' => $ts, 'deleted' => 0], ['user', 'url']);
+                        $this->db->upsert('subscriptions', ['user' => $this->api->getUser()->id, 'url' => Url::normalize($url), 'changed' => $ts, 'deleted' => 0], ['user', 'url']);
                     }
                 }
 
                 if (!empty($input->remove) && is_array($input->remove)) {
                     foreach ($input->remove as $url) {
                         if (!$this->api->validateURL($url)) continue;
-                        $this->db->upsert('subscriptions', ['user' => $this->api->getUser()->id, 'url' => $url, 'changed' => $ts, 'deleted' => 1], ['user', 'url']);
+                        $this->db->upsert('subscriptions', ['user' => $this->api->getUser()->id, 'url' => Url::normalize($url), 'changed' => $ts, 'deleted' => 1], ['user', 'url']);
                     }
                 }
 

@@ -23,4 +23,11 @@ $runner    = new UpdateFeeds(
     new CLImate()
 );
 
-$runner->run();
+$maxFeeds = null;
+foreach (array_slice($argv, 1) as $arg) {
+    if (preg_match('/^--max-feeds=(\d+)$/', $arg, $m)) {
+        $maxFeeds = (int) $m[1];
+    }
+}
+
+$runner->run($maxFeeds);

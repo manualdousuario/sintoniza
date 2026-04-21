@@ -8,6 +8,7 @@ use Exception;
 use InvalidArgumentException;
 use Monolog\Logger as MonologLogger;
 use Sintoniza\Database\DB;
+use Sintoniza\Library\Url;
 
 class GpodderEpisodesHandler
 {
@@ -55,6 +56,8 @@ class GpodderEpisodesHandler
             foreach ($input as $action) {
                 try {
                     $this->validateEpisodeAction($action);
+                    $action->podcast = Url::normalize($action->podcast);
+                    $action->episode = Url::normalize($action->episode);
                     $valid[] = $action;
                 } catch (InvalidArgumentException) {
                     continue;
@@ -84,7 +87,7 @@ class GpodderEpisodesHandler
                 unset($actionData->action, $actionData->episode, $actionData->podcast, $actionData->device);
 
                 $this->db->simple(
-                    'INSERT INTO episodes_actions (user, subscription, url, episode, changed, action, data, device)
+                    'INSERT IGNORE INTO episodes_actions (user, subscription, url, episode, changed, action, data, device)
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
                     $userId,
                     $sub['id'],

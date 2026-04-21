@@ -70,67 +70,63 @@ class FeedService
         }
     }
 
-    public function updateAllStaleFeeds(bool $cli = false): int
+    public function updateAllStaleFeeds(bool $cli = false, ?int $maxFeeds = null): int
     {
-        $sql = 'SELECT s.id AS subscription, s.url,
-            GREATEST(COALESCE(MAX(a.changed), 0), s.changed) AS changed
-            FROM subscriptions s
-                LEFT JOIN episodes_actions a ON a.subscription = s.id
-                LEFT JOIN feeds f ON f.id = s.feed
-            WHERE s.id > ?
-                AND (f.active IS NULL OR f.active = 1)
-                AND (f.last_fetch IS NULL
-                    OR f.last_fetch < s.changed
-                    OR f.last_fetch < COALESCE(a.changed, 0))
-            GROUP BY s.id, s.url, s.changed
-            ORDER BY s.id
-            LIMIT ?';
-
         @ini_set('max_execution_time', '3600');
 
-        $pageSize = 100;
-        $lastId   = 0;
-        $count    = 0;
+        if ($maxFeeds === null) {
+            $activeFeeds = (int) $this->db->firstColumn(
+                'SELECT COUNT(*) FROM feeds WHERE active = 1'
+            );
+            $maxFeeds = max(100, (int) ceil($activeFeeds / 12));
+        }
 
-        while (true) {
-            $rows = $this->db->all($sql, $lastId, $pageSize);
+        $sql = 'SELECT s.id AS subscription, s.url,
+            COALESCE(f.last_fetch, 0) AS last_fetch
+            FROM subscriptions s
+                LEFT JOIN feeds f ON f.id = s.feed
+            WHERE s.deleted = 0
+                AND (f.active IS NULL OR f.active = 1)
+            GROUP BY s.url
+            ORDER BY last_fetch ASC, s.id ASC
+            LIMIT ?';
 
-            if (empty($rows)) {
-                break;
+        $rows  = $this->db->all($sql, $maxFeeds);
+        $count = 0;
+
+        if ($cli) {
+            printf("Processando até %d feed(s) nesta execução\n", $maxFeeds);
+            @flush();
+        }
+
+        foreach ($rows as $row) {
+            @set_time_limit(30);
+
+            if ($cli) {
+                printf("Updating %s\n", $row->url);
+                @flush();
             }
 
-            foreach ($rows as $row) {
-                @set_time_limit(30);
+            $source = null;
+            $feed   = $this->fetchAndSync($row->url, $source);
 
-                if ($cli) {
-                    printf("Updating %s\n", $row->url);
-                    @flush();
-                }
-
-                $source = null;
-                $feed   = $this->fetchAndSync($row->url, $source);
-
-                if ($cli) {
-                    $label = match ($source) {
-                        'podcastindex' => 'Podcast Index',
-                        'rss'          => 'RSS',
-                        'rss-fallback' => 'RSS (fallback Podcast Index failed)',
-                        default        => 'Failed',
-                    };
-                    printf("  -> Source: %s\n", $label);
-                    @flush();
-                }
-
-                if ($feed) {
-                    $count++;
-                }
-
-                $lastId = (int) $row->subscription;
-                unset($feed, $source);
-                gc_collect_cycles();
+            if ($cli) {
+                $label = match ($source) {
+                    'podcastindex' => 'Podcast Index',
+                    'rss'          => 'RSS',
+                    'rss-fallback' => 'RSS (fallback Podcast Index failed)',
+                    default        => 'Failed',
+                };
+                printf("  -> Source: %s\n", $label);
+                @flush();
             }
 
-            unset($rows);
+            if ($feed) {
+                $count++;
+            }
+
+            unset($feed, $source);
+            gc_collect_cycles();
         }
 
         return $count;

@@ -14,11 +14,11 @@ class UpdateFeeds
         private CLImate $climate
     ) {}
 
-    public function run(): void
+    public function run(?int $maxFeeds = null): void
     {
         $this->climate->bold('Sintoniza — Atualizando feeds...');
 
-        $count = $this->feedService->updateAllStaleFeeds(cli: true);
+        $count = $this->feedService->updateAllStaleFeeds(cli: true, maxFeeds: $maxFeeds);
 
         $this->climate->green()->bold(sprintf(
             'Concluído: %d feed(s) atualizados em %s',

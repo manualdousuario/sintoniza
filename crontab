@@ -1,2 +1,2 @@
 # Metadata update
-* */12 * * * /usr/local/bin/php /app/cli/sintoniza  2>&1 | tee -a /tmp/sintoniza.log
+0 * * * * /usr/local/bin/php /app/cli/sintoniza 2>&1 | tee -a /tmp/sintoniza.log

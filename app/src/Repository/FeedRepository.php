@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sintoniza\Repository;
 
 use Sintoniza\Database\DB;
+use Sintoniza\Library\Url;
 
 class FeedRepository
 {
@@ -73,6 +74,8 @@ class FeedRepository
 
     public function recordFailure(string $url, int $maxFailures = 3): void
     {
+        $url = Url::normalize($url);
+
         $this->db->simple(
             'INSERT INTO feeds (feed_url, last_fetch, fetch_failures, active) VALUES (?, 0, 1, 1)
              ON DUPLICATE KEY UPDATE
