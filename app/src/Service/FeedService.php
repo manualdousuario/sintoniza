@@ -45,7 +45,11 @@ class FeedService
                 $fetched = $feed->fetch($this->client);
 
                 if ($fetched) {
-                    $source = $piAttempted ? 'rss-fallback' : 'rss';
+                    if ($feed->notModified) {
+                        $source = 'rss-not-modified';
+                    } else {
+                        $source = $piAttempted ? 'rss-fallback' : 'rss';
+                    }
                 }
             }
 
@@ -74,6 +78,8 @@ class FeedService
     {
         @ini_set('max_execution_time', '3600');
 
+        $now = time();
+
         if ($maxFeeds === null) {
             $activeFeeds = (int) $this->db->firstColumn(
                 'SELECT COUNT(*) FROM feeds WHERE active = 1'
@@ -82,20 +88,21 @@ class FeedService
         }
 
         $sql = 'SELECT s.id AS subscription, s.url,
-            COALESCE(f.last_fetch, 0) AS last_fetch
+            COALESCE(f.next_fetch_at, 0) AS next_fetch_at
             FROM subscriptions s
                 LEFT JOIN feeds f ON f.id = s.feed
             WHERE s.deleted = 0
                 AND (f.active IS NULL OR f.active = 1)
+                AND (f.next_fetch_at IS NULL OR f.next_fetch_at <= ?)
             GROUP BY s.url
-            ORDER BY last_fetch ASC, s.id ASC
+            ORDER BY next_fetch_at ASC, s.id ASC
             LIMIT ?';
 
-        $rows  = $this->db->all($sql, $maxFeeds);
+        $rows  = $this->db->all($sql, $now, $maxFeeds);
         $count = 0;
 
         if ($cli) {
-            printf("Processando até %d feed(s) nesta execução\n", $maxFeeds);
+            printf("Processando até %d feed(s) nesta execução (fila: %d)\n", $maxFeeds, count($rows));
             @flush();
         }
 
@@ -112,10 +119,11 @@ class FeedService
 
             if ($cli) {
                 $label = match ($source) {
-                    'podcastindex' => 'Podcast Index',
-                    'rss'          => 'RSS',
-                    'rss-fallback' => 'RSS (fallback Podcast Index failed)',
-                    default        => 'Failed',
+                    'podcastindex'      => 'Podcast Index',
+                    'rss'               => 'RSS',
+                    'rss-not-modified'  => 'RSS (304 Not Modified — skipped)',
+                    'rss-fallback'      => 'RSS (fallback Podcast Index failed)',
+                    default             => 'Failed',
                 };
                 printf("  -> Source: %s\n", $label);
                 @flush();

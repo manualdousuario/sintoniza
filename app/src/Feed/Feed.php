@@ -14,18 +14,25 @@ use Sintoniza\Library\Url;
 
 class Feed
 {
-    public ?string $feed_url    = null;
-    public ?string $image_url   = null;
-    public ?string $url         = null;
-    public ?string $language    = null;
-    public ?string $title       = null;
-    public ?string $description = null;
-    public ?DateTime $pubdate   = null;
-    public int $last_fetch      = 0;
-    public int $fetch_failures  = 0;
-    public int $active          = 1;
+    public ?string $feed_url      = null;
+    public ?string $image_url     = null;
+    public ?string $url           = null;
+    public ?string $language      = null;
+    public ?string $title         = null;
+    public ?string $description   = null;
+    public ?DateTime $pubdate     = null;
+    public int $last_fetch        = 0;
+    public int $next_fetch_at     = 0;
+    public ?string $etag          = null;
+    public ?string $last_modified = null;
+    public int $fetch_failures    = 0;
+    public int $active            = 1;
+
+    public bool $notModified = false;
 
     protected array $episodes = [];
+
+    protected const FETCH_INTERVAL = 86400;
 
     protected const NAMESPACES = [
         'itunes'  => 'http://www.itunes.com/dtds/podcast-1.0.dtd',
@@ -52,7 +59,7 @@ class Feed
 
             if ($key === 'pubdate' && $value) {
                 $this->$key = new DateTime($value);
-            } elseif (in_array($key, ['last_fetch', 'fetch_failures', 'active'], true)) {
+            } elseif (in_array($key, ['last_fetch', 'next_fetch_at', 'fetch_failures', 'active'], true)) {
                 $this->$key = (int) $value;
             } else {
                 $this->$key = $value;
@@ -67,9 +74,41 @@ class Feed
             return false;
         }
 
+        $headers = [];
+        if ($this->etag) {
+            $headers['If-None-Match'] = $this->etag;
+        }
+        if ($this->last_modified) {
+            $headers['If-Modified-Since'] = $this->last_modified;
+        }
+
         try {
-            $client->get($this->feed_url, ['sink' => $tmp]);
-            $this->last_fetch = time();
+            $response = $client->get($this->feed_url, [
+                'sink'        => $tmp,
+                'headers'     => $headers,
+                'http_errors' => false,
+            ]);
+            $this->last_fetch    = time();
+            $this->next_fetch_at = $this->last_fetch + self::FETCH_INTERVAL;
+
+            $status = $response->getStatusCode();
+
+            if ($status === 304) {
+                $this->notModified = true;
+                @unlink($tmp);
+                return true;
+            }
+
+            if ($status < 200 || $status >= 300) {
+                Logger::getInstance()->warning('Feed fetch non-success', ['url' => $this->feed_url, 'status' => $status]);
+                @unlink($tmp);
+                return false;
+            }
+
+            $etagHeader     = $response->getHeaderLine('ETag');
+            $lastModHeader  = $response->getHeaderLine('Last-Modified');
+            $this->etag          = $etagHeader !== '' ? substr($etagHeader, 0, 255) : null;
+            $this->last_modified = $lastModHeader !== '' ? substr($lastModHeader, 0, 64) : null;
         } catch (RequestException $e) {
             Logger::getInstance()->warning('Feed fetch failed', ['url' => $this->feed_url, 'error' => $e->getMessage()]);
             @unlink($tmp);
@@ -244,13 +283,14 @@ class Feed
             return false;
         }
 
-        $this->title       = !empty($podcast['title']) ? (string) $podcast['title'] : null;
-        $this->url         = !empty($podcast['link']) ? (string) $podcast['link'] : null;
-        $this->description = !empty($podcast['description']) ? (string) $podcast['description'] : null;
-        $this->image_url   = !empty($podcast['artwork']) ? (string) $podcast['artwork']
-                           : (!empty($podcast['image']) ? (string) $podcast['image'] : null);
-        $this->language    = !empty($podcast['language']) ? substr((string) $podcast['language'], 0, 2) : null;
-        $this->last_fetch  = time();
+        $this->title         = !empty($podcast['title']) ? (string) $podcast['title'] : null;
+        $this->url           = !empty($podcast['link']) ? (string) $podcast['link'] : null;
+        $this->description   = !empty($podcast['description']) ? (string) $podcast['description'] : null;
+        $this->image_url     = !empty($podcast['artwork']) ? (string) $podcast['artwork']
+                             : (!empty($podcast['image']) ? (string) $podcast['image'] : null);
+        $this->language      = !empty($podcast['language']) ? substr((string) $podcast['language'], 0, 2) : null;
+        $this->last_fetch    = time();
+        $this->next_fetch_at = $this->last_fetch + self::FETCH_INTERVAL;
 
         if (!$this->title) {
             return false;
@@ -307,6 +347,18 @@ class Feed
 
             $db->simple('UPDATE subscriptions SET feed = ? WHERE url = ?', $feed_id, $this->feed_url);
 
+            if ($this->notModified) {
+                $this->episodes = [];
+                $db->commit();
+                return;
+            }
+
+            $lastPubdateStr = (string) $db->firstColumn(
+                'SELECT MAX(pubdate) FROM episodes WHERE feed = ?',
+                $feed_id
+            );
+            $lastPubdateTs = $lastPubdateStr ? strtotime($lastPubdateStr) : 0;
+
             $updateCols = ['title', 'description', 'url', 'image_url', 'pubdate', 'duration'];
             $buffer     = [];
             $flushed    = false;
@@ -318,6 +370,12 @@ class Feed
                     continue;
                 }
 
+                $pubdateObj = $episode['pubdate'] ?? null;
+                if ($lastPubdateTs > 0 && $pubdateObj instanceof DateTime
+                    && $pubdateObj->getTimestamp() <= $lastPubdateTs) {
+                    continue;
+                }
+
                 $buffer[] = [
                     'feed'        => $feed_id,
                     'media_url'   => $episode['media_url'],
@@ -325,7 +383,7 @@ class Feed
                     'description' => $episode['description'] ?? null,
                     'url'         => $episode['url'] ?? null,
                     'image_url'   => $episode['image_url'] ?? null,
-                    'pubdate'     => $episode['pubdate'] ? $episode['pubdate']->format('Y-m-d H:i:s') : null,
+                    'pubdate'     => $pubdateObj ? $pubdateObj->format('Y-m-d H:i:s') : null,
                     'duration'    => $this->validateDuration($episode['duration']),
                 ];
 

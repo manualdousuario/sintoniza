@@ -76,14 +76,20 @@ class FeedRepository
     {
         $url = Url::normalize($url);
 
+        $nextFetchAt = time() + 86400;
+
         $this->db->simple(
-            'INSERT INTO feeds (feed_url, last_fetch, fetch_failures, active) VALUES (?, 0, 1, 1)
+            'INSERT INTO feeds (feed_url, last_fetch, next_fetch_at, fetch_failures, active)
+                VALUES (?, 0, ?, 1, 1)
              ON DUPLICATE KEY UPDATE
                 id             = LAST_INSERT_ID(id),
                 active         = CASE WHEN fetch_failures + 1 >= ? THEN 0 ELSE active END,
-                fetch_failures = fetch_failures + 1',
+                fetch_failures = fetch_failures + 1,
+                next_fetch_at  = ? + (fetch_failures * 86400)',
             $url,
-            $maxFailures
+            $nextFetchAt,
+            $maxFailures,
+            $nextFetchAt
         );
 
         $feedId = (int) $this->db->lastInsertId();
