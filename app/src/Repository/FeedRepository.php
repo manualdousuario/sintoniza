@@ -74,7 +74,7 @@ class FeedRepository
 
     public function recordFailure(string $url, int $maxFailures = 3): void
     {
-        $url = Url::normalize($url);
+        $url = Url::normalizeFeed($url);
 
         $nextFetchAt = time() + 86400;
 

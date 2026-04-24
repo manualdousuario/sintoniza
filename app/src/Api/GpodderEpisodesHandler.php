@@ -56,7 +56,7 @@ class GpodderEpisodesHandler
             foreach ($input as $action) {
                 try {
                     $this->validateEpisodeAction($action);
-                    $action->podcast = Url::normalize($action->podcast);
+                    $action->podcast = Url::normalizeFeed($action->podcast);
                     $action->episode = Url::normalize($action->episode);
                     $valid[] = $action;
                 } catch (InvalidArgumentException) {

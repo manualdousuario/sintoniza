@@ -8,6 +8,7 @@ use DateTime;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\TransferStats;
 use Sintoniza\Database\DB;
 use Sintoniza\Library\Logger;
 use Sintoniza\Library\Url;
@@ -32,6 +33,12 @@ class Feed
 
     protected array $episodes = [];
 
+    /** URL as originally requested (before any canonical rewrite). */
+    protected ?string $requested_url = null;
+
+    /** URLs that should alias to this feed after sync(). */
+    protected array $aliases = [];
+
     protected const FETCH_INTERVAL = 86400;
 
     protected const NAMESPACES = [
@@ -47,7 +54,8 @@ class Feed
 
     public function __construct(string $url)
     {
-        $this->feed_url = Url::normalize($url);
+        $this->feed_url      = Url::normalizeFeed($url);
+        $this->requested_url = $this->feed_url;
     }
 
     public function load(\stdClass $data): void
@@ -82,11 +90,16 @@ class Feed
             $headers['If-Modified-Since'] = $this->last_modified;
         }
 
+        $effectiveUri = null;
+
         try {
             $response = $client->get($this->feed_url, [
                 'sink'        => $tmp,
                 'headers'     => $headers,
                 'http_errors' => false,
+                'on_stats'    => function (TransferStats $stats) use (&$effectiveUri) {
+                    $effectiveUri = (string) $stats->getEffectiveUri();
+                },
             ]);
             $this->last_fetch    = time();
             $this->next_fetch_at = $this->last_fetch + self::FETCH_INTERVAL;
@@ -144,6 +157,8 @@ class Feed
             } elseif (isset($channel->image->url)) {
                 $this->image_url = trim((string) $channel->image->url);
             }
+
+            $this->applyCanonical($channel, $effectiveUri);
         } elseif (isset($xml->entry)) {
             $channel  = $xml;
             $items    = $xml->entry;
@@ -165,6 +180,8 @@ class Feed
             } elseif (isset($channel->icon)) {
                 $this->image_url = trim((string) $channel->icon);
             }
+
+            $this->applyCanonical($channel, $effectiveUri);
         } else {
             return false;
         }
@@ -283,6 +300,14 @@ class Feed
             return false;
         }
 
+        if (!empty($podcast['url'])) {
+            $canonical = Url::normalizeFeed((string) $podcast['url']);
+            if ($canonical !== '' && $canonical !== $this->feed_url) {
+                $this->aliases[] = $this->feed_url;
+                $this->feed_url  = $canonical;
+            }
+        }
+
         $this->title         = !empty($podcast['title']) ? (string) $podcast['title'] : null;
         $this->url           = !empty($podcast['link']) ? (string) $podcast['link'] : null;
         $this->description   = !empty($podcast['description']) ? (string) $podcast['description'] : null;
@@ -342,12 +367,32 @@ class Feed
         $db->beginTransaction();
 
         try {
+            $merged = $this->mergeIntoCanonical($db);
+
             $db->upsert('feeds', $this->export(), ['feed_url']);
-            $feed_id = $db->firstColumn('SELECT id FROM feeds WHERE feed_url = ?', $this->feed_url);
+            $feed_id = (int) $db->firstColumn('SELECT id FROM feeds WHERE feed_url = ?', $this->feed_url);
+
+            $this->recordAliases($db, $feed_id);
 
             $db->simple('UPDATE subscriptions SET feed = ? WHERE url = ?', $feed_id, $this->feed_url);
+            $db->simple(
+                'UPDATE subscriptions s
+                    INNER JOIN feed_aliases a ON a.url = s.url
+                    SET s.feed = a.feed_id
+                    WHERE a.feed_id = ?',
+                $feed_id
+            );
 
             if ($this->notModified) {
+                if ($merged) {
+                    $db->simple(
+                        'UPDATE episodes_actions ea
+                         INNER JOIN episodes e ON e.media_url = ea.url
+                         SET ea.episode = e.id
+                         WHERE e.feed = ?',
+                        $feed_id
+                    );
+                }
                 $this->episodes = [];
                 $db->commit();
                 return;
@@ -400,7 +445,7 @@ class Feed
                 $buffer  = [];
             }
 
-            if ($flushed) {
+            if ($flushed || $merged) {
                 $db->simple(
                     'UPDATE episodes_actions ea
                      INNER JOIN episodes e ON e.media_url = ea.url
@@ -478,6 +523,107 @@ class Feed
         foreach (self::NAMESPACES as $prefix => $uri) {
             $xml->registerXPathNamespace($prefix, $uri);
         }
+    }
+
+    /**
+     * If the feed was reassigned to a new canonical URL during fetch, merge the
+     * old row (if any) into the existing canonical row, or rename in-place when
+     * no canonical row exists yet. Returns true when an actual merge happened
+     * so the caller can re-link episodes_actions afterwards.
+     */
+    protected function mergeIntoCanonical(DB $db): bool
+    {
+        if ($this->requested_url === null || $this->requested_url === $this->feed_url) {
+            return false;
+        }
+
+        $originalId = (int) $db->firstColumn('SELECT id FROM feeds WHERE feed_url = ?', $this->requested_url);
+        if ($originalId === 0) {
+            return false;
+        }
+
+        $canonicalId = (int) $db->firstColumn('SELECT id FROM feeds WHERE feed_url = ?', $this->feed_url);
+
+        if ($canonicalId === 0) {
+            $db->simple('UPDATE feeds SET feed_url = ? WHERE id = ?', $this->feed_url, $originalId);
+            return false;
+        }
+
+        if ($canonicalId === $originalId) {
+            return false;
+        }
+
+        $db->simple('UPDATE subscriptions   SET feed = ? WHERE feed = ?',        $canonicalId, $originalId);
+        $db->simple('UPDATE IGNORE episodes SET feed = ? WHERE feed = ?',        $canonicalId, $originalId);
+        $db->simple('DELETE FROM episodes   WHERE feed = ?',                     $originalId);
+        $db->simple('UPDATE feed_aliases    SET feed_id = ? WHERE feed_id = ?',  $canonicalId, $originalId);
+        $db->simple('DELETE FROM feeds      WHERE id = ?',                       $originalId);
+
+        return true;
+    }
+
+    protected function recordAliases(DB $db, int $feedId): void
+    {
+        if ($feedId <= 0 || $this->aliases === []) {
+            return;
+        }
+
+        $now  = time();
+        $seen = [];
+
+        foreach ($this->aliases as $alias) {
+            if (!is_string($alias) || $alias === '' || $alias === $this->feed_url || isset($seen[$alias])) {
+                continue;
+            }
+            $seen[$alias] = true;
+
+            $db->simple(
+                'INSERT INTO feed_aliases (url, feed_id, created_at) VALUES (?, ?, ?)
+                 ON DUPLICATE KEY UPDATE feed_id = VALUES(feed_id)',
+                $alias,
+                $feedId,
+                $now
+            );
+        }
+
+        $this->aliases = [];
+    }
+
+    /**
+     * Determine the canonical feed URL from RSS-native signals and HTTP redirects.
+     * Priority: itunes:new-feed-url > atom:link rel="self" > effective URI after redirects.
+     * If the resolved canonical differs from the requested feed_url, the old URL is
+     * recorded as an alias and $this->feed_url is swapped to the canonical form.
+     */
+    protected function applyCanonical(\SimpleXMLElement $channel, ?string $effectiveUri): void
+    {
+        $itunesNew = null;
+        $nodes     = $this->safeXPath($channel, 'itunes:new-feed-url');
+        if (!empty($nodes)) {
+            $itunesNew = trim((string) $nodes[0]);
+        }
+
+        $atomSelf = null;
+        $links    = $this->safeXPath($channel, 'atom:link');
+        foreach ($links as $link) {
+            if ((string) $link['rel'] === 'self' && (string) $link['href'] !== '') {
+                $atomSelf = trim((string) $link['href']);
+                break;
+            }
+        }
+
+        $candidate = $itunesNew ?: ($atomSelf ?: $effectiveUri);
+        if (!$candidate) {
+            return;
+        }
+
+        $canonical = Url::normalizeFeed($candidate);
+        if ($canonical === '' || $canonical === $this->feed_url) {
+            return;
+        }
+
+        $this->aliases[] = $this->feed_url;
+        $this->feed_url  = $canonical;
     }
 
     protected function safeXPath(\SimpleXMLElement $xml, string $path): array
