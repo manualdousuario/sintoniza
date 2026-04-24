@@ -13,21 +13,48 @@ gc_enable();
 require_once __DIR__ . '/../config/config.php';
 
 use League\CLImate\CLImate;
+use Sintoniza\Cli\RecanonicalizeFeeds;
 use Sintoniza\Cli\UpdateFeeds;
 use Sintoniza\Library\Container;
 use Sintoniza\Service\FeedService;
 
 $container = Container::getInstance();
-$runner    = new UpdateFeeds(
-    $container->get(FeedService::class),
-    new CLImate()
-);
+$climate   = new CLImate();
+
+$args    = array_slice($argv, 1);
+$command = 'update';
+
+if (!empty($args) && !str_starts_with($args[0], '--')) {
+    $command = array_shift($args);
+}
 
 $maxFeeds = null;
-foreach (array_slice($argv, 1) as $arg) {
+$sleepMs  = 0;
+
+foreach ($args as $arg) {
     if (preg_match('/^--max-feeds=(\d+)$/', $arg, $m)) {
         $maxFeeds = (int) $m[1];
+    } elseif (preg_match('/^--limit=(\d+)$/', $arg, $m)) {
+        $maxFeeds = (int) $m[1];
+    } elseif (preg_match('/^--sleep-ms=(\d+)$/', $arg, $m)) {
+        $sleepMs = (int) $m[1];
     }
 }
 
-$runner->run($maxFeeds);
+$feedService = $container->get(FeedService::class);
+
+match ($command) {
+    'update' => (new UpdateFeeds($feedService, $climate))->run($maxFeeds),
+    'recanonicalize' => (new RecanonicalizeFeeds($feedService, $climate))->run($maxFeeds, $sleepMs),
+    default => (function () use ($climate, $command) {
+        $climate->red()->bold(sprintf('Unknown command: %s', $command));
+        $climate->out('Available commands:');
+        $climate->out('  update            Update stale feeds (respect next_fetch_at)');
+        $climate->out('  recanonicalize    Re-fetch all active feeds to collapse duplicates.');
+        $climate->out('');
+        $climate->out('Options:');
+        $climate->out('  --max-feeds=N  | --limit=N    Maximum number of feeds to process');
+        $climate->out('  --sleep-ms=N                  Pause between each feed (recanonicalize)');
+        exit(2);
+    })(),
+};

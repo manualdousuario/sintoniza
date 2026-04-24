@@ -102,7 +102,7 @@ class FeedService
         $count = 0;
 
         if ($cli) {
-            printf("Processando até %d feed(s) nesta execução (fila: %d)\n", $maxFeeds, count($rows));
+            printf("Processing up to %d feed(s) in this run (queue: %d)\n", $maxFeeds, count($rows));
             @flush();
         }
 
@@ -140,20 +140,82 @@ class FeedService
         return $count;
     }
 
-    public function getForSubscription(int $subscriptionId): ?Feed
+    public function recanonicalizeAll(bool $cli = false, ?int $limit = null, int $sleepMs = 0): int
     {
-        $data = $this->db->firstRow(
-            'SELECT f.* FROM subscriptions s INNER JOIN feeds f ON f.id = s.feed WHERE s.id = ?',
-            $subscriptionId
-        );
+        @ini_set('max_execution_time', '0');
 
-        if (!$data) {
-            return null;
+        $sql = 'SELECT id, feed_url FROM feeds WHERE active = 1 AND id > ? ORDER BY id LIMIT ?';
+        $batchSize = $limit !== null ? min($limit, 500) : 500;
+        $remaining = $limit;
+
+        $maxId     = 0;
+        $processed = 0;
+        $merged    = 0;
+        $failed    = 0;
+
+        if ($cli) {
+            printf("Starting recanonicalize (limit: %s)\n", $limit !== null ? (string) $limit : 'sem');
+            @flush();
         }
 
-        $feed = new Feed($data->feed_url ?? '');
-        $feed->load($data);
+        while (true) {
+            $take = $remaining !== null ? min($batchSize, $remaining) : $batchSize;
+            if ($take <= 0) {
+                break;
+            }
 
-        return $feed;
+            $rows = $this->db->all($sql, $maxId, $take);
+            if (!$rows) {
+                break;
+            }
+
+            foreach ($rows as $row) {
+                @set_time_limit(60);
+                $maxId = (int) $row->id;
+                $url   = (string) $row->feed_url;
+
+                if ($cli) {
+                    printf("  [%d] %s\n", $row->id, $url);
+                    @flush();
+                }
+
+                try {
+                    $source = null;
+                    $feed   = $this->fetchAndSync($url, $source);
+
+                    if (!$feed) {
+                        $failed++;
+                        continue;
+                    }
+
+                    if ($feed->feed_url !== null && $feed->feed_url !== $url) {
+                        $merged++;
+                    }
+                    $processed++;
+                } catch (\Throwable $e) {
+                    $failed++;
+                    $this->logger->error('Recanonicalize failed', ['url' => $url, 'error' => $e->getMessage()]);
+                }
+
+                if ($remaining !== null) {
+                    $remaining--;
+                }
+
+                unset($feed);
+                gc_collect_cycles();
+
+                if ($sleepMs > 0) {
+                    usleep($sleepMs * 1000);
+                }
+            }
+        }
+
+        if ($cli) {
+            printf("\nCompleted. Processed: %d | Possible merges/renames: %d | Failures: %d\n",
+                $processed, $merged, $failed);
+            @flush();
+        }
+
+        return $processed;
     }
 }
