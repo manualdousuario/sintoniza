@@ -367,6 +367,7 @@ class Feed
         $db->beginTransaction();
 
         try {
+            $this->resolveCanonicalViaAlias($db);
             $merged = $this->mergeIntoCanonical($db);
 
             $db->upsert('feeds', $this->export(), ['feed_url']);
@@ -523,6 +524,25 @@ class Feed
         foreach (self::NAMESPACES as $prefix => $uri) {
             $xml->registerXPathNamespace($prefix, $uri);
         }
+    }
+
+    protected function resolveCanonicalViaAlias(DB $db): void
+    {
+        $aliasFeedId = (int) $db->firstColumn(
+            'SELECT feed_id FROM feed_aliases WHERE url = ?',
+            $this->feed_url
+        );
+        if ($aliasFeedId === 0) {
+            return;
+        }
+
+        $canonical = $db->firstColumn('SELECT feed_url FROM feeds WHERE id = ?', $aliasFeedId);
+        if ($canonical === null || $canonical === '' || $canonical === $this->feed_url) {
+            return;
+        }
+
+        $this->aliases[] = $this->feed_url;
+        $this->feed_url  = (string) $canonical;
     }
 
     /**

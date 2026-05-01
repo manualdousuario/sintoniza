@@ -128,14 +128,28 @@ class GpodderEpisodesHandler
         }
 
         foreach ($urls as $url) {
-            if (!isset($map[$url])) {
-                $this->db->simple(
-                    'INSERT INTO subscriptions (user, url, changed) VALUES (?, ?, ?)',
-                    $userId,
-                    $url,
-                    $timestamp
-                );
-                $map[$url] = ['id' => (int) $this->db->lastInsertId(), 'feed' => null];
+            if (isset($map[$url])) {
+                continue;
+            }
+
+            $this->db->simple(
+                'INSERT IGNORE INTO subscriptions (user, url, changed) VALUES (?, ?, ?)',
+                $userId,
+                $url,
+                $timestamp
+            );
+
+            $existing = $this->db->firstRow(
+                'SELECT id, feed FROM subscriptions WHERE user = ? AND url = ?',
+                $userId,
+                $url
+            );
+
+            if ($existing) {
+                $map[$url] = [
+                    'id'   => (int) $existing->id,
+                    'feed' => $existing->feed !== null ? (int) $existing->feed : null,
+                ];
             }
         }
 

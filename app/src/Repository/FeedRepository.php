@@ -16,6 +16,43 @@ class FeedRepository
         return $this->db->firstRow('SELECT * FROM feeds WHERE id = ?', $id);
     }
 
+    public function findByUrl(string $url): ?\stdClass
+    {
+        $url = Url::normalizeFeed($url);
+        if ($url === '') {
+            return null;
+        }
+
+        $row = $this->db->firstRow('SELECT * FROM feeds WHERE feed_url = ?', $url);
+        if ($row) {
+            return $row;
+        }
+
+        return $this->db->firstRow(
+            'SELECT f.* FROM feeds f
+             INNER JOIN feed_aliases a ON a.feed_id = f.id
+             WHERE a.url = ?',
+            $url
+        );
+    }
+
+    public function resolveCanonicalUrl(string $url): string
+    {
+        $url = Url::normalizeFeed($url);
+        if ($url === '') {
+            return '';
+        }
+
+        $canonical = $this->db->firstColumn(
+            'SELECT f.feed_url FROM feed_aliases a
+             INNER JOIN feeds f ON f.id = a.feed_id
+             WHERE a.url = ?',
+            $url
+        );
+
+        return $canonical ? (string) $canonical : $url;
+    }
+
     public function setActive(int $id, bool $active): void
     {
         if ($active) {
@@ -74,7 +111,10 @@ class FeedRepository
 
     public function recordFailure(string $url, int $maxFailures = 3): void
     {
-        $url = Url::normalizeFeed($url);
+        $url = $this->resolveCanonicalUrl($url);
+        if ($url === '') {
+            return;
+        }
 
         $nextFetchAt = time() + 86400;
 
