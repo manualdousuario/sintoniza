@@ -165,20 +165,6 @@ Application logs written by Monolog are available inside the container at `/app/
 
 It's recommended to use [NGINX Proxy Manager](https://nginxproxymanager.com/) as a frontend web service for this container to add security and caching layers. Other web services like Caddy will also work correctly.
 
-## ⚠️ Breaking changes
-
-### 2.1.2 — Feed canonicalization & deduplication
-
-This release introduces aggressive feed URL normalization, HTTP redirect tracking, and RSS-native canonical detection (`<atom:link rel="self">`, `<itunes:new-feed-url>`). The migration `20260424130000_normalize_v2_and_dedup` runs automatically on startup and may collapse a large number of duplicate feed rows in the existing database.
-
-After the upgrade, existing instances should run the new one-shot CLI command to opportunistically refetch every active feed and merge variants that only become detectable through HTTP redirects or RSS-declared canonical URLs:
-
-```bash
-php cli/sintoniza recanonicalize --sleep-ms=200
-```
-
-This is safe to interrupt and re-run; merges are recorded in the new `feed_aliases` table so legacy subscription URLs continue to resolve to the canonical feed.
-
 ---
 
 This project is a fork of [oPodSync](https://github.com/kd2org/opodsync).
