@@ -8,13 +8,15 @@ use Exception;
 use Monolog\Logger as MonologLogger;
 use Sintoniza\Database\DB;
 use Sintoniza\Library\Url;
+use Sintoniza\Service\FeedIndexer;
 
 class GpodderSubscriptionsHandler
 {
     public function __construct(
         private GpodderApi $api,
         private DB $db,
-        private MonologLogger $logger
+        private MonologLogger $logger,
+        private FeedIndexer $feedIndexer
     ) {}
 
     public function handle(): mixed
@@ -56,21 +58,25 @@ class GpodderSubscriptionsHandler
 
             try {
                 $this->db->beginTransaction();
-                $ts = time();
+                $ts    = time();
+                $added = [];
 
                 foreach ($lines as $url) {
                     if (!$this->api->validateURL($url)) {
                         continue;
                     }
+                    $normalized = Url::normalizeFeed($url);
                     $this->db->simple(
                         'INSERT IGNORE INTO subscriptions (user, url, changed) VALUES (?, ?, ?)',
                         $this->api->getUser()->id,
-                        Url::normalizeFeed($url),
+                        $normalized,
                         $ts
                     );
+                    $added[] = $normalized;
                 }
 
                 $this->db->commit();
+                $this->feedIndexer->dispatchNew($added);
                 return null;
             } catch (Exception $e) {
                 $this->db->rollBack();
@@ -83,12 +89,15 @@ class GpodderSubscriptionsHandler
 
             try {
                 $this->db->beginTransaction();
-                $ts = time();
+                $ts    = time();
+                $added = [];
 
                 if (!empty($input->add) && is_array($input->add)) {
                     foreach ($input->add as $url) {
                         if (!$this->api->validateURL($url)) continue;
-                        $this->db->upsert('subscriptions', ['user' => $this->api->getUser()->id, 'url' => Url::normalizeFeed($url), 'changed' => $ts, 'deleted' => 0], ['user', 'url']);
+                        $normalized = Url::normalizeFeed($url);
+                        $this->db->upsert('subscriptions', ['user' => $this->api->getUser()->id, 'url' => $normalized, 'changed' => $ts, 'deleted' => 0], ['user', 'url']);
+                        $added[] = $normalized;
                     }
                 }
 
@@ -100,6 +109,7 @@ class GpodderSubscriptionsHandler
                 }
 
                 $this->db->commit();
+                $this->feedIndexer->dispatchNew($added);
                 return ['timestamp' => $ts, 'update_urls' => []];
             } catch (Exception $e) {
                 $this->db->rollBack();

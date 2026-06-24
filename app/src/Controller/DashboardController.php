@@ -6,7 +6,9 @@ namespace Sintoniza\Controller;
 
 use Josantonius\Session\Session;
 use Laminas\Diactoros\Response\HtmlResponse;
+use Laminas\Diactoros\Response\RedirectResponse;
 use League\Plates\Engine;
+use League\Uri\Uri;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Sintoniza\Cache\CacheInterface;
@@ -14,6 +16,9 @@ use Sintoniza\Database\DB;
 use Sintoniza\Exception\AuthException;
 use Sintoniza\Exception\ValidationException;
 use Sintoniza\Library\Language;
+use Sintoniza\Library\Url;
+use Sintoniza\Service\FeedIndexer;
+use Sintoniza\Service\FeedService;
 use Sintoniza\Service\UserService;
 
 class DashboardController
@@ -23,7 +28,9 @@ class DashboardController
         private UserService $userService,
         private Session $session,
         private Engine $plates,
-        private CacheInterface $cache
+        private CacheInterface $cache,
+        private FeedService $feedService,
+        private FeedIndexer $feedIndexer
     ) {}
 
     private const SUBS_PER_PAGE         = 20;
@@ -54,7 +61,100 @@ class DashboardController
             'pages'         => $pages,
             'userName'      => $gpodder->user->name,
             'okToken'       => isset($request->getQueryParams()['oktoken']),
+            'success'       => $this->pullFlash('success'),
+            'error'         => $this->pullFlash('error'),
         ]));
+    }
+
+    private function pullFlash(string $key): ?string
+    {
+        $value = $this->session->get("flash_$key");
+
+        if ($value !== null) {
+            $this->session->remove("flash_$key");
+        }
+
+        return $value;
+    }
+
+    public function add(ServerRequestInterface $request, array $args = []): ResponseInterface
+    {
+        $gpodder = $request->getAttribute('gpodder');
+        $query   = trim((string) ($request->getQueryParams()['q'] ?? ''));
+        $results = $query !== '' ? $this->feedService->search($query) : [];
+
+        return new HtmlResponse($this->plates->render('dashboard::add', [
+            'logged'  => $gpodder->isLogged(),
+            'isAdmin' => $this->isAdmin($request),
+            'query'   => $query,
+            'results' => $results,
+            'searchEnabled' => PODCAST_INDEX_API_KEY && PODCAST_INDEX_API_SECRET,
+            'error'   => $this->pullFlash('error'),
+        ]));
+    }
+
+    public function subscribe(ServerRequestInterface $request, array $args = []): ResponseInterface
+    {
+        $gpodder = $request->getAttribute('gpodder');
+        $body    = $request->getParsedBody() ?? [];
+        $url     = trim((string) ($body['url'] ?? ''));
+
+        if (!$this->isValidFeedUrl($url)) {
+            $this->session->set('flash_error', __('messages.invalid_feed_url'));
+            return new RedirectResponse('/dashboard/add');
+        }
+
+        $normalized = Url::normalizeFeed($url);
+
+        if ($normalized === '') {
+            $this->session->set('flash_error', __('messages.invalid_feed_url'));
+            return new RedirectResponse('/dashboard/add');
+        }
+
+        $this->db->upsert('subscriptions', [
+            'user'    => $gpodder->user->id,
+            'url'     => $normalized,
+            'changed' => time(),
+            'deleted' => 0,
+        ], ['user', 'url']);
+
+        $this->feedIndexer->dispatchNew([$normalized]);
+
+        $this->session->set('flash_success', __('messages.subscribed'));
+        return new RedirectResponse('/dashboard');
+    }
+
+    public function unsubscribe(ServerRequestInterface $request, array $args = []): ResponseInterface
+    {
+        $gpodder = $request->getAttribute('gpodder');
+        $body    = $request->getParsedBody() ?? [];
+        $id      = (int) ($body['id'] ?? 0);
+
+        if ($id > 0) {
+            $this->db->simple(
+                'UPDATE subscriptions SET deleted = 1, changed = ? WHERE id = ? AND user = ?',
+                time(),
+                $id,
+                $gpodder->user->id
+            );
+            $this->session->set('flash_success', __('messages.unsubscribed'));
+        }
+
+        return new RedirectResponse('/dashboard');
+    }
+
+    private function isValidFeedUrl(string $url): bool
+    {
+        if ($url === '') {
+            return false;
+        }
+
+        try {
+            $parsed = Uri::new($url);
+            return in_array($parsed->getScheme(), ['http', 'https'], true) && (bool) $parsed->getHost();
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     public function latestUpdates(ServerRequestInterface $request, array $args = []): ResponseInterface

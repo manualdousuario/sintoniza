@@ -28,12 +28,15 @@ if (!empty($args) && !str_starts_with($args[0], '--')) {
 }
 
 $maxFeeds = null;
+$urls     = [];
 
 foreach ($args as $arg) {
     if (preg_match('/^--max-feeds=(\d+)$/', $arg, $m)) {
         $maxFeeds = (int) $m[1];
     } elseif (preg_match('/^--limit=(\d+)$/', $arg, $m)) {
         $maxFeeds = (int) $m[1];
+    } elseif (!str_starts_with($arg, '--')) {
+        $urls[] = $arg;
     }
 }
 
@@ -41,10 +44,31 @@ $feedService = $container->get(FeedService::class);
 
 match ($command) {
     'update' => (new UpdateFeeds($feedService, $climate))->run($maxFeeds),
+    'fetch'  => (function () use ($feedService, $climate, $urls) {
+        if ($urls === []) {
+            $climate->red()->bold('Usage: sintoniza fetch <url> [url...]');
+            exit(2);
+        }
+
+        foreach ($urls as $url) {
+            $climate->out(sprintf('Fetching %s', $url));
+            $source = null;
+            $feed   = $feedService->fetchAndSync($url, $source);
+            $label  = match ($source) {
+                'podcastindex'     => 'Podcast Index',
+                'rss'              => 'RSS',
+                'rss-not-modified' => 'RSS (304 Not Modified — skipped)',
+                'rss-fallback'     => 'RSS (fallback Podcast Index failed)',
+                default            => 'Failed',
+            };
+            $climate->out(sprintf('  -> Source: %s', $label));
+        }
+    })(),
     default => (function () use ($climate, $command) {
         $climate->red()->bold(sprintf('Unknown command: %s', $command));
         $climate->out('Available commands:');
         $climate->out('  update            Update stale feeds (respect next_fetch_at)');
+        $climate->out('  fetch <url...>    Fetch and sync one or more feeds immediately');
         $climate->out('');
         $climate->out('Options:');
         $climate->out('  --max-feeds=N  | --limit=N    Maximum number of feeds to process');

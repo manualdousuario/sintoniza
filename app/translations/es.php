@@ -119,7 +119,15 @@ return [
         'last_update' => 'Última actualización',
         'update_all_metadata' => 'Actualice todos los metadatos de orígenes',
         'cron_notice' => 'Las actualizaciones de los metadatos de orígenes están configuradas para que las realizen rutinas directamente en el servidor, las actualizaciones se realizan una vez cada hora.',
-        'opml_feed' => 'OPML Feed'
+        'opml_feed' => 'OPML Feed',
+        'add_podcast' => 'Agregar podcast',
+        'search' => 'Buscar',
+        'search_placeholder' => 'Busca por el nombre del podcast',
+        'no_results' => 'No se encontraron resultados.',
+        'subscribe' => 'Suscribirse',
+        'unsubscribe' => 'Cancelar suscripción',
+        'unsubscribe_confirm' => '¿Seguro que deseas cancelar la suscripción a este podcast?',
+        'add_by_url' => 'Agregar por URL del origen'
     ],
     'devices' => [
         'mobile' => 'Móvil',
@@ -184,7 +192,10 @@ return [
         'password_too_short' => 'Contraseña muy corta',
         'email_invalid' => 'Dirección de correo inválida',
         'username_already_exists' => 'Nombre de usuario ya existe',
-        'page_not_found' => 'Página no encontrada'
+        'page_not_found' => 'Página no encontrada',
+        'invalid_feed_url' => 'URL de origen inválida',
+        'subscribed' => 'Podcast agregado con éxito',
+        'unsubscribed' => 'Podcast eliminado con éxito'
     ],
     'statistics' => [
         'registered_users' => 'Usuarios registrados',

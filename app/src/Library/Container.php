@@ -25,6 +25,7 @@ use Sintoniza\Repository\FeedRepository;
 use Sintoniza\Repository\UserRepository;
 use Sintoniza\Feed\PodcastIndexClient;
 use Sintoniza\Service\CaptchaService;
+use Sintoniza\Service\FeedIndexer;
 use Sintoniza\Service\FeedService;
 use Sintoniza\Service\MailService;
 use Sintoniza\Service\UserService;
@@ -110,6 +111,9 @@ class Container
                 );
             })->setShared(true);
 
+            $container->add(FeedIndexer::class)
+                ->addArgument(DB::class);
+
             $container->add(MailService::class);
 
             $container->add(CaptchaService::class)
@@ -129,7 +133,9 @@ class Container
                 ->addArgument(UserService::class)
                 ->addArgument(Session::class)
                 ->addArgument(Engine::class)
-                ->addArgument(CacheInterface::class);
+                ->addArgument(CacheInterface::class)
+                ->addArgument(FeedService::class)
+                ->addArgument(FeedIndexer::class);
 
             $container->add(SubscriptionController::class)
                 ->addArgument(DB::class)

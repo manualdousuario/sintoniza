@@ -21,6 +21,15 @@ class FeedService
         private ?PodcastIndexClient $podcastIndexClient = null
     ) {}
 
+    public function search(string $term): array
+    {
+        if (!$this->podcastIndexClient) {
+            return [];
+        }
+
+        return $this->podcastIndexClient->search($term);
+    }
+
     public function fetchAndSync(string $url, ?string &$source = null): ?Feed
     {
         $source = null;

@@ -79,7 +79,7 @@ class GpodderApi
 
         $this->authHandler          = new GpodderAuthHandler($this, $db, $logger, $client, $session);
         $this->devicesHandler       = new GpodderDevicesHandler($this, $db);
-        $this->subscriptionsHandler = new GpodderSubscriptionsHandler($this, $db, $logger);
+        $this->subscriptionsHandler = new GpodderSubscriptionsHandler($this, $db, $logger, new \Sintoniza\Service\FeedIndexer($db));
         $this->episodesHandler      = new GpodderEpisodesHandler($this, $db, $logger);
     }
 

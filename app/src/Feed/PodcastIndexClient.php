@@ -29,6 +29,23 @@ class PodcastIndexClient
         return $data['feed'];
     }
 
+    public function search(string $term, int $max = 20): array
+    {
+        $term = trim($term);
+
+        if ($term === '') {
+            return [];
+        }
+
+        $data = $this->request('/search/byterm', ['q' => $term, 'max' => $max]);
+
+        if (!$data || ($data['status'] ?? '') !== 'true') {
+            return [];
+        }
+
+        return $data['feeds'] ?? [];
+    }
+
     public function getEpisodesByFeedId(int $id, int $max = 1000): array
     {
         $data = $this->request('/episodes/byfeedid', ['id' => $id, 'max' => $max]);

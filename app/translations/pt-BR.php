@@ -119,7 +119,15 @@ return [
         'last_update' => 'Última atualização',
         'update_all_metadata' => 'Atualizar todos os metadados dos feeds',
         'cron_notice' => 'A atualização de meta dados das inscrições está configurada para ser feita por rotinas diretamente no servidor, as atualização são feitas a cada uma hora.',
-        'opml_feed' => 'Feed OPML'
+        'opml_feed' => 'Feed OPML',
+        'add_podcast' => 'Adicionar podcast',
+        'search' => 'Buscar',
+        'search_placeholder' => 'Busque pelo nome do podcast',
+        'no_results' => 'Nenhum resultado encontrado.',
+        'subscribe' => 'Assinar',
+        'unsubscribe' => 'Desinscrever',
+        'unsubscribe_confirm' => 'Tem certeza que deseja desinscrever deste podcast?',
+        'add_by_url' => 'Adicionar pela URL do feed'
     ],
     'devices' => [
         'mobile' => 'Mobile',
@@ -184,7 +192,10 @@ return [
         'password_too_short' => 'A senha é muito curta',
         'email_invalid' => 'Email invalido',
         'username_already_exists' => 'O nome de usuário já existe',
-        'page_not_found' => 'Página não encontrada'
+        'page_not_found' => 'Página não encontrada',
+        'invalid_feed_url' => 'URL de feed inválida',
+        'subscribed' => 'Podcast adicionado com sucesso',
+        'unsubscribed' => 'Podcast removido com sucesso'
     ],
     'statistics' => [
         'registered_users' => 'Usuários Registrados',

@@ -43,6 +43,9 @@ function buildRouter(): Router
     // Protected routes
     $router->group('/dashboard', function ($group) {
         $group->map('GET',  '/',                        [DashboardController::class, 'index']);
+        $group->map('GET',  '/add',                     [DashboardController::class, 'add']);
+        $group->map('POST', '/subscribe',               [DashboardController::class, 'subscribe']);
+        $group->map('POST', '/unsubscribe',             [DashboardController::class, 'unsubscribe']);
         $group->map('GET',  '/profile',                 [DashboardController::class, 'profile']);
         $group->map('POST', '/profile',                 [DashboardController::class, 'profile']);
         $group->map('GET',  '/profile/latest-updates',  [DashboardController::class, 'latestUpdates']);
