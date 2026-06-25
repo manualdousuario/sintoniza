@@ -105,10 +105,7 @@ return [
         'feed_url' => 'Feed URL',
         'subscribers' => 'Subscribers',
         'last_fetch' => 'Last fetch',
-        'fetch_failures' => 'Fetch failures',
-        'no_subscriptions_found' => 'No subscriptions found.',
-        'disable_subscription_confirm' => 'Disable this subscription?',
-        'enable_subscription_confirm' => 'Enable this subscription?'
+        'no_subscriptions_found' => 'No subscriptions found.'
     ],
     'dashboard' => [
         'secret_user' => 'GPodder Secret User',

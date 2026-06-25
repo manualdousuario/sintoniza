@@ -64,7 +64,6 @@ class FeedService
 
             if (!$fetched) {
                 $this->logger->warning('Failed to fetch feed', ['url' => $url]);
-                $this->feedRepository->recordFailure($url);
                 return null;
             }
 
@@ -77,7 +76,6 @@ class FeedService
                 'url'   => $url,
                 'error' => $e->getMessage(),
             ]);
-            $this->feedRepository->recordFailure($url);
 
             return null;
         }
@@ -90,10 +88,10 @@ class FeedService
         $now = time();
 
         if ($maxFeeds === null) {
-            $activeFeeds = (int) $this->db->firstColumn(
-                'SELECT COUNT(*) FROM feeds WHERE active = 1'
+            $totalFeeds = (int) $this->db->firstColumn(
+                'SELECT COUNT(*) FROM feeds'
             );
-            $maxFeeds = max(100, (int) ceil($activeFeeds / 12));
+            $maxFeeds = max(100, (int) ceil($totalFeeds / 12));
         }
 
         $sql = 'SELECT s.id AS subscription, s.url,
@@ -101,7 +99,6 @@ class FeedService
             FROM subscriptions s
                 LEFT JOIN feeds f ON f.id = s.feed
             WHERE s.deleted = 0
-                AND (f.active IS NULL OR f.active = 1)
                 AND (f.next_fetch_at IS NULL OR f.next_fetch_at <= ?)
             GROUP BY s.url
             ORDER BY next_fetch_at ASC, s.id ASC

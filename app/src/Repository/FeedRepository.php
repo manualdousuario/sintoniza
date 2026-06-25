@@ -53,31 +53,19 @@ class FeedRepository
         return $canonical ? (string) $canonical : $url;
     }
 
-    public function setActive(int $id, bool $active): void
+    public function countFiltered(?string $search): int
     {
-        if ($active) {
-            $this->db->simple(
-                'UPDATE feeds SET active = 1, fetch_failures = 0 WHERE id = ?',
-                $id
-            );
-        } else {
-            $this->db->simple('UPDATE feeds SET active = 0 WHERE id = ?', $id);
-        }
-    }
-
-    public function countFiltered(?string $search, ?int $active): int
-    {
-        [$where, $params] = $this->buildFilter($search, $active);
+        [$where, $params] = $this->buildFilter($search);
         return (int) $this->db->firstColumn("SELECT COUNT(*) FROM feeds $where", ...$params);
     }
 
-    public function findFiltered(?string $search, ?int $active, int $offset, int $limit): array
+    public function findFiltered(?string $search, int $offset, int $limit): array
     {
-        [$where, $params] = $this->buildFilter($search, $active);
+        [$where, $params] = $this->buildFilter($search);
         $params[] = $limit;
         $params[] = $offset;
         return $this->db->all(
-            "SELECT f.id, f.title, f.feed_url, f.url, f.last_fetch, f.fetch_failures, f.active,
+            "SELECT f.id, f.title, f.feed_url, f.url, f.last_fetch,
                 (SELECT COUNT(*) FROM subscriptions s WHERE s.feed = f.id AND s.deleted = 0) AS subscribers
              FROM feeds f
              $where
@@ -87,7 +75,7 @@ class FeedRepository
         );
     }
 
-    private function buildFilter(?string $search, ?int $active): array
+    private function buildFilter(?string $search): array
     {
         $conditions = [];
         $params     = [];
@@ -100,46 +88,7 @@ class FeedRepository
             $params[]     = $like;
         }
 
-        if ($active !== null) {
-            $conditions[] = 'active = ?';
-            $params[]     = $active;
-        }
-
         $where = $conditions ? 'WHERE ' . implode(' AND ', $conditions) : '';
         return [$where, $params];
-    }
-
-    public function recordFailure(string $url, int $maxFailures = 3): void
-    {
-        $url = $this->resolveCanonicalUrl($url);
-        if ($url === '') {
-            return;
-        }
-
-        $nextFetchAt = time() + 86400;
-
-        $this->db->simple(
-            'INSERT INTO feeds (feed_url, last_fetch, next_fetch_at, fetch_failures, active)
-                VALUES (?, 0, ?, 1, 1)
-             ON DUPLICATE KEY UPDATE
-                id             = LAST_INSERT_ID(id),
-                active         = CASE WHEN fetch_failures + 1 >= ? THEN 0 ELSE active END,
-                fetch_failures = fetch_failures + 1,
-                next_fetch_at  = ? + (fetch_failures * 86400)',
-            $url,
-            $nextFetchAt,
-            $maxFailures,
-            $nextFetchAt
-        );
-
-        $feedId = (int) $this->db->lastInsertId();
-
-        if ($feedId > 0) {
-            $this->db->simple(
-                'UPDATE subscriptions SET feed = ? WHERE url = ? AND feed IS NULL',
-                $feedId,
-                $url
-            );
-        }
     }
 }

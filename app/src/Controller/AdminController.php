@@ -116,15 +116,13 @@ class AdminController
         $query  = $request->getQueryParams();
         $page   = max(1, (int) ($query['page'] ?? 1));
         $search = isset($query['q']) ? trim((string) $query['q']) : '';
-        $active = $this->parseActive($query['active'] ?? null);
 
-        $total  = $this->feedRepository->countFiltered($search !== '' ? $search : null, $active);
+        $total  = $this->feedRepository->countFiltered($search !== '' ? $search : null);
         $pages  = max(1, (int) ceil($total / self::FEEDS_PER_PAGE));
         $page   = min($page, $pages);
         $offset = ($page - 1) * self::FEEDS_PER_PAGE;
         $feeds  = $this->feedRepository->findFiltered(
             $search !== '' ? $search : null,
-            $active,
             $offset,
             self::FEEDS_PER_PAGE
         );
@@ -135,33 +133,7 @@ class AdminController
             'pages'  => $pages,
             'total'  => $total,
             'search' => $search,
-            'active' => $active,
         ]));
-    }
-
-    public function toggleSubscription(ServerRequestInterface $request, array $args = []): ResponseInterface
-    {
-        $feedId = (int) $args['id'];
-        $feed   = $this->feedRepository->findById($feedId);
-
-        if (!$feed) {
-            return new RedirectResponse('/admin/subscriptions');
-        }
-
-        $body   = $request->getParsedBody() ?? [];
-        $active = isset($body['active']) ? (int) $body['active'] === 1 : !((int) $feed->active === 1);
-
-        $this->feedRepository->setActive($feedId, $active);
-
-        $query = $request->getQueryParams();
-        $qs    = array_filter([
-            'q'      => $query['q']      ?? null,
-            'active' => $query['active'] ?? null,
-            'page'   => $query['page']   ?? null,
-        ], fn($v) => $v !== null && $v !== '');
-
-        $target = '/admin/subscriptions' . ($qs ? '?' . http_build_query($qs) : '');
-        return new RedirectResponse($target);
     }
 
     private function parseActive(mixed $value): ?int

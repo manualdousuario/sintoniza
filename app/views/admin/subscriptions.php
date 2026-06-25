@@ -1,10 +1,9 @@
 <?php $this->layout('layout', ['title' => $this->__('admin.subscriptions'), 'logged' => $logged, 'isAdmin' => $isAdmin, 'env' => 'admin']) ?>
 
 <?php
-$buildUrl = function (array $overrides = []) use ($search, $active, $page): string {
+$buildUrl = function (array $overrides = []) use ($search, $page): string {
     $params = array_filter([
         'q'      => $search !== '' ? $search : null,
-        'active' => $active !== null ? (string) $active : null,
         'page'   => $page > 1 ? $page : null,
     ], fn($v) => $v !== null);
     $params = array_merge($params, $overrides);
@@ -22,25 +21,17 @@ $buildUrl = function (array $overrides = []) use ($search, $active, $page): stri
 
     <form method="get" action="/admin/subscriptions" class="card card-body mb-3">
         <div class="row g-2 align-items-end">
-            <div class="col-12 col-md-7">
+            <div class="col-12 col-md-9">
                 <label for="feed-search" class="form-label small mb-1"><?= $this->__('admin.search_by_url_or_name') ?></label>
                 <input type="search" class="form-control" id="feed-search" name="q"
                     value="<?= $this->e($search) ?>"
                     placeholder="<?= $this->e($this->__('admin.search_by_url_or_name_placeholder')) ?>">
             </div>
-            <div class="col-8 col-md-3">
-                <label for="feed-active" class="form-label small mb-1"><?= $this->__('admin.status') ?></label>
-                <select class="form-select" id="feed-active" name="active">
-                    <option value=""<?= $active === null ? ' selected' : '' ?>><?= $this->__('admin.all') ?></option>
-                    <option value="1"<?= $active === 1 ? ' selected' : '' ?>><?= $this->__('admin.active') ?></option>
-                    <option value="0"<?= $active === 0 ? ' selected' : '' ?>><?= $this->__('admin.inactive') ?></option>
-                </select>
-            </div>
-            <div class="col-4 col-md-2 d-flex gap-2">
+            <div class="col-12 col-md-3 d-flex gap-2">
                 <button type="submit" class="btn btn-primary flex-grow-1">
                     <i class="bi bi-search"></i> <?= $this->__('admin.filter') ?>
                 </button>
-                <?php if ($search !== '' || $active !== null): ?>
+                <?php if ($search !== ''): ?>
                     <a href="/admin/subscriptions" class="btn btn-outline-secondary" title="<?= $this->e($this->__('admin.clear_filters')) ?>">
                         <i class="bi bi-x-lg"></i>
                     </a>
@@ -59,8 +50,6 @@ $buildUrl = function (array $overrides = []) use ($search, $active, $page): stri
                         <th><?= $this->__('admin.feed_url') ?></th>
                         <th class="text-end"><?= $this->__('admin.subscribers') ?></th>
                         <th><?= $this->__('admin.last_fetch') ?></th>
-                        <th><?= $this->__('admin.status') ?></th>
-                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -91,45 +80,11 @@ $buildUrl = function (array $overrides = []) use ($search, $active, $page): stri
                                     &mdash;
                                 <?php endif ?>
                             </td>
-                            <td>
-                                <?php if ((int) $f->active === 1): ?>
-                                    <span class="badge bg-success"><?= $this->__('admin.active') ?></span>
-                                <?php else: ?>
-                                    <span class="badge bg-secondary" title="<?= $this->e($this->__('admin.fetch_failures')) ?>: <?= (int) $f->fetch_failures ?>">
-                                        <?= $this->__('admin.inactive') ?>
-                                    </span>
-                                <?php endif ?>
-                            </td>
-                            <td class="text-end">
-                                <?php
-                                $isActive = (int) $f->active === 1;
-                                $toggleQs = http_build_query(array_filter([
-                                    'q'      => $search !== '' ? $search : null,
-                                    'active' => $active !== null ? (string) $active : null,
-                                    'page'   => $page > 1 ? $page : null,
-                                ], fn($v) => $v !== null && $v !== ''));
-                                $action   = '/admin/subscription/' . (int) $f->id . '/toggle' . ($toggleQs ? '?' . $toggleQs : '');
-                                $confirm  = $isActive
-                                    ? $this->__('admin.disable_subscription_confirm')
-                                    : $this->__('admin.enable_subscription_confirm');
-                                ?>
-                                <form method="post" action="<?= $this->e($action) ?>" class="m-0"
-                                    onsubmit="return confirm('<?= $this->e($confirm) ?>');">
-                                    <input type="hidden" name="active" value="<?= $isActive ? 0 : 1 ?>">
-                                    <button type="submit" class="btn btn-sm <?= $isActive ? 'btn-outline-secondary' : 'btn-outline-success' ?>">
-                                        <?php if ($isActive): ?>
-                                            <i class="bi bi-pause-circle"></i> <?= $this->__('admin.disable') ?>
-                                        <?php else: ?>
-                                            <i class="bi bi-play-circle"></i> <?= $this->__('admin.activate') ?>
-                                        <?php endif ?>
-                                    </button>
-                                </form>
-                            </td>
                         </tr>
                     <?php endforeach ?>
                     <?php if (empty($feeds)): ?>
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-4"><?= $this->__('admin.no_subscriptions_found') ?></td>
+                            <td colspan="5" class="text-center text-muted py-4"><?= $this->__('admin.no_subscriptions_found') ?></td>
                         </tr>
                     <?php endif ?>
                 </tbody>

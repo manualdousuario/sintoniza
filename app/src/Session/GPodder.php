@@ -238,7 +238,6 @@ class GPodder
                 LEFT JOIN episodes_actions a ON a.subscription = s.id
                 LEFT JOIN feeds f ON f.id = s.feed
             WHERE s.user = ? AND s.deleted = 0
-                AND (f.id IS NULL OR f.active = 1)
             GROUP BY s.id, s.user, s.url, s.feed, s.changed, s.deleted, f.title
             ORDER BY last_change DESC',
             $this->user->id
@@ -250,8 +249,7 @@ class GPodder
         return (int) $this->db->firstColumn(
             'SELECT COUNT(*) FROM subscriptions s
                 LEFT JOIN feeds f ON f.id = s.feed
-             WHERE s.user = ? AND s.deleted = 0
-                AND (f.id IS NULL OR f.active = 1)',
+             WHERE s.user = ? AND s.deleted = 0',
             $this->user->id
         );
     }
@@ -269,7 +267,6 @@ class GPodder
                 LEFT JOIN episodes_actions a ON a.subscription = s.id
                 LEFT JOIN feeds f ON f.id = s.feed
             WHERE s.user = ? AND s.deleted = 0
-                AND (f.id IS NULL OR f.active = 1)
             GROUP BY s.id, s.user, s.url, s.feed, s.changed, s.deleted, f.title
             ORDER BY last_change DESC
             LIMIT ? OFFSET ?',
@@ -306,7 +303,6 @@ class GPodder
                 INNER JOIN subscriptions s ON s.id = a.subscription
                 LEFT JOIN feeds f ON f.id = s.feed
              WHERE a.user = ? AND s.deleted = 0
-                AND (f.id IS NULL OR f.active = 1)
                 AND a.changed >= ?',
             $this->user->id,
             time() - 7 * 86400
@@ -328,7 +324,6 @@ class GPodder
                 LEFT JOIN devices d ON d.id = a.device AND a.user = d.user
                 LEFT JOIN episodes e ON e.id = a.episode
             WHERE a.user = ? AND s.deleted = 0
-                AND (f.id IS NULL OR f.active = 1)
                 AND a.changed >= ?
             ORDER BY a.changed DESC
             LIMIT ? OFFSET ?',
@@ -362,8 +357,7 @@ class GPodder
             'SELECT s.id AS subscription_id, s.feed AS feed_id, s.url AS subscription_url, f.title, f.image_url, f.description, f.url, f.feed_url
              FROM subscriptions s
              LEFT JOIN feeds f ON f.id = s.feed
-             WHERE s.id = ? AND s.user = ? AND s.deleted = 0
-                AND (f.id IS NULL OR f.active = 1)',
+             WHERE s.id = ? AND s.user = ? AND s.deleted = 0',
             $subscriptionId,
             $this->user->id
         );

@@ -105,10 +105,7 @@ return [
         'feed_url' => 'URL del Feed',
         'subscribers' => 'Suscriptores',
         'last_fetch' => 'Última actualización',
-        'fetch_failures' => 'Fallos de carga',
-        'no_subscriptions_found' => 'No se encontraron suscripciones.',
-        'disable_subscription_confirm' => '¿Desactivar esta suscripción?',
-        'enable_subscription_confirm' => '¿Activar esta suscripción?'
+        'no_subscriptions_found' => 'No se encontraron suscripciones.'
     ],
     'dashboard' => [
         'secret_user' => 'Usuario secreto de GPodder',

@@ -26,8 +26,6 @@ class Feed
     public int $next_fetch_at     = 0;
     public ?string $etag          = null;
     public ?string $last_modified = null;
-    public int $fetch_failures    = 0;
-    public int $active            = 1;
 
     public bool $notModified = false;
 
@@ -67,7 +65,7 @@ class Feed
 
             if ($key === 'pubdate' && $value) {
                 $this->$key = new DateTime($value);
-            } elseif (in_array($key, ['last_fetch', 'next_fetch_at', 'fetch_failures', 'active'], true)) {
+            } elseif (in_array($key, ['last_fetch', 'next_fetch_at'], true)) {
                 $this->$key = (int) $value;
             } else {
                 $this->$key = $value;
