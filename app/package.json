@@ -9,7 +9,7 @@
   "author": "Catraca Livre",
   "license": "ISC",
   "devDependencies": {
-    "autoprefixer": "^10.4.21",
+    "autoprefixer": "^10.5.2",
     "gulp": "^5.0.1",
     "gulp-clean-css": "^4.3.0",
     "gulp-cli": "^3.1.0",
@@ -21,7 +21,7 @@
     "gulp-sass": "^6.0.1",
     "gulp-sourcemaps": "^3.0.0",
     "gulp-terser": "^2.1.0",
-    "sass": "^1.99.0"
+    "sass": "^1.101.0"
   },
   "dependencies": {
     "bootstrap": "^5.3.8",
