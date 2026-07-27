@@ -1,0 +1,80 @@
+name: 🧪 CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call: {}
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  tests:
+    name: 🧪 Lint and test
+    runs-on: ubuntu-24.04
+
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+          MYSQL_DATABASE: sintoniza_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: sintoniza_test
+      DB_USERNAME: root
+      DB_PASSWORD: ''
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🐘 Install PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mysqli, pdo_mysql, gd, intl, tidy
+          coverage: none
+
+      - name: 🔍 Validate PHP syntax
+        run: git ls-files '*.php' | xargs -P4 -I{} php -l {}
+
+      - name: 📦 Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: 🛡️ Composer audit
+        run: composer audit
+
+      - name: 🟢 Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: 📦 Install npm dependencies
+        run: npm ci
+
+      - name: 🎨 Build assets
+        run: npm run build
+
+      - name: 🛡️ npm audit
+        run: npm audit
+        continue-on-error: true
+
+      - name: 🎨 Check code style
+        run: vendor/bin/pint --test
+
+      - name: 🧪 Run test suite
+        run: php artisan test
