@@ -112,11 +112,9 @@ return [
     ],
     'messages' => [
         'subscriptions_disabled' => 'Suscripciones desactivadas.',
-        'invalid_captcha' => 'CAPTCHA inválido.',
         'user_registered' => 'Registro completado con éxito. Inicia sesión para continuar.',
         'login_success' => 'Su sesión está iniciada, puede cerrar esto y volver a la aplicación.',
         'app_requesting_access' => 'Una aplicación está pidiendo acceso a su cuenta.',
-        'fill_captcha' => 'Ingrese el número siguiente:',
         'invalid_url' => 'URL inválido:',
         'invalid_username_password' => 'Combinación inválida de usuario y contraseña',
         'no_username_password' => 'No se indicó usuario o contraseña',

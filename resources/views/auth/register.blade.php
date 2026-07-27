@@ -39,17 +39,6 @@
                                 <input type="email" class="input" required name="email" id="email"
                                     value="{{ old('email') }}" />
                             </div>
-                            <div class="mb-6">
-                                <label for="captcha" class="label">Captcha</label>
-                                <p class="text-sm text-slate-500 mb-2 dark:text-slate-400">{{ __('sintoniza.messages.fill_captcha') }}</p>
-                                <div class="flex items-stretch gap-2">
-                                    <div class="shrink-0 flex items-center p-1 rounded-lg border border-slate-200 bg-white dark:border-slate-700">
-                                        <img src="{{ $captcha }}" alt="Captcha" class="rounded" />
-                                    </div>
-                                    <input type="text" class="input" name="captcha" required id="captcha"
-                                        inputmode="numeric" pattern="[0-9]*" autocomplete="off" />
-                                </div>
-                            </div>
                             <button type="submit" class="btn-primary w-full">
                                 <x-tabler-user-plus class="w-4 h-4" />
                                 {{ __('sintoniza.general.register') }}

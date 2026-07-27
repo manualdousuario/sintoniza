@@ -8,7 +8,6 @@
     "require": {
         "php": "^8.4",
         "filament/filament": "^5.7",
-        "gregwar/captcha": "^2.1",
         "guzzlehttp/guzzle": "^7.9",
         "laravel/framework": "^13.0",
         "laravel/tinker": "^3.0",

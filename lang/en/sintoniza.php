@@ -114,11 +114,9 @@ return [
     ],
     'messages' => [
         'subscriptions_disabled' => 'Subscriptions are disabled.',
-        'invalid_captcha' => 'Invalid captcha.',
         'user_registered' => 'Registration completed successfully. Sign in to continue.',
         'login_success' => 'You are logged in, you can close this and return to the application.',
         'app_requesting_access' => 'An application is requesting access to your account.',
-        'fill_captcha' => 'Fill in the following number:',
         'invalid_url' => 'Invalid URL:',
         'invalid_username_password' => 'Invalid username/password',
         'no_username_password' => 'No username or password provided',

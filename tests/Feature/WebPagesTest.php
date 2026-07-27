@@ -33,8 +33,7 @@ it('shows the login page to guests', function () {
 it('shows the register page to guests', function () {
     $this->get('/register')
         ->assertOk()
-        ->assertSee('name="username"', false)
-        ->assertSee('name="captcha"', false);
+        ->assertSee('name="username"', false);
 });
 
 it('shows the forgot password pages to guests', function () {
@@ -51,32 +50,17 @@ it('shows the forgot password pages to guests', function () {
 // -------------------------------------------------------------- registration
 
 it('registers the first user as admin via the register form', function () {
-    $this->withSession(['captcha_phrase' => '12345'])
-        ->post('/register', [
-            'username' => 'firstuser',
-            'password' => 'secret-password',
-            'email' => 'first@example.com',
-            'captcha' => '12345',
-        ])
-        ->assertRedirect('/login');
+    $this->post('/register', [
+        'username' => 'firstuser',
+        'password' => 'secret-password',
+        'email' => 'first@example.com',
+    ])->assertRedirect('/login');
 
     $user = User::where('name', 'firstuser')->first();
 
     expect($user)->not->toBeNull()
         ->and($user->is_admin)->toBeTrue()
         ->and($user->email)->toBe('first@example.com');
-});
-
-it('rejects registration with an invalid captcha', function () {
-    $this->withSession(['captcha_phrase' => '12345'])
-        ->post('/register', [
-            'username' => 'firstuser',
-            'password' => 'secret-password',
-            'email' => 'first@example.com',
-            'captcha' => '99999',
-        ]);
-
-    expect(User::where('name', 'firstuser')->exists())->toBeFalse();
 });
 
 // ---------------------------------------------------------- authenticated

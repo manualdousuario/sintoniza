@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
-use App\Services\CaptchaService;
 use App\Services\UserService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,22 +13,13 @@ use Illuminate\View\View;
 class RegisterController
 {
     public function __construct(
-        private UserService $users,
-        private CaptchaService $captcha
+        private UserService $users
     ) {}
 
     public function showRegister(): View
     {
-        if (! $this->users->canSubscribe()) {
-            return view('auth.register', [
-                'disabled' => true,
-                'captcha' => null,
-            ]);
-        }
-
         return view('auth.register', [
-            'disabled' => false,
-            'captcha' => $this->captcha->generate(),
+            'disabled' => ! $this->users->canSubscribe(),
         ]);
     }
 
@@ -37,11 +27,6 @@ class RegisterController
     {
         if (! $this->users->canSubscribe()) {
             return redirect('/register');
-        }
-
-        if (! $this->captcha->check($request->input('captcha', ''))) {
-            return back()->with('error', __('sintoniza.messages.invalid_captcha'))
-                ->withInput($request->only('username', 'email'));
         }
 
         try {

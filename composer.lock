@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b5e12bd3a688c44c5d8a8e171ec910ba",
+    "content-hash": "d2e0030ab8edb67c33f1ec16e36abd6a",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -1608,67 +1608,6 @@
                 }
             ],
             "time": "2025-12-27T19:43:20+00:00"
-        },
-        {
-            "name": "gregwar/captcha",
-            "version": "v2.1.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Gregwar/Captcha.git",
-                "reference": "3c2f6f0c301b94d9ec18ba769015a8a32b95765c"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Gregwar/Captcha/zipball/3c2f6f0c301b94d9ec18ba769015a8a32b95765c",
-                "reference": "3c2f6f0c301b94d9ec18ba769015a8a32b95765c",
-                "shasum": ""
-            },
-            "require": {
-                "ext-fileinfo": "*",
-                "ext-gd": "*",
-                "ext-mbstring": "*",
-                "php": "^8.2",
-                "symfony/finder": "*"
-            },
-            "require-dev": {
-                "phpstan/phpstan": "2.1.17",
-                "phpstan/phpstan-phpunit": "2.0.6",
-                "phpunit/phpunit": "^9.6",
-                "squizlabs/php_codesniffer": "4.0.1"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Gregwar\\": "src/Gregwar"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Grégoire Passault",
-                    "email": "g.passault@gmail.com",
-                    "homepage": "http://www.gregwar.com/"
-                },
-                {
-                    "name": "Jeremy Livingston",
-                    "email": "jeremy.j.livingston@gmail.com"
-                }
-            ],
-            "description": "Captcha generator",
-            "homepage": "https://github.com/Gregwar/Captcha",
-            "keywords": [
-                "bot",
-                "captcha",
-                "spam"
-            ],
-            "support": {
-                "issues": "https://github.com/Gregwar/Captcha/issues",
-                "source": "https://github.com/Gregwar/Captcha/tree/v2.1.0"
-            },
-            "time": "2026-06-16T13:04:08+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",
