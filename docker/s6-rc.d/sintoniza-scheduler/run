@@ -1,0 +1,10 @@
+#!/command/with-contenv sh
+
+if [ "${SINTONIZA_SCHEDULER:-true}" != "true" ]; then
+    echo "[sintoniza] scheduler disabled by SINTONIZA_SCHEDULER"
+    exit 0
+fi
+
+cd /var/www/html || exit 1
+
+exec php artisan schedule:work

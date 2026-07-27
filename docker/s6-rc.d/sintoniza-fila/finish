@@ -1,5 +1,0 @@
-#!/command/with-contenv sh
-
-[ "${SINTONIZA_FILA:-true}" = "true" ] || exit 125
-
-exit 0

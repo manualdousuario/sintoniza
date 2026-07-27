@@ -1,0 +1,10 @@
+#!/command/with-contenv sh
+
+if [ "${SINTONIZA_QUEUE_WORKER:-true}" != "true" ]; then
+    echo "[sintoniza] queue worker disabled by SINTONIZA_QUEUE_WORKER"
+    exit 0
+fi
+
+cd /var/www/html || exit 1
+
+exec php artisan queue:work --tries=3 --timeout=120
