@@ -1,7 +1,8 @@
 # 🎧 Sintoniza
 
-[![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)](https://ghcr.io/butialabs/lastfm)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)](https://ghcr.io/manualdousuario/sintoniza)
 [![PHP](https://img.shields.io/badge/PHP-8.4+-purple?logo=php)](https://php.net)
+[![Laravel](https://img.shields.io/badge/Laravel-13-red?logo=laravel)](https://laravel.com)
 
 Sintoniza is a powerful podcast synchronization server based on the gPodder protocol. It helps you keep your podcast subscriptions, episodes, and listening history in sync across all your devices!
 
@@ -12,10 +13,9 @@ A public instance is available at [PC do Manual](https://sintoniza.pcdomanual.co
 - Full compatibility with GPodder and NextCloud gPodder
 - Smart subscription and episode history tracking
 - Seamless device-to-device synchronization
-- Complete podcast and episode metadata (via PodcastIndex + RSS)
+- Administrative interface for user management (Filament, at `/admin`)
 - Global statistics dashboard
-- Administrative interface for user management
-- Built with PHP 8.4 and MySQL/MariaDB
+- Built with PHP 8.4, Laravel 13, Livewire, Tailwind CSS and MySQL/MariaDB
 
 ## 📱 Tested Applications
 
@@ -36,7 +36,7 @@ You only need:
 
 1. First, get the compose file:
 ```bash
-curl -o ./docker-compose.yml https://raw.githubusercontent.com/manualdousuario/sintoniza/main/docker-compose.yml
+curl -o ./compose.yml https://raw.githubusercontent.com/manualdousuario/sintoniza/main/compose.yml
 ```
 
 2. Configure the settings:
@@ -44,57 +44,10 @@ curl -o ./docker-compose.yml https://raw.githubusercontent.com/manualdousuario/s
 nano docker-compose.yml
 ```
 
-3. Update the following configuration:
-```yaml
-services:
-  sintoniza:
-    container_name: sintoniza
-    image: ghcr.io/manualdousuario/sintoniza:latest
-    ports:
-      - "80:80"
-    environment:
-      MYSQL_HOST: ${DB_HOST:-db}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASS}
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_PORT: ${DB_PORT:-3306}
-      BASE_URL: ${BASE_URL:-https://sintoniza.xyz/}
-      TITLE: ${TITLE:-Sintoniza}
-      DEBUG: ${DEBUG:-false}
-      ENABLE_SUBSCRIPTIONS: ${ENABLE_SUBSCRIPTIONS:-false}
-      SMTP_USER: ${SMTP_USER}
-      SMTP_PASS: ${SMTP_PASS}
-      SMTP_HOST: ${SMTP_HOST}
-      SMTP_FROM: ${SMTP_FROM}
-      SMTP_NAME: ${SMTP_NAME:-"Sintoniza"}
-      SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_SECURE: ${SMTP_SECURE:-tls}
-      SMTP_AUTH: ${SMTP_AUTH:-true}
-      PODCAST_INDEX_API_KEY: ${PODCAST_INDEX_API_KEY}
-      PODCAST_INDEX_API_SECRET: ${PODCAST_INDEX_API_SECRET}
-      PODCAST_INDEX_USE_AS_PRIMARY: ${PODCAST_INDEX_USE_AS_PRIMARY:-true}
-      PODCAST_INDEX_FALLBACK_TO_RSS: ${PODCAST_INDEX_FALLBACK_TO_RSS:-true}
-      SESSION_NAME: ${SESSION_NAME:-sintoniza_session}
-      SESSION_LIFETIME: ${SESSION_LIFETIME:-86400}
-      SESSION_SECURE: ${SESSION_SECURE:-true}
-      SESSION_HTTP_ONLY: ${SESSION_HTTP_ONLY:-true}
-    depends_on:
-      - db
-  db:
-    image: mariadb:10.11
-    container_name: db
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASS}
-    ports:
-      - 3306:3306
-    volumes:
-      - ./mariadb/data:/var/lib/mysql
+3. Start the services:
+```bash
+docker compose up -d
 ```
-
-Note: All environment variables without defaults are required.
 
 ### Environment Variables
 
@@ -102,28 +55,28 @@ Note: All environment variables without defaults are required.
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| MYSQL_HOST | Database host address | db |
-| MYSQL_USER | Database username | user |
-| MYSQL_PASSWORD | Database password | password |
-| MYSQL_DATABASE | Database name | database_name |
-| MYSQL_PORT | Database port | 3306 |
-| BASE_URL | Base URL for the application | https://sintoniza.xyz/ |
-| TITLE | Application title | Sintoniza |
-| DEBUG | Enable debug mode (Whoops error handler) | true |
-| ENABLE_SUBSCRIPTIONS | Allow new user registrations | true |
+| APP_KEY | **Required.** Encryption key | base64:... |
+| DB_HOST | Database host address | db |
+| DB_USERNAME | Database username | user |
+| DB_PASSWORD | **Required.** Database password | password |
+| DB_DATABASE | Database name | database_name |
+| DB_PORT | Database port | 3306 |
+| APP_URL | Base URL for the application | https://sintoniza.xyz/ |
+| APP_NAME | Application title | Sintoniza |
+| APP_DEBUG | Enable debug mode. Keep this `false` in production | false |
+| ENABLE_SUBSCRIPTIONS |Allow new user registrations | true |
 
-#### SMTP (password recovery & notifications)
+#### SMTP
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| SMTP_USER | SMTP username | email@email.com |
-| SMTP_PASS | SMTP password | password |
-| SMTP_HOST | SMTP server host | smtp.email.com |
-| SMTP_FROM | Email address to send from | email@email.com |
-| SMTP_NAME | Sender name for emails | "Sintoniza" |
-| SMTP_PORT | SMTP server port | 587 |
-| SMTP_SECURE | SMTP security type (tls/ssl) | tls |
-| SMTP_AUTH | Enable SMTP authentication | true |
+| MAIL_USERNAME | SMTP username | email@email.com |
+| MAIL_PASSWORD | **Required.** SMTP password | password |
+| MAIL_HOST | SMTP server host | smtp.email.com |
+| MAIL_FROM_ADDRESS | Email address to send from | email@email.com |
+| MAIL_FROM_NAME | Sender name for emails | "Sintoniza" |
+| MAIL_PORT | SMTP server port | 587 |
+| MAIL_SCHEME | SMTP security type (tls/ssl) | tls |
 
 #### PodcastIndex (optional but recommended)
 
@@ -133,37 +86,6 @@ Note: All environment variables without defaults are required.
 | PODCAST_INDEX_API_SECRET | API secret from PodcastIndex | — |
 | PODCAST_INDEX_USE_AS_PRIMARY | Use PodcastIndex as the primary metadata source | true |
 | PODCAST_INDEX_FALLBACK_TO_RSS | Fall back to parsing the raw RSS feed when PodcastIndex fails | true |
-
-#### Session
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| SESSION_NAME | Session cookie name | sintoniza_session |
-| SESSION_LIFETIME | Session lifetime in seconds | 86400 |
-| SESSION_SECURE | Send session cookie only over HTTPS | true |
-| SESSION_HTTP_ONLY | Mark session cookie as HttpOnly | true |
-
-4. Start the services:
-```bash
-docker compose up -d
-```
-
-Database migrations are applied automatically on container startup via Phinx.
-
-## 🛠️ Maintenance
-
-### Logs
-
-View application logs:
-```bash
-docker compose logs sintoniza
-```
-
-Application logs written by Monolog are available inside the container at `/app/logs`.
-
-### Security
-
-It's recommended to use [NGINX Proxy Manager](https://nginxproxymanager.com/) as a frontend web service for this container to add security and caching layers. Other web services like Caddy will also work correctly.
 
 ---
 

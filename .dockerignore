@@ -1,0 +1,14 @@
+.git
+.github
+docker-compose.yml
+mariadb
+node_modules
+
+.env
+vendor
+tools
+tests
+storage/logs/*.log
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*

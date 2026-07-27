@@ -1,0 +1,167 @@
+@import "tailwindcss";
+
+@theme {
+    --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+    /* Brand accent */
+    --color-brand-50: #eef2ff;
+    --color-brand-100: #e0e7ff;
+    --color-brand-200: #c7d2fe;
+    --color-brand-300: #a5b4fc;
+    --color-brand-400: #818cf8;
+    --color-brand-500: #6366f1;
+    --color-brand-600: #4f46e5;
+    --color-brand-700: #4338ca;
+    --color-brand-800: #3730a3;
+    --color-brand-900: #312e81;
+    --color-brand-950: #1e1b4b;
+}
+
+@layer base {
+    html {
+        @apply antialiased;
+    }
+
+    [x-cloak] {
+        display: none !important;
+    }
+
+    body {
+        @apply bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col;
+        @apply dark:bg-slate-950 dark:text-slate-200;
+    }
+}
+
+/* ------------------------------------------------------------------ Buttons */
+@utility btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium
+        transition duration-150 select-none cursor-pointer whitespace-nowrap
+        focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50
+        disabled:opacity-60 disabled:cursor-not-allowed active:translate-y-px;
+}
+
+@utility btn-sm {
+    @apply btn rounded-md px-2.5 py-1.5 text-xs;
+}
+
+@utility btn-primary {
+    @apply btn bg-gradient-to-b from-brand-400 to-brand-500 text-white shadow-sm
+        hover:from-brand-500 hover:to-brand-600 hover:shadow-md;
+}
+
+@utility btn-secondary {
+    @apply btn bg-slate-500 text-slate-50 border border-slate-600
+        hover:bg-slate-600 hover:text-white;
+}
+
+@utility btn-outline {
+    @apply btn border border-slate-300 text-slate-600 bg-transparent
+        hover:bg-slate-100 hover:text-slate-800
+        dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100;
+}
+
+@utility btn-outline-dark {
+    @apply btn border border-slate-600 text-slate-200 bg-transparent
+        hover:bg-slate-700 hover:text-white;
+}
+
+@utility btn-danger-outline {
+    @apply btn border border-red-300 text-red-600 bg-transparent
+        hover:bg-red-600 hover:border-red-600 hover:text-white
+        dark:border-red-800 dark:text-red-400 dark:hover:bg-red-700 dark:hover:text-white;
+}
+
+/* -------------------------------------------------------------------- Cards */
+@utility card {
+    @apply bg-white border border-slate-200 rounded-2xl shadow-sm
+        dark:bg-slate-900 dark:border-slate-800;
+}
+
+@utility auth-card {
+    @apply card shadow-lg;
+}
+
+/* -------------------------------------------------------------------- Forms */
+@utility label {
+    @apply block text-sm font-medium text-slate-600 mb-1.5 dark:text-slate-400;
+}
+
+@utility input {
+    @apply block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800
+        placeholder:text-slate-400 transition duration-150
+        focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20
+        dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200 dark:placeholder:text-slate-500;
+}
+
+/* ------------------------------------------------------------------- Alerts */
+@utility alert {
+    @apply rounded-xl px-4 py-3 text-sm border-l-4;
+}
+
+@utility alert-success {
+    @apply alert bg-green-50 text-green-700 border-green-500
+        dark:bg-green-950/40 dark:text-green-300 dark:border-green-500;
+}
+
+@utility alert-error {
+    @apply alert bg-red-50 text-red-700 border-red-500
+        dark:bg-red-950/40 dark:text-red-300 dark:border-red-500;
+}
+
+@utility alert-warning {
+    @apply alert bg-amber-50 text-amber-700 border-amber-500
+        dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-500;
+}
+
+@utility alert-info {
+    @apply alert bg-sky-50 text-sky-700 border-sky-400
+        dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-500;
+}
+
+/* ------------------------------------------------------------------- Badges */
+@utility badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold;
+}
+
+@utility badge-success {
+    @apply badge bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300;
+}
+
+@utility badge-primary {
+    @apply badge bg-brand-100 text-brand-700 dark:bg-brand-900/50 dark:text-brand-300;
+}
+
+@utility badge-danger {
+    @apply badge bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300;
+}
+
+@utility badge-secondary {
+    @apply badge bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300;
+}
+
+/* -------------------------------------------------------------- Page header */
+@utility page-header {
+    @apply flex items-center gap-2 pt-8 pb-6 mb-7 border-b border-slate-200 dark:border-slate-800;
+}
+
+@utility page-title {
+    @apply grow text-xl font-extrabold tracking-tight text-slate-800 dark:text-slate-100;
+}
+
+/* -------------------------------------------------------------------- Lists */
+@utility list-card {
+    @apply card divide-y divide-slate-200 dark:divide-slate-800 overflow-hidden;
+}
+
+@utility list-card-item {
+    @apply p-4 transition duration-150 hover:bg-slate-50 dark:hover:bg-slate-800/50;
+}
+
+/* -------------------------------------------------------------------- Links */
+@utility link {
+    @apply text-brand-600 hover:text-brand-700 hover:underline dark:text-brand-400 dark:hover:text-brand-300;
+}
+
+@utility link-dark {
+    @apply text-slate-800 hover:text-brand-600 font-medium dark:text-slate-100 dark:hover:text-brand-400;
+}

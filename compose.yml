@@ -1,0 +1,49 @@
+services:
+  sintoniza:
+    container_name: sintoniza
+    image: ghcr.io/manualdousuario/sintoniza:latest
+    restart: unless-stopped
+    ports:
+      - "80:8080"
+    environment:
+      - APP_KEY: base64
+      - APP_NAME: Sintoniza
+      - APP_URL: https://sintoniza.xyz/
+      - DB_HOST: db
+      - DB_PORT: 3306
+      - DB_DATABASE: database_name
+      - DB_USERNAME: database_user
+      - DB_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD}
+      - ENABLE_SUBSCRIPTIONS: true
+      - MAIL_HOST: smtp.email.com
+      - MAIL_PORT: 587
+      - MAIL_USERNAME: email@email.com
+      - MAIL_PASSWORD: ${MAIL_PASSWORD:?defina MAIL_PASSWORD}
+      - MAIL_SCHEME: tls
+      - MAIL_FROM_ADDRESS: email@email.com
+      - MAIL_FROM_NAME: Sintoniza
+    volumes:
+      - sintoniza:/var/www/html/storage
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mariadb:10.11
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?defina DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: database_name
+      MYSQL_USER: database_user
+      MYSQL_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD}
+    volumes:
+      - mariadb:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  sintoniza:
+  mariadb:

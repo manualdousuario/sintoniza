@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"
+      xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"
+      xmlns:media="http://search.yahoo.com/mrss/">
+  <title>Atom Fixture</title>
+  <subtitle>Atom feed used in tests.</subtitle>
+  <link rel="alternate" href="https://atom.example.com"/>
+  <link rel="self" href="https://atom.example.com/feed.xml"/>
+  <logo>https://atom.example.com/logo.png</logo>
+  <updated>2024-01-15T10:00:00Z</updated>
+  <entry>
+    <title>Atom Episode One</title>
+    <link rel="alternate" href="https://atom.example.com/episodes/1"/>
+    <link rel="enclosure" type="audio/mpeg" href="https://cdn.example.com/atom1.mp3"/>
+    <published>2024-01-01T10:00:00Z</published>
+    <content type="html">&lt;p&gt;Atom episode one.&lt;/p&gt;</content>
+    <itunes:duration>02:03</itunes:duration>
+    <media:thumbnail url="https://atom.example.com/thumb1.jpg"/>
+  </entry>
+  <entry>
+    <title>Atom Episode Two</title>
+    <link rel="alternate" href="https://atom.example.com/episodes/2"/>
+    <link rel="enclosure" type="audio/aac" href="https://cdn.example.com/atom2.aac"/>
+    <updated>2024-01-08T10:00:00Z</updated>
+    <summary>Atom episode two.</summary>
+  </entry>
+</feed>

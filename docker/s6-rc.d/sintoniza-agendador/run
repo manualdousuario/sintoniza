@@ -1,0 +1,10 @@
+#!/command/with-contenv sh
+
+if [ "${SINTONIZA_AGENDADOR:-true}" != "true" ]; then
+    echo "[sintoniza] agendador desabilitado por SINTONIZA_AGENDADOR"
+    exit 0
+fi
+
+cd /var/www/html || exit 1
+
+exec php artisan schedule:work

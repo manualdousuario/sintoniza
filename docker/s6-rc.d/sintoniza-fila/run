@@ -1,0 +1,10 @@
+#!/command/with-contenv sh
+
+if [ "${SINTONIZA_FILA:-true}" != "true" ]; then
+    echo "[sintoniza] worker de fila desabilitado por SINTONIZA_FILA"
+    exit 0
+fi
+
+cd /var/www/html || exit 1
+
+exec php artisan queue:work --tries=3 --timeout=120

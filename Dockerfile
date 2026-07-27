@@ -1,25 +1,40 @@
-FROM shinsenter/php:8.4-fpm-nginx
+# syntax=docker/dockerfile:1
 
-ENV ENABLE_CRONTAB=1
-ENV APP_PATH=/app
-ENV DOCUMENT_ROOT=public
-ENV TZ=UTC
-ENV ENABLE_TUNING_FPM=1
-ENV DISABLE_AUTORUN_SCRIPTS=0
+# Stage 1: build the site's Tailwind CSS (Filament/admin assets are built
+# separately by `php artisan filament:assets`, not part of this stage).
+FROM node:22-alpine AS assets
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
 
-COPY app/ ${APP_PATH}/
-WORKDIR ${APP_PATH}
+FROM serversideup/php:8.4-fpm-nginx
 
-RUN composer config platform.php-64bit 8.4 && \
-    composer install --no-interaction --optimize-autoloader --no-dev
+ENV TZ=UTC \
+    PHP_OPCACHE_ENABLE=1 \
+    HEALTHCHECK_PATH=/up \
+    AUTORUN_ENABLED=true \
+    AUTORUN_LARAVEL_MIGRATION_TIMEOUT=300
 
-COPY crontab /etc/crontab.d/lastfm
-RUN chmod 0644 /etc/crontab.d/lastfm
+USER root
+# gd: gregwar/captcha, intl: filament/support, tidy: DescriptionFormatter.
+RUN install-php-extensions gd intl tidy
+COPY --chmod=755 docker/entrypoint.d/ /etc/entrypoint.d/
+COPY --chmod=755 docker/s6-rc.d/ /etc/s6-overlay/s6-rc.d/
+USER www-data
 
-COPY /startup/* /startup/
-RUN chmod +x /startup/*
+WORKDIR /var/www/html
 
-RUN chown -R www-data:www-data ${APP_PATH} && \
-    chmod -R 755 ${APP_PATH}
+# Dependencies first so application edits do not invalidate the vendor layer.
+COPY --chown=www-data:www-data composer.json composer.lock ./
+RUN composer install --no-interaction --no-dev --prefer-dist --no-scripts --no-autoloader
 
-EXPOSE 80
+COPY --chown=www-data:www-data . .
+RUN composer dump-autoload --optimize --no-dev
+
+# Overwrite the checked-in placeholder with the CSS actually built from
+# resources/css/app.css.
+COPY --from=assets --chown=www-data:www-data /app/public/assets/css/styles.css /var/www/html/public/assets/css/styles.css
+
+EXPOSE 8080
