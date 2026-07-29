@@ -13,7 +13,7 @@ env:
 
 jobs:
   ci:
-    name: CI (obrigatório antes de publicar)
+    name: CI
     uses: ./.github/workflows/ci.yml
 
   setup:

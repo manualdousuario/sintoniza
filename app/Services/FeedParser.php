@@ -568,7 +568,8 @@ class FeedParser
                 'UPDATE episode_actions ea
                  INNER JOIN episodes e ON e.media_url = ea.url
                  SET ea.episode_id = e.id
-                 WHERE e.feed_id = ?',
+                 WHERE e.feed_id = ?
+                   AND (ea.episode_id IS NULL OR ea.episode_id <> e.id)',
                 [$feedId]
             );
 
@@ -583,6 +584,10 @@ class FeedParser
                 foreach ($episodes as $episode) {
                     DB::table('episode_actions')
                         ->where('url', $episode->media_url)
+                        ->where(function ($query) use ($episode): void {
+                            $query->whereNull('episode_id')
+                                ->orWhere('episode_id', '!=', $episode->id);
+                        })
                         ->update(['episode_id' => $episode->id]);
                 }
             });
