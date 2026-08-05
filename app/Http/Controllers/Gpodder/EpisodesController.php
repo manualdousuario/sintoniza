@@ -186,11 +186,12 @@ class EpisodesController
         foreach ($byFeed as $feedId => $urlSet) {
             $rows = DB::table('episodes')
                 ->where('feed_id', $feedId)
-                ->whereIn('media_url', array_keys($urlSet))
-                ->get(['id', 'media_url']);
+                ->whereIn('media_url_normalized', array_keys($urlSet))
+                ->orderByDesc('id')
+                ->get(['id', 'media_url_normalized']);
 
             foreach ($rows as $row) {
-                $map[$feedId.':'.$row->media_url] = (int) $row->id;
+                $map[$feedId.':'.$row->media_url_normalized] = (int) $row->id;
             }
         }
 

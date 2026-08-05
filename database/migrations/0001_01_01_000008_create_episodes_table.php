@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\Driver;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -32,7 +33,7 @@ return new class extends Migration
         });
 
         // One episode per media URL per feed. TEXT requires a prefix length on MySQL.
-        if (in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
+        if (Driver::isMySql()) {
             DB::statement('ALTER TABLE `episodes` ADD UNIQUE `episodes_unique` (`feed_id`, `media_url`(255))');
         } else {
             DB::statement('CREATE UNIQUE INDEX `episodes_unique` ON `episodes` (`feed_id`, `media_url`)');

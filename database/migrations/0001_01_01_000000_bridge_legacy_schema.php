@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\Driver;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -35,7 +36,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (! $this->isMySql()) {
+        if (! Driver::isMySql()) {
             // Legacy databases are always MySQL/MariaDB.
             return;
         }
@@ -76,11 +77,6 @@ return new class extends Migration
     public function down(): void
     {
         // The bridge is a one-way data transformation.
-    }
-
-    private function isMySql(): bool
-    {
-        return in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true);
     }
 
     // ------------------------------------------------------------------ users

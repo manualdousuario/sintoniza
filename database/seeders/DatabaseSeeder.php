@@ -66,7 +66,7 @@ class DatabaseSeeder extends Seeder
                 'subscription_id' => $sub->id,
                 'episode_id' => $ep->id,
                 'device_id' => $device->id,
-                'url' => $ep->media_url,
+                'url' => $ep->media_url_normalized,
                 'action' => 'play',
                 'changed_at' => now()->subHours(2),
                 'data' => ['position' => 120, 'total' => 3600, 'started' => 0, 'guid' => 'demo-guid'],

@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\Driver;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -39,7 +40,7 @@ return new class extends Migration
 
         // Dedup key: identical actions at identical timestamps are dropped
         // (INSERT IGNORE semantics from the legacy app). TEXT needs prefix on MySQL.
-        if (in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
+        if (Driver::isMySql()) {
             DB::statement('ALTER TABLE `episode_actions`
                 ADD UNIQUE `episodes_actions_unique` (`user_id`, `subscription_id`, `url`(255), `action`, `changed_at`)');
         } else {

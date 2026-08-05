@@ -1,6 +1,8 @@
 <?php
 
+use App\Support\Driver;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -12,11 +14,17 @@ return new class extends Migration
             return;
         }
 
-        if (in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
+        // TEXT columns need an explicit key prefix on MySQL, which the schema
+        // builder cannot express; every other driver indexes the column whole.
+        if (Driver::isMySql()) {
             DB::statement('ALTER TABLE `episode_actions` ADD INDEX `episodes_actions_url` (`url`(255))');
-        } else {
-            DB::statement('CREATE INDEX `episodes_actions_url` ON `episode_actions` (`url`)');
+
+            return;
         }
+
+        Schema::table('episode_actions', function (Blueprint $table): void {
+            $table->index('url', 'episodes_actions_url');
+        });
     }
 
     public function down(): void
@@ -25,10 +33,14 @@ return new class extends Migration
             return;
         }
 
-        if (in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
+        if (Driver::isMySql()) {
             DB::statement('ALTER TABLE `episode_actions` DROP INDEX `episodes_actions_url`');
-        } else {
-            DB::statement('DROP INDEX `episodes_actions_url`');
+
+            return;
         }
+
+        Schema::table('episode_actions', function (Blueprint $table): void {
+            $table->dropIndex('episodes_actions_url');
+        });
     }
 };

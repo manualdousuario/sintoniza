@@ -507,7 +507,10 @@ class FeedParser
         $lastPublished = DB::table('episodes')->where('feed_id', $feedId)->max('published_at');
         $lastPublishedTs = $lastPublished ? strtotime((string) $lastPublished) : 0;
 
-        $updateCols = ['title', 'description', 'url', 'image_url', 'published_at', 'duration', 'updated_at'];
+        $updateCols = [
+            'media_url_normalized', 'title', 'description', 'url',
+            'image_url', 'published_at', 'duration', 'updated_at',
+        ];
         $chunkSize = max(1, (int) config('sintoniza.feeds.upsert_chunk', 200));
         $now = now()->toDateTimeString();
         $utc = new DateTimeZone('UTC');
@@ -531,6 +534,7 @@ class FeedParser
             $buffer[] = [
                 'feed_id' => $feedId,
                 'media_url' => $episode['media_url'],
+                'media_url_normalized' => Url::normalize((string) $episode['media_url']),
                 'title' => $episode['title'] ?? null,
                 'description' => $episode['description'] ?? null,
                 'url' => $episode['url'] ?? null,
@@ -561,36 +565,22 @@ class FeedParser
     /**
      * Re-link episode_actions.episode_id by joining on media_url.
      */
-    protected function backfillEpisodeActions(int $feedId): void
+    protected function backfillEpisodeActions(int $feedId): int
     {
-        if (in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
-            DB::statement(
-                'UPDATE episode_actions ea
-                 INNER JOIN episodes e ON e.media_url = ea.url
-                 SET ea.episode_id = e.id
-                 WHERE e.feed_id = ?
-                   AND (ea.episode_id IS NULL OR ea.episode_id <> e.id)',
-                [$feedId]
-            );
-
-            return;
-        }
-
-        // Portable fallback (sqlite test database): loop episodes in chunks.
-        DB::table('episodes')->where('feed_id', $feedId)
-            ->select(['id', 'media_url'])
-            ->orderBy('id')
-            ->chunk(500, function ($episodes): void {
-                foreach ($episodes as $episode) {
-                    DB::table('episode_actions')
-                        ->where('url', $episode->media_url)
-                        ->where(function ($query) use ($episode): void {
-                            $query->whereNull('episode_id')
-                                ->orWhere('episode_id', '!=', $episode->id);
-                        })
-                        ->update(['episode_id' => $episode->id]);
-                }
-            });
+        return DB::update(
+            'update episode_actions
+                set episode_id = (
+                    select min(e.id) from episodes e
+                     where e.feed_id = ? and e.media_url_normalized = episode_actions.url
+                )
+              where subscription_id in (select s.id from subscriptions s where s.feed_id = ?)
+                and exists (
+                    select 1 from episodes e
+                     where e.feed_id = ? and e.media_url_normalized = episode_actions.url
+                       and (episode_actions.episode_id is null or episode_actions.episode_id <> e.id)
+                )',
+            [$feedId, $feedId, $feedId]
+        );
     }
 
     // ------------------------------------------------------------- parsing

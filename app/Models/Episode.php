@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Support\Url;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -27,6 +29,16 @@ class Episode extends Model
         return [
             'published_at' => 'datetime',
         ];
+    }
+
+    protected function mediaUrl(): Attribute
+    {
+        return Attribute::make(
+            set: fn (?string $value): array => [
+                'media_url' => $value,
+                'media_url_normalized' => $value === null ? null : Url::normalize($value),
+            ],
+        );
     }
 
     /** @return BelongsTo<Feed, $this> */
