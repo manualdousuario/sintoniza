@@ -168,19 +168,15 @@ jobs:
 
       - name: 🤖 Generate release notes
         id: ai_notes
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_VERSION: ${{ needs.setup.outputs.version }}
-          COMMIT_LOG: ${{ steps.commits.outputs.LOG }}
         run: |
-          RESPONSE=$(curl -s https://models.inference.ai.azure.com/chat/completions \
-            -H "Authorization: Bearer $GH_TOKEN" \
+          RESPONSE=$(curl -s https://openrouter.ai/api/v1/chat/completions \
+            -H "Authorization: Bearer ${{ secrets.OPENROUTER_API_KEY }}" \
             -H "Content-Type: application/json" \
             -d "$(jq -n \
-              --arg version "$RELEASE_VERSION" \
-              --arg log "$COMMIT_LOG" \
+              --arg version "${{ needs.setup.outputs.version }}" \
+              --arg log "${{ steps.commits.outputs.LOG }}" \
               '{
-                model: "gpt-4o-mini",
+                model: "openrouter/free",
                 messages: [
                   {
                     role: "system",
