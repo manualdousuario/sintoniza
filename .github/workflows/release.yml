@@ -168,28 +168,38 @@ jobs:
 
       - name: 🤖 Generate release notes
         id: ai_notes
+        env:
+          LOG: ${{ steps.commits.outputs.LOG }}
+          VERSION: ${{ needs.setup.outputs.version }}
         run: |
-          RESPONSE=$(curl -s https://openrouter.ai/api/v1/chat/completions \
-            -H "Authorization: Bearer ${{ secrets.OPENROUTER_API_KEY }}" \
-            -H "Content-Type: application/json" \
-            -d "$(jq -n \
-              --arg version "${{ needs.setup.outputs.version }}" \
-              --arg log "${{ steps.commits.outputs.LOG }}" \
-              '{
-                model: "openrouter/free",
-                messages: [
-                  {
-                    role: "system",
-                    content: "You are a technical writer for open source projects. Generate polished, friendly release notes in English from a list of git commits. Group changes into sections using these emojis: 🚀 New Features, 🐛 Bug Fixes, ⚡ Improvements, 💥 Breaking Changes. Omit sections with no entries. Be concise and developer-friendly. Do not include a title or version header."
-                  },
-                  {
-                    role: "user",
-                    content: ("Generate release notes for version " + $version + " from these commits:\n" + $log)
-                  }
-                ]
-              }')"
-          )
-          NOTES=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // "Release notes unavailable."')
+          for attempt in 1 2 3; do
+            RESPONSE=$(curl -s https://openrouter.ai/api/v1/chat/completions \
+              -H "Authorization: Bearer ${{ secrets.OPENROUTER_API_KEY }}" \
+              -H "Content-Type: application/json" \
+              -d "$(jq -n \
+                --arg version "$VERSION" \
+                --arg log "$LOG" \
+                '{
+                  model: "openrouter/free",
+                  messages: [
+                    {
+                      role: "system",
+                      content: "You are a technical writer for open source projects. Generate polished, friendly release notes in English from a list of git commits. Group changes into sections using these emojis: 🚀 New Features, 🐛 Bug Fixes, ⚡ Improvements, 💥 Breaking Changes. Omit sections with no entries. Be concise and developer-friendly. Do not include a title or version header."
+                    },
+                    {
+                      role: "user",
+                      content: ("Generate release notes for version " + $version + " from these commits:\n" + $log)
+                    }
+                  ]
+                }')"
+            ) || RESPONSE=""
+            NOTES=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // ""' 2>/dev/null | sed '/^```/d')
+            case "$NOTES" in
+              ""|*"<|"*|*"<tool_call>"*) NOTES=""; echo "tentativa $attempt invalida, repetindo"; sleep 2 ;;
+              *) break ;;
+            esac
+          done
+          [ -n "$NOTES" ] || NOTES="$LOG"
           echo "NOTES<<EOF" >> $GITHUB_OUTPUT
           echo "$NOTES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
