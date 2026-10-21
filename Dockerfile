@@ -19,6 +19,7 @@ USER root
 RUN install-php-extensions gd intl tidy
 COPY --chmod=755 docker/entrypoint.d/ /etc/entrypoint.d/
 COPY --chmod=755 docker/s6-rc.d/ /etc/s6-overlay/s6-rc.d/
+COPY --chmod=755 docker/user-bundles.d/ /etc/s6-overlay/user-bundles.d/
 USER www-data
 
 WORKDIR /var/www/html
