@@ -76,24 +76,37 @@ class Gpodder
         $out = [];
 
         foreach ($rows as $row) {
-            $row = (array) $row;
-
-            if (isset($row['data']) && is_string($row['data'])) {
-                try {
-                    $jsonData = json_decode($row['data'], true, 512, JSON_THROW_ON_ERROR);
-                    $row = array_merge($jsonData, $row);
-                    unset($row['data']);
-                } catch (\JsonException) {
-                    continue;
-                }
-            } else {
-                unset($row['data']);
+            if (($merged = self::mergeDataRow($row)) !== null) {
+                $out[] = $merged;
             }
-
-            $out[] = $row;
         }
 
         return $out;
+    }
+
+    /**
+     * Single-row variant of mergeDataRows(); returns null when the row's
+     * "data" blob is not valid JSON (such rows are skipped).
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function mergeDataRow(object|array $row): ?array
+    {
+        $row = (array) $row;
+
+        if (isset($row['data']) && is_string($row['data'])) {
+            try {
+                $jsonData = json_decode($row['data'], true, 512, JSON_THROW_ON_ERROR);
+            } catch (\JsonException) {
+                return null;
+            }
+
+            $row = array_merge(is_array($jsonData) ? $jsonData : [], $row);
+        }
+
+        unset($row['data']);
+
+        return $row;
     }
 
     /**

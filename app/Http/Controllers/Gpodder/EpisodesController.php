@@ -13,32 +13,47 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
+use Symfony\Component\HttpFoundation\StreamedJsonResponse;
 
 class EpisodesController
 {
     private const ALLOWED_ACTIONS = ['download', 'play', 'delete', 'new'];
 
-    public function index(Request $request, ?string $username = null): JsonResponse
+    private const INDEX_CHUNK_SIZE = 1000;
+
+    public function index(Request $request, ?string $username = null): StreamedJsonResponse
     {
+        $timestamp = time();
         $since = Carbon::createFromTimestamp((int) $request->query('since', 0), 'UTC');
+        $userId = Auth::id();
 
-        $rows = DB::table('episode_actions as e')
-            ->join('subscriptions as s', 's.id', '=', 'e.subscription_id')
-            ->where('e.user_id', Auth::id())
-            ->where('e.changed_at', '>=', $since)
-            ->get(['e.url as episode', 'e.action', 'e.data', 's.url as podcast', 'e.changed_at'])
-            ->map(fn (object $row) => (object) [
-                'episode' => $row->episode,
-                'action' => $row->action,
-                'data' => $row->data,
-                'podcast' => $row->podcast,
-                'timestamp' => Carbon::parse($row->changed_at, 'UTC')->format('Y-m-d\TH:i:s\Z'),
-            ]);
+        $actions = function () use ($userId, $since) {
+            $rows = DB::table('episode_actions as e')
+                ->join('subscriptions as s', 's.id', '=', 'e.subscription_id')
+                ->where('e.user_id', $userId)
+                ->where('e.changed_at', '>=', $since)
+                ->select(['e.id', 'e.url as episode', 'e.action', 'e.data', 's.url as podcast', 'e.changed_at'])
+                ->lazyById(self::INDEX_CHUNK_SIZE, 'e.id', 'id');
 
-        return response()->json([
-            'timestamp' => time(),
-            'actions' => Gpodder::mergeDataRows($rows),
-        ], 200, [], JSON_PRETTY_PRINT);
+            foreach ($rows as $row) {
+                $action = Gpodder::mergeDataRow([
+                    'episode' => $row->episode,
+                    'action' => $row->action,
+                    'data' => $row->data,
+                    'podcast' => $row->podcast,
+                    'timestamp' => Carbon::parse($row->changed_at, 'UTC')->format('Y-m-d\TH:i:s\Z'),
+                ]);
+
+                if ($action !== null) {
+                    yield $action;
+                }
+            }
+        };
+
+        return response()->streamJson([
+            'timestamp' => $timestamp,
+            'actions' => $actions(),
+        ]);
     }
 
     public function store(Request $request, ?string $username = null): JsonResponse

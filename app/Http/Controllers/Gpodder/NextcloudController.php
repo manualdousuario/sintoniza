@@ -9,6 +9,7 @@ use App\Support\Gpodder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response;
 
 /** Nextcloud gPodder Sync compatibility layer (AntennaPod & co). */
 class NextcloudController
@@ -65,7 +66,7 @@ class NextcloudController
      *   subscriptions | subscription_change/create => subscriptions "current"/"default"
      *   episode_action | episode_action/create     => episodes "current"
      */
-    public function gpoddersync(Request $request, string $path): JsonResponse
+    public function gpoddersync(Request $request, string $path): Response
     {
         $user = $this->auth->resolveFromAppPassword($request->getUser(), $request->getPassword());
 
