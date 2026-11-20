@@ -8,7 +8,7 @@
     "require": {
         "php": "^8.4",
         "filament/filament": "^5.7",
-        "guzzlehttp/guzzle": "^7.9",
+        "guzzlehttp/guzzle": "^8.5.2",
         "laravel/framework": "^13.0",
         "laravel/tinker": "^3.0",
         "league/uri": "^7.5",
