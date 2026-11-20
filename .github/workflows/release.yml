@@ -1,214 +1,311 @@
-name: 🛠️ Main
-run-name: 🚀 Deployment
+name: Release
+run-name: Release ${{ inputs.tag || github.ref_name }}
 
 on:
   push:
     tags:
       - '*.*.*'
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing tag to publish (e.g. 1.4.0)'
+        required: true
+        type: string
+      architectures:
+        description: 'Image architectures: [amd64, arm64], [amd64] or [arm64]'
+        required: true
+        default: '[amd64, arm64]'
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
 
 env:
-  DOCKER_REGISTRY: ghcr.io
-  DOCKER_IMAGE_NAME: ${{ github.repository }}
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  IMAGE: ghcr.io/${{ github.repository }}
 
 jobs:
   ci:
     name: CI
+    needs: setup
     uses: ./.github/workflows/ci.yml
+    with:
+      ref: ${{ needs.setup.outputs.commit }}
 
   setup:
-    name: 🔍 Extract version
+    name: Resolve version and architectures
     runs-on: ubuntu-24.04
-    needs: [ci]
     outputs:
-      version: ${{ steps.get_version.outputs.VERSION }}
-      prerelease: ${{ steps.get_version.outputs.PRERELEASE }}
+      commit: ${{ steps.commit.outputs.sha }}
+      short: ${{ steps.commit.outputs.short }}
+      tag: ${{ steps.plan.outputs.tag }}
+      version: ${{ steps.plan.outputs.version }}
+      prerelease: ${{ steps.plan.outputs.prerelease }}
+      archs: ${{ steps.plan.outputs.archs }}
     steps:
-      - name: 🏷️ Extract version from tag
-        id: get_version
+      - name: Resolve version and architectures
+        id: plan
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+          INPUT_ARCHS: ${{ inputs.architectures || '[amd64, arm64]' }}
         run: |
-          VERSION=${GITHUB_REF#refs/tags/}
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-          if [[ "$VERSION" == *"-"* ]]; then
-            echo "PRERELEASE=true" >> $GITHUB_OUTPUT
+          set -euo pipefail
+
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            TAG="${INPUT_TAG#refs/tags/}"
           else
-            echo "PRERELEASE=false" >> $GITHUB_OUTPUT
+            TAG="${GITHUB_REF#refs/tags/}"
+          fi
+          VERSION="${TAG#v}"
+
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+            echo "::error::Malformed version '$VERSION' (expected X.Y.Z or X.Y.Z-suffix)"
+            exit 1
           fi
 
-  docker-build:
-    name: 🐳 Build and push (${{ matrix.cache_scope }})
-    runs-on: ${{ matrix.runner }}
-    needs: [setup]
+          ARCHS=$(python3 - "$INPUT_ARCHS" <<'PY'
+          import json, sys
+          raw = sys.argv[1].strip()
+          if not (raw.startswith('[') and raw.endswith(']')):
+              sys.exit('Expected a list such as [arm64, amd64]')
+          items = [item.strip() for item in raw[1:-1].split(',')]
+          allowed = {'amd64', 'arm64', '"amd64"', '"arm64"'}
+          arches = [item.strip('"') for item in items]
+          if not all(item in allowed for item in items) or len(set(arches)) != len(arches):
+              sys.exit('Expected distinct architectures: amd64 and/or arm64')
+          print(json.dumps(arches, separators=(',', ':')))
+          PY
+          )
+
+          case "$VERSION" in
+            *-*) PRERELEASE=true ;;
+            *)   PRERELEASE=false ;;
+          esac
+
+          {
+            echo "tag=$TAG"
+            echo "version=$VERSION"
+            echo "archs=$ARCHS"
+            echo "prerelease=$PRERELEASE"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo "### Release plan"
+            echo ""
+            echo "- Tag: \`$TAG\`"
+            echo "- Version: \`$VERSION\`"
+            echo "- Architectures: \`$ARCHS\`"
+            echo "- Prerelease: \`$PRERELEASE\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Resolve release commit
+        uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ steps.plan.outputs.tag }}
+          persist-credentials: false
+      - id: commit
+        run: |
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "short=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build (${{ matrix.arch }})
+    needs: [setup, ci]
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     permissions:
       contents: read
       packages: write
     strategy:
+      fail-fast: false
       matrix:
-        include:
-          - platform: linux/amd64
-            runner: ubuntu-24.04
-            suffix: -amd64
-            cache_scope: amd64
-          - platform: linux/arm64
-            runner: ubuntu-24.04-arm
-            suffix: -arm64
-            cache_scope: arm64
-
+        arch: ${{ fromJSON(needs.setup.outputs.archs) }}
     steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-
-      - name: 🔧 Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: 🛠️ Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: 📋 Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
+      - name: Checkout
+        uses: actions/checkout@v7
         with:
-          images: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE_NAME }}
-          tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=sha
-            type=raw,value=latest,enable=${{ needs.setup.outputs.prerelease == 'false' }}
-          flavor: |
-            suffix=${{ matrix.suffix }}
+          ref: ${{ needs.setup.outputs.commit }}
+          persist-credentials: false
 
-      - name: 🔐 Log in to GitHub Registry
-        uses: docker/login-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
         with:
-          registry: ${{ env.DOCKER_REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 🏗️ Build and push (${{ matrix.cache_scope }})
-        uses: docker/build-push-action@v6
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.IMAGE }}
+
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@v7
         with:
           context: .
-          platforms: ${{ matrix.platform }}
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          file: ./Dockerfile
+          platforms: linux/${{ matrix.arch }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=${{ matrix.cache_scope }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.cache_scope }}
+          outputs: type=image,name=${{ env.IMAGE }},push-by-digest=true,name-canonical=true,push=true
+          provenance: false
+          cache-from: type=gha,scope=${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.arch }}
 
-  docker-manifest:
-    name: 🔗 Multi-platform manifest
+      - name: Export digest
+        run: |
+          mkdir -p "$RUNNER_TEMP/digests"
+          printf '%s\n' "$DIGEST" > "$RUNNER_TEMP/digests/${{ matrix.arch }}"
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v7
+        with:
+          name: digest-linux-${{ matrix.arch }}
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    name: Create multi-arch manifest
+    needs: [setup, build]
     runs-on: ubuntu-24.04
-    needs: [setup, docker-build]
     permissions:
       contents: read
       packages: write
-
     steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-
-      - name: 📋 Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
+      - name: Download digests
+        uses: actions/download-artifact@v8
         with:
-          images: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE_NAME }}
-          tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=sha
-            type=raw,value=latest,enable=${{ needs.setup.outputs.prerelease == 'false' }}
+          path: ${{ runner.temp }}/digests
+          pattern: digest-*
+          merge-multiple: true
 
-      - name: 🔐 Log in to GitHub Registry
-        uses: docker/login-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
         with:
-          registry: ${{ env.DOCKER_REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 🛠️ Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.IMAGE }}
+          flavor: latest=false
+          tags: |
+            type=semver,pattern={{version}},value=${{ needs.setup.outputs.version }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ needs.setup.outputs.version }},enable=${{ needs.setup.outputs.prerelease == 'false' }}
+            type=raw,value=sha-${{ needs.setup.outputs.short }}
+            type=raw,value=latest,enable=${{ needs.setup.outputs.prerelease == 'false' }}
 
-      - name: 🔗 Create and push multi-platform manifest
+      - name: Create and push manifest
+        working-directory: ${{ runner.temp }}/digests
         run: |
-          TAGS="${{ steps.meta.outputs.tags }}"
-          for tag in $TAGS; do
-            echo "Creating manifest for $tag"
-            docker buildx imagetools create \
-              --tag $tag \
-              $tag-amd64 \
-              $tag-arm64
+          set -euo pipefail
+          refs=()
+          for arch in *; do
+            digest=$(cat "$arch")
+            [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]
+            refs+=("$IMAGE@$digest")
+            while read -r tag; do
+              docker buildx imagetools create -t "$tag-$arch" "$IMAGE@$digest"
+            done < <(jq -r '.tags[]' <<< "$DOCKER_METADATA_OUTPUT_JSON")
           done
+          args=()
+          while IFS= read -r tag; do args+=("-t" "$tag"); done < <(jq -r '.tags[]' <<< "$DOCKER_METADATA_OUTPUT_JSON")
+          while read -r annotation; do args+=(--annotation "index:$annotation"); done < <(jq -r '(.annotations // [])[]' <<< "$DOCKER_METADATA_OUTPUT_JSON")
+          docker buildx imagetools create "${args[@]}" "${refs[@]}"
 
-  publish-release:
-    name: 📦 Publish release
+      - name: Verify manifest
+        run: docker buildx imagetools inspect "$IMAGE:$VERSION"
+        env:
+          VERSION: ${{ needs.setup.outputs.version }}
+
+  release:
+    name: Publish release
+    needs: [setup, merge]
     runs-on: ubuntu-24.04
-    needs: [setup, docker-build, docker-manifest]
     permissions:
       contents: write
-      models: read
-
     steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v7
         with:
+          ref: ${{ needs.setup.outputs.commit }}
           fetch-depth: 0
+          persist-credentials: false
 
-      - name: 📋 Get commits since last tag
+      - name: Collect commits since previous tag
         id: commits
         run: |
+          set -euo pipefail
           PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           if [ -z "$PREVIOUS_TAG" ]; then
             LOG=$(git log --pretty=format:"%s (%h)" HEAD)
           else
             LOG=$(git log --pretty=format:"%s (%h)" "$PREVIOUS_TAG"..HEAD)
           fi
-          echo "LOG<<EOF" >> $GITHUB_OUTPUT
-          echo "$LOG" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          {
+            DELIM=$(openssl rand -hex 24)
+            echo "log<<$DELIM"
+            echo "$LOG"
+            echo "$DELIM"
+          } >> "$GITHUB_OUTPUT"
 
-      - name: 🤖 Generate release notes
-        id: ai_notes
+      - name: Generate release notes
+        id: notes
         env:
-          LOG: ${{ steps.commits.outputs.LOG }}
+          LOG: ${{ steps.commits.outputs.log }}
           VERSION: ${{ needs.setup.outputs.version }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
-          for attempt in 1 2 3; do
-            RESPONSE=$(curl -s https://openrouter.ai/api/v1/chat/completions \
-              -H "Authorization: Bearer ${{ secrets.OPENROUTER_API_KEY }}" \
-              -H "Content-Type: application/json" \
-              -d "$(jq -n \
-                --arg version "$VERSION" \
-                --arg log "$LOG" \
-                '{
+          set -euo pipefail
+          NOTES=""
+          if [ -n "${OPENROUTER_API_KEY:-}" ]; then
+            for attempt in 1 2 3; do
+              RESPONSE=$(curl -sS https://openrouter.ai/api/v1/chat/completions \
+                -H "Authorization: Bearer $OPENROUTER_API_KEY" \
+                -H "Content-Type: application/json" \
+                -d "$(jq -n --arg version "$VERSION" --arg log "$LOG" '{
                   model: "openrouter/free",
                   messages: [
-                    {
-                      role: "system",
-                      content: "You are a technical writer for open source projects. Generate polished, friendly release notes in English from a list of git commits. Group changes into sections using these emojis: 🚀 New Features, 🐛 Bug Fixes, ⚡ Improvements, 💥 Breaking Changes. Omit sections with no entries. Be concise and developer-friendly. Do not include a title or version header."
-                    },
-                    {
-                      role: "user",
-                      content: ("Generate release notes for version " + $version + " from these commits:\n" + $log)
-                    }
+                    {role: "system", content: "You are a technical writer for open source projects. Write concise release notes in English from a list of git commits. Group entries under these headings: New Features, Bug Fixes, Improvements, Breaking Changes. Omit empty sections. Do not add a title or version header."},
+                    {role: "user", content: ("Release notes for version " + $version + " from these commits:\n" + $log)}
                   ]
-                }')"
-            ) || RESPONSE=""
-            NOTES=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // ""' 2>/dev/null | sed '/^```/d')
-            case "$NOTES" in
-              ""|*"<|"*|*"<tool_call>"*) NOTES=""; echo "tentativa $attempt invalida, repetindo"; sleep 2 ;;
-              *) break ;;
-            esac
-          done
+                }')") || RESPONSE=""
+              NOTES=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // ""' 2>/dev/null | sed '/^```/d') || NOTES=""
+              case "$NOTES" in
+                ""|*"<tool_call>"*) NOTES=""; echo "Attempt $attempt returned no usable notes, retrying"; sleep 2 ;;
+                *) break ;;
+              esac
+            done
+          fi
           [ -n "$NOTES" ] || NOTES="$LOG"
-          echo "NOTES<<EOF" >> $GITHUB_OUTPUT
-          echo "$NOTES" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          {
+            DELIM=$(openssl rand -hex 24)
+            echo "notes<<$DELIM"
+            echo "$NOTES"
+            echo "$DELIM"
+          } >> "$GITHUB_OUTPUT"
 
-      - name: 📝 Create release
-        uses: softprops/action-gh-release@v2
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v3
         with:
-          name: "🎉 v${{ needs.setup.outputs.version }}"
-          tag_name: ${{ needs.setup.outputs.version }}
-          body: ${{ steps.ai_notes.outputs.NOTES }}
+          name: "v${{ needs.setup.outputs.version }}"
+          tag_name: ${{ needs.setup.outputs.tag }}
+          body: ${{ steps.notes.outputs.notes }}
           draft: false
-          prerelease: ${{ needs.setup.outputs.prerelease }}
+          prerelease: ${{ needs.setup.outputs.prerelease == 'true' }}

@@ -1,17 +1,22 @@
-name: 🧪 CI
+name: CI
 
 on:
+  workflow_call:
+    inputs:
+      ref:
+        description: Commit to verify for a release
+        type: string
+        required: false
   push:
-    branches: [main]
+    branches: ['**']
   pull_request:
-  workflow_call: {}
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   tests:
-    name: 🧪 Lint and test
+    name: Lint and test
     runs-on: ubuntu-24.04
 
     services:
@@ -37,44 +42,65 @@ jobs:
       DB_PASSWORD: ''
 
     steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v7
         with:
+          ref: ${{ inputs.ref || github.sha }}
           fetch-depth: 0
 
-      - name: 🐘 Install PHP
+      - name: Install PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
           extensions: mysqli, pdo_mysql, gd, intl, tidy
           coverage: none
 
-      - name: 🔍 Validate PHP syntax
+      - name: Validate PHP syntax
         run: git ls-files '*.php' | xargs -P4 -I{} php -l {}
 
-      - name: 📦 Install dependencies
+      - name: Install dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 
-      - name: 🛡️ Composer audit
+      - name: Composer audit
         run: composer audit
 
-      - name: 🟢 Set up Node
-        uses: actions/setup-node@v4
+      - name: Set up Node
+        uses: actions/setup-node@v7
         with:
           node-version: 22
 
-      - name: 📦 Install npm dependencies
+      - name: Install npm dependencies
         run: npm ci
 
-      - name: 🎨 Build assets
+      - name: Build assets
         run: npm run build
 
-      - name: 🛡️ npm audit
+      - name: npm audit
         run: npm audit
         continue-on-error: true
 
-      - name: 🎨 Check code style
+      - name: Check code style
         run: vendor/bin/pint --test
 
-      - name: 🧪 Run test suite
+      - name: Run test suite
         run: php artisan test
+
+  image:
+    name: Image smoke test
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          tags: app:ci
+          cache-from: type=gha,scope=ci
+          cache-to: type=gha,mode=max,scope=ci
+      - name: Smoke test
+        run: |
+          docker run --rm --entrypoint php app:ci artisan --version | grep -F 'Laravel Framework'
