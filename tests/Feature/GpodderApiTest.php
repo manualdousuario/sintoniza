@@ -4,6 +4,7 @@ use App\Models\Device;
 use App\Models\EpisodeAction;
 use App\Models\Subscription;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 
 beforeEach(function () {
@@ -339,7 +340,7 @@ it('streams valid json even when a stored action has invalid utf-8', function ()
 
     $sub = Subscription::create(['user_id' => $this->user->id, 'url' => 'https://example.com/feed.xml']);
 
-    \Illuminate\Support\Facades\DB::table('episode_actions')->insert([
+    DB::table('episode_actions')->insert([
         'user_id' => $this->user->id,
         'subscription_id' => $sub->id,
         'url' => "https://example.com/bad-\xB1.mp3",
