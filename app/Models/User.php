@@ -37,7 +37,27 @@ class User extends Authenticatable implements FilamentUser
             'is_admin' => 'boolean',
             'is_active' => 'boolean',
             'password' => 'hashed',
+            'last_activity_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Records activity at most once an hour, without bumping updated_at.
+     */
+    public function touchActivity(): void
+    {
+        if ($this->last_activity_at !== null && $this->last_activity_at->gt(now()->subHour())) {
+            return;
+        }
+
+        $this->forceFill(['last_activity_at' => now()]);
+        $this->timestamps = false;
+
+        try {
+            $this->saveQuietly();
+        } finally {
+            $this->timestamps = true;
+        }
     }
 
     public function canAccessPanel(Panel $panel): bool

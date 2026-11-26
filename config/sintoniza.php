@@ -25,6 +25,12 @@ return [
      */
     'immediate_feed_fetch' => env('IMMEDIATE_FEED_FETCH', true),
 
+    /*
+     * Non-admin users with no activity (web or gPodder API) for this many
+     * months are deleted with all their data. 0 (default) never deletes.
+     */
+    'inactive_user_months' => (int) env('INACTIVE_USER_MONTHS', 0),
+
     'feeds' => [
         // Seconds between two fetches of the same feed.
         'fetch_interval' => 86400,

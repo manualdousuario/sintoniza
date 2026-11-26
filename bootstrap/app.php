@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\GpodderAuthenticate;
 use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\TrackUserActivity;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Application;
@@ -33,9 +34,10 @@ return Application::configure(basePath: dirname(__DIR__))
             StartSession::class,
             SetLocale::class,
             SubstituteBindings::class,
+            TrackUserActivity::class,
         ]);
 
-        $middleware->appendToGroup('web', SetLocale::class);
+        $middleware->appendToGroup('web', [SetLocale::class, TrackUserActivity::class]);
 
         $middleware->alias([
             'gpodder.auth' => GpodderAuthenticate::class,

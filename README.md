@@ -65,6 +65,7 @@ docker compose up -d
 | APP_NAME | Application title | Sintoniza |
 | APP_DEBUG | Enable debug mode. Keep this `false` in production | false |
 | ENABLE_SUBSCRIPTIONS |Allow new user registrations | true |
+| INACTIVE_USER_MONTHS | Delete non-admin users (and all their data) after this many months of inactivity. `0` (default) never deletes | 0 |
 
 #### SMTP
 

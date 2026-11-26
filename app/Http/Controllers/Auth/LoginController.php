@@ -62,6 +62,7 @@ class LoginController
         }
 
         Auth::login($user);
+        $user->touchActivity();
         $request->session()->regenerate();
 
         return redirect()->intended('/dashboard');

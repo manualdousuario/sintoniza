@@ -4,8 +4,14 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\Device;
+use App\Models\EpisodeAction;
+use App\Models\Subscription;
 use App\Models\User;
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -114,6 +120,43 @@ class UserService
         }
 
         return hash_equals($this->getUserToken($user), $username) ? $user : null;
+    }
+
+    /**
+     * Non-admin users whose last activity (or creation, if never seen) is
+     * older than the cutoff.
+     *
+     * @return Builder<User>
+     */
+    public function inactiveUsersQuery(CarbonInterface $cutoff): Builder
+    {
+        return User::query()
+            ->where('is_admin', false)
+            ->where(function (Builder $query) use ($cutoff) {
+                $query->where('last_activity_at', '<', $cutoff)
+                    ->orWhere(fn (Builder $q) => $q->whereNull('last_activity_at')->where('created_at', '<', $cutoff));
+            });
+    }
+
+    /**
+     * Deletes a user and every record that belongs to them. Shared data
+     * (feeds, episodes) is kept. Deletions are explicit because legacy
+     * databases may lack the cascading foreign keys.
+     */
+    public function purge(User $user): void
+    {
+        DB::transaction(function () use ($user) {
+            do {
+                $deleted = EpisodeAction::where('user_id', $user->id)->limit(5000)->delete();
+            } while ($deleted > 0);
+
+            Subscription::withTrashed()->where('user_id', $user->id)->forceDelete();
+            Device::where('user_id', $user->id)->delete();
+            DB::table('sessions')->where('user_id', $user->id)->delete();
+            DB::table('password_reset_tokens')->where('email', $user->email)->delete();
+
+            $user->delete();
+        });
     }
 
     /**
