@@ -264,6 +264,100 @@ it('starts the nextcloud login flow v2', function () {
         ->and($response['login'])->toContain('login?token=');
 });
 
+it('completes the nextcloud login flow v2 and hands out a working app password', function () {
+    config(['session.driver' => 'database']);
+
+    $start = $this->postJson('/index.php/login/v2')->assertStatus(200)->json();
+    $token = $start['poll']['token'];
+
+    expect(strlen($token))->toBe(40);
+
+    app('session')->forgetDrivers();
+    $this->post('/login?token='.$token, [
+        'login' => 'testuser',
+        'password' => 'secret-password',
+    ])->assertRedirect('/dashboard?oktoken');
+
+    app('session')->forgetDrivers();
+    $this->flushSession();
+    auth()->forgetGuards();
+
+    $poll = $this->post('/index.php/login/v2/poll', ['token' => $token])
+        ->assertStatus(200)
+        ->json();
+
+    expect($poll['loginName'])->toBe('testuser')
+        ->and($poll['appPassword'])->toStartWith($token.':');
+
+    $this->call('GET', '/index.php/apps/gpoddersync/subscriptions?since=0', [], [], [], [
+        'PHP_AUTH_USER' => 'testuser',
+        'PHP_AUTH_PW' => $poll['appPassword'],
+    ])->assertStatus(200);
+});
+
+it('rejects login flow v2 polls with a malformed token', function () {
+    $this->post('/index.php/login/v2/poll', ['token' => 'short'])->assertStatus(400);
+});
+
+it('lists episode actions through gpoddersync', function () {
+    $token = 'abcdef0123456789';
+    $auth = ['PHP_AUTH_USER' => 'testuser', 'PHP_AUTH_PW' => $token.':'.sha1($this->user->password.$token)];
+
+    $empty = $this->call('GET', '/index.php/apps/gpoddersync/episode_action?since=0', [], [], [], $auth)
+        ->assertStatus(200);
+
+    expect(json_decode($empty->streamedContent(), true)['actions'])->toBe([]);
+
+    $payload = [[
+        'podcast' => 'https://example.com/feed.xml',
+        'episode' => 'https://example.com/ep1.mp3',
+        'action' => 'play',
+        'timestamp' => '2026-07-20T10:00:00',
+        'position' => 42,
+        'started' => 0,
+        'total' => 3600,
+    ]];
+
+    $this->call('POST', '/index.php/apps/gpoddersync/episode_action/create', [], [], [], $auth, json_encode($payload))
+        ->assertStatus(200);
+
+    $response = $this->call('GET', '/index.php/apps/gpoddersync/episode_action?since=0', [], [], [], $auth)
+        ->assertStatus(200);
+
+    $json = json_decode($response->streamedContent(), true, 512, JSON_THROW_ON_ERROR);
+
+    expect($json)->toHaveKeys(['timestamp', 'actions'])
+        ->and(array_is_list($json['actions']))->toBeTrue()
+        ->and($json['actions'])->toHaveCount(1)
+        ->and($json['actions'][0]['episode'])->toBe('https://example.com/ep1.mp3')
+        ->and($json['actions'][0]['position'])->toBe(42);
+});
+
+it('streams valid json even when a stored action has invalid utf-8', function () {
+    $token = 'abcdef0123456789';
+    $auth = ['PHP_AUTH_USER' => 'testuser', 'PHP_AUTH_PW' => $token.':'.sha1($this->user->password.$token)];
+
+    $sub = Subscription::create(['user_id' => $this->user->id, 'url' => 'https://example.com/feed.xml']);
+
+    \Illuminate\Support\Facades\DB::table('episode_actions')->insert([
+        'user_id' => $this->user->id,
+        'subscription_id' => $sub->id,
+        'url' => "https://example.com/bad-\xB1.mp3",
+        'changed_at' => '2026-07-20 10:00:00',
+        'action' => 'play',
+        'data' => '{"position":1}',
+        'created_at' => '2026-07-20 10:00:00',
+        'updated_at' => '2026-07-20 10:00:00',
+    ]);
+
+    $response = $this->call('GET', '/index.php/apps/gpoddersync/episode_action?since=0', [], [], [], $auth)
+        ->assertStatus(200);
+
+    $json = json_decode($response->streamedContent(), true, 512, JSON_THROW_ON_ERROR);
+
+    expect($json['actions'])->toHaveCount(1);
+});
+
 it('authenticates gpoddersync requests with the app password', function () {
     $token = 'abcdef0123456789';
     $appPassword = $token.':'.sha1($this->user->password.$token);

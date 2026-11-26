@@ -53,7 +53,7 @@ class EpisodesController
         return response()->streamJson([
             'timestamp' => $timestamp,
             'actions' => $actions(),
-        ]);
+        ], 200, [], JsonResponse::DEFAULT_ENCODING_OPTIONS | JSON_INVALID_UTF8_SUBSTITUTE);
     }
 
     public function store(Request $request, ?string $username = null): JsonResponse

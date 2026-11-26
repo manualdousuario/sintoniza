@@ -20,7 +20,7 @@ class NextcloudController
 
     public function login(Request $request): JsonResponse
     {
-        $token = bin2hex(random_bytes(16));
+        $token = bin2hex(random_bytes(20));
 
         return response()->json([
             'poll' => [
@@ -39,7 +39,7 @@ class NextcloudController
     {
         $token = (string) $request->input('token', '');
 
-        if ($token === '' || ! ctype_alnum($token)) {
+        if (strlen($token) !== 40 || ! ctype_alnum($token)) {
             return Gpodder::error(400, __('sintoniza.messages.invalid_gpodder_token'));
         }
 
