@@ -335,6 +335,10 @@ it('lists episode actions through gpoddersync', function () {
 });
 
 it('streams valid json even when a stored action has invalid utf-8', function () {
+    if (DB::getDriverName() !== 'sqlite') {
+        $this->markTestSkipped('MySQL/MariaDB strict mode rejects invalid UTF-8 on insert.');
+    }
+
     $token = 'abcdef0123456789';
     $auth = ['PHP_AUTH_USER' => 'testuser', 'PHP_AUTH_PW' => $token.':'.sha1($this->user->password.$token)];
 
