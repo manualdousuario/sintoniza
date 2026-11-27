@@ -124,12 +124,6 @@ return [
         // Capture Laravel cache events (hits, writes etc.) as spans
         'cache' => env('SENTRY_TRACE_CACHE_ENABLED', true),
 
-        // Capture Redis operations as spans (this enables Redis events in Laravel)
-        'redis_commands' => env('SENTRY_TRACE_REDIS_COMMANDS', false),
-
-        // Capture where the Redis command originated from on the Redis command spans
-        'redis_origin' => env('SENTRY_TRACE_REDIS_ORIGIN_ENABLED', true),
-
         // Capture send notifications as spans
         'notifications' => env('SENTRY_TRACE_NOTIFICATIONS_ENABLED', true),
 
