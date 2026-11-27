@@ -15,10 +15,12 @@ use Illuminate\Support\Facades\Route;
 */
 
 // ------------------------------------------------------- Nextcloud compat
-Route::post('/index.php/login/v2', [NextcloudController::class, 'login']);
-Route::post('/index.php/login/v2/poll', [NextcloudController::class, 'poll']);
-Route::match(['GET', 'POST'], '/index.php/apps/gpoddersync/{path}', [NextcloudController::class, 'gpoddersync'])
-    ->where('path', '.*');
+foreach (['', '/index.php'] as $prefix) {
+    Route::post($prefix.'/login/v2', [NextcloudController::class, 'login']);
+    Route::post($prefix.'/login/v2/poll', [NextcloudController::class, 'poll']);
+    Route::match(['GET', 'POST'], $prefix.'/apps/gpoddersync/{path}', [NextcloudController::class, 'gpoddersync'])
+        ->where('path', '.*');
+}
 
 // --------------------------------------------------------------- Auth
 Route::post('/api/2/auth/{username}/{action}.json', [AuthController::class, 'handle'])

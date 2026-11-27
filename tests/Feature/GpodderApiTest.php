@@ -265,6 +265,18 @@ it('starts the nextcloud login flow v2', function () {
         ->and($response['login'])->toContain('login?token=');
 });
 
+it('routes nextcloud endpoints when php-fpm strips /index.php from the path', function () {
+    $server = [
+        'SCRIPT_NAME' => '/index.php',
+        'SCRIPT_FILENAME' => public_path('index.php'),
+        'PHP_SELF' => '/index.php/login/v2',
+    ];
+
+    $this->call('POST', '/index.php/login/v2', [], [], [], $server)->assertStatus(200);
+    $this->call('POST', '/login/v2')->assertStatus(200);
+    $this->call('GET', '/apps/gpoddersync/subscriptions?since=0')->assertStatus(401);
+});
+
 it('completes the nextcloud login flow v2 and hands out a working app password', function () {
     config(['session.driver' => 'database']);
 
