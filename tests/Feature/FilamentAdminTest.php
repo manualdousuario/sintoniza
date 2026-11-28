@@ -19,7 +19,7 @@ it('shows the admin dashboard to admins', function () {
 
     $this->actingAs($admin)->get('/admin')
         ->assertOk()
-        ->assertSee('livewire.js', false);
+        ->assertSee('data-update-uri', false);
 });
 
 it('loads the users and subscriptions resources', function () {
@@ -35,5 +35,5 @@ it('redirects guests to the filament login', function () {
 });
 
 it('loads Livewire on the admin login page', function () {
-    $this->get('/admin/login')->assertOk()->assertSee('livewire.js', false);
+    $this->get('/admin/login')->assertOk()->assertSee('data-update-uri', false);
 });

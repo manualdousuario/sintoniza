@@ -68,7 +68,7 @@ jobs:
         run: vendor/bin/pint --test
 
       - name: Run test suite
-        run: php artisan test
+        run: php artisan test --display-warnings
 
   image:
     name: Image smoke test
