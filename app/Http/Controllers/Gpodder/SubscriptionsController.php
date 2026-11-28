@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Gpodder;
 
 use App\Models\Subscription;
-use App\Services\FeedIndexer;
 use App\Support\Gpodder;
 use App\Support\Url;
 use Illuminate\Http\JsonResponse;
@@ -17,10 +16,6 @@ use Illuminate\Support\Facades\DB;
 
 class SubscriptionsController
 {
-    public function __construct(
-        private FeedIndexer $feedIndexer
-    ) {}
-
     /**
      * v1: plain list of the user's subscription URLs. Deliberately includes
      * soft-deleted rows — v1 clients expect the full set.
@@ -81,9 +76,8 @@ class SubscriptionsController
         $lines = array_filter(explode("\n", $request->getContent()), 'trim');
 
         $ts = now();
-        $added = [];
 
-        DB::transaction(function () use ($lines, $ts, &$added) {
+        DB::transaction(function () use ($lines, $ts) {
             foreach ($lines as $url) {
                 $url = trim($url);
 
@@ -94,12 +88,8 @@ class SubscriptionsController
                 $normalized = Url::normalizeFeed($url);
 
                 Subscription::subscribe((int) Auth::id(), $normalized, $ts);
-
-                $added[] = $normalized;
             }
         });
-
-        $this->feedIndexer->dispatchNew($added);
 
         return response()->json([], 200, [], JSON_PRETTY_PRINT);
     }
@@ -118,9 +108,8 @@ class SubscriptionsController
         }
 
         $ts = now();
-        $added = [];
 
-        DB::transaction(function () use ($input, $ts, &$added) {
+        DB::transaction(function () use ($input, $ts) {
             if (! empty($input->add) && is_array($input->add)) {
                 foreach ($input->add as $url) {
                     if (! Gpodder::validateUrl((string) $url)) {
@@ -130,8 +119,6 @@ class SubscriptionsController
                     $normalized = Url::normalizeFeed((string) $url);
 
                     Subscription::subscribe((int) Auth::id(), $normalized, $ts);
-
-                    $added[] = $normalized;
                 }
             }
 
@@ -145,8 +132,6 @@ class SubscriptionsController
                 }
             }
         });
-
-        $this->feedIndexer->dispatchNew($added);
 
         return response()->json([
             'timestamp' => $ts->getTimestamp(),

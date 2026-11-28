@@ -2,7 +2,6 @@
 
 use App\Models\Device;
 use App\Models\EpisodeAction;
-use App\Models\Feed;
 use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -17,11 +16,9 @@ function userWithData(array $attributes = []): User
 {
     $user = User::factory()->create($attributes);
 
-    $feed = Feed::create(['feed_url' => 'https://feeds.example.com/'.$user->name.'.xml']);
     $subscription = Subscription::create([
         'user_id' => $user->id,
-        'feed_id' => $feed->id,
-        'url' => $feed->feed_url,
+        'url' => 'https://feeds.example.com/'.$user->name.'.xml',
     ]);
     $device = Device::create(['user_id' => $user->id, 'identifier' => 'phone']);
 
@@ -49,9 +46,7 @@ it('removes users inactive for six months with all their records', function () {
         ->and(Subscription::withTrashed()->where('user_id', $user->id)->count())->toBe(0)
         ->and(Device::where('user_id', $user->id)->count())->toBe(0)
         ->and(EpisodeAction::where('user_id', $user->id)->count())->toBe(0)
-        ->and(DB::table('password_reset_tokens')->where('email', $user->email)->count())->toBe(0)
-        // Shared data stays.
-        ->and(Feed::count())->toBe(1);
+        ->and(DB::table('password_reset_tokens')->where('email', $user->email)->count())->toBe(0);
 });
 
 it('falls back to created_at when the user was never seen', function () {

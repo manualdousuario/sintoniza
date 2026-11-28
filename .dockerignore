@@ -2,7 +2,6 @@
 .github
 docker-compose.yml
 mariadb
-node_modules
 
 .env
 vendor

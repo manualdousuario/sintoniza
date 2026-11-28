@@ -52,7 +52,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: mysqli, pdo_mysql, gd, intl, tidy
+          extensions: mysqli, pdo_mysql, gd, intl
           coverage: none
 
       - name: Validate PHP syntax
@@ -63,21 +63,6 @@ jobs:
 
       - name: Composer audit
         run: composer audit
-
-      - name: Set up Node
-        uses: actions/setup-node@v7
-        with:
-          node-version: 22
-
-      - name: Install npm dependencies
-        run: npm ci
-
-      - name: Build assets
-        run: npm run build
-
-      - name: npm audit
-        run: npm audit
-        continue-on-error: true
 
       - name: Check code style
         run: vendor/bin/pint --test

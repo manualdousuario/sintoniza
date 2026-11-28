@@ -20,9 +20,6 @@ class SubscriptionsTable
                     ->label(__('sintoniza.admin.feed_url'))
                     ->limit(60)
                     ->searchable(),
-                TextColumn::make('feed.title')
-                    ->limit(40)
-                    ->placeholder('—'),
                 TextColumn::make('updated_at')
                     ->label(__('sintoniza.dashboard.last_update'))
                     ->dateTime()

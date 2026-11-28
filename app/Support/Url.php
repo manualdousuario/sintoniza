@@ -8,9 +8,9 @@ use League\Uri\Uri;
 use Throwable;
 
 /**
- * Feed URL canonicalization. Data integrity depends on this behaviour: feeds,
- * subscriptions and feed_aliases are all joined through these normalized forms,
- * so changing it silently splits existing rows.
+ * Feed and media URL canonicalization. Data integrity depends on this
+ * behaviour: subscriptions and episode actions are matched through these
+ * normalized forms, so changing it silently splits existing rows.
  */
 class Url
 {

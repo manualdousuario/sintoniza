@@ -1,17 +1,9 @@
 <?php
 
-use App\Livewire\Dashboard\AddSubscription;
-use App\Livewire\Dashboard\Index;
-use App\Models\Episode;
-use App\Models\EpisodeAction;
-use App\Models\Feed;
+use App\Models\Device;
 use App\Models\Subscription;
 use App\Models\User;
-use Illuminate\Support\Facades\Queue;
-
-beforeEach(function () {
-    Queue::fake();
-});
+use Illuminate\Support\Facades\Hash;
 
 // ------------------------------------------------------------------ guests
 
@@ -19,7 +11,9 @@ it('shows the landing page to guests', function () {
     $this->get('/')
         ->assertOk()
         ->assertSee(config('app.name'))
-        ->assertSee(__('sintoniza.home.hero_title_1'), false);
+        ->assertSee(__('sintoniza.home.title'))
+        ->assertSee('https://github.com/manualdousuario/sintoniza', false)
+        ->assertDontSee('<script', false);
 });
 
 it('shows the login page to guests', function () {
@@ -63,6 +57,17 @@ it('registers the first user as admin via the register form', function () {
         ->and($user->email)->toBe('first@example.com');
 });
 
+it('flags the invalid field when registration fails', function () {
+    $this->from('/register')
+        ->post('/register', [
+            'username' => 'ok_name',
+            'password' => 'short',
+            'email' => 'first@example.com',
+        ])
+        ->assertRedirect('/register')
+        ->assertSessionHasErrors('password');
+});
+
 // ---------------------------------------------------------- authenticated
 
 it('redirects a logged-in user from home to the dashboard', function () {
@@ -73,181 +78,132 @@ it('redirects a logged-in user from home to the dashboard', function () {
         ->assertRedirect('/dashboard');
 });
 
-it('serves the dashboard pages to an authenticated user', function (string $path) {
-    $user = User::factory()->create();
-
-    $this->actingAs($user)->get($path)->assertOk();
-})->with([
-    '/dashboard',
-    '/dashboard/add',
-    '/dashboard/profile',
-    '/dashboard/profile/latest-updates',
-    '/dashboard/profile/devices',
-]);
-
 it('redirects guests away from the dashboard', function () {
     $this->get('/dashboard')->assertRedirect('/login');
 });
 
-it('lists recent episode actions on the latest updates page', function () {
-    $user = User::factory()->create();
-    $feed = Feed::create(['feed_url' => 'https://example.com/feed.xml', 'title' => 'My Podcast']);
-    $subscription = Subscription::create([
+it('shows connection details, devices and subscriptions on the account page', function () {
+    $user = User::factory()->create(['name' => 'listener']);
+    Device::create([
         'user_id' => $user->id,
-        'feed_id' => $feed->id,
-        'url' => 'https://example.com/feed.xml',
+        'identifier' => 'antennapod',
+        'name' => 'Pixel',
+        'data' => ['type' => 'mobile'],
     ]);
-    $episode = Episode::create([
-        'feed_id' => $feed->id,
-        'media_url' => 'https://example.com/ep1.mp3',
-        'title' => 'Episode One',
-    ]);
-    EpisodeAction::create([
-        'user_id' => $user->id,
-        'subscription_id' => $subscription->id,
-        'episode_id' => $episode->id,
-        'url' => 'https://example.com/ep1.mp3',
-        'changed_at' => now(),
-        'action' => 'play',
-        'data' => ['position' => 60],
-    ]);
+    Subscription::create(['user_id' => $user->id, 'url' => 'https://example.com/active.xml']);
+    Subscription::create(['user_id' => $user->id, 'url' => 'https://example.com/gone.xml'])->delete();
 
     $this->actingAs($user)
-        ->get('/dashboard/profile/latest-updates')
+        ->get('/dashboard')
         ->assertOk()
-        ->assertSee('Episode One');
+        ->assertSee('listener__'.$user->gpodderToken())
+        ->assertSee('Pixel')
+        ->assertSee('https://example.com/active.xml')
+        ->assertDontSee('https://example.com/gone.xml')
+        ->assertSee('/subscriptions/listener.opml', false)
+        ->assertDontSee('<script', false);
 });
 
-// ------------------------------------------------------------- subscriptions
+it('shows the Nextcloud login confirmation', function () {
+    $this->actingAs(User::factory()->create())
+        ->get('/dashboard?oktoken')
+        ->assertOk()
+        ->assertSee(__('sintoniza.messages.login_success'));
+});
 
-it('shows a subscription page to its owner', function () {
+it('redirects the old v3 pages to the account page', function (string $path) {
+    $this->actingAs(User::factory()->create())
+        ->get($path)
+        ->assertRedirect('/dashboard')
+        ->assertStatus(301);
+})->with(['/dashboard/profile', '/dashboard/devices', '/dashboard/profile/devices']);
+
+it('no longer serves the episode and podcast pages', function (string $path) {
+    $this->actingAs(User::factory()->create())->get($path)->assertNotFound();
+})->with(['/dashboard/add', '/dashboard/profile/latest-updates', '/subscription/1', '/subscription/1/episode/1']);
+
+it('unsubscribes (soft deletes) from the account page', function () {
     $user = User::factory()->create();
-    $feed = Feed::create(['feed_url' => 'https://example.com/feed.xml', 'title' => 'My Podcast']);
-    $subscription = Subscription::create([
-        'user_id' => $user->id,
-        'feed_id' => $feed->id,
-        'url' => 'https://example.com/feed.xml',
-    ]);
+    $subscription = Subscription::create(['user_id' => $user->id, 'url' => 'https://example.com/feed.xml']);
 
     $this->actingAs($user)
-        ->get("/subscription/{$subscription->id}")
-        ->assertOk()
-        ->assertSee('My Podcast');
-});
+        ->delete("/dashboard/subscriptions/{$subscription->id}")
+        ->assertRedirect(route('dashboard').'#subscriptions');
 
-it('shows an episode page to the subscription owner', function () {
-    $user = User::factory()->create();
-    $feed = Feed::create(['feed_url' => 'https://example.com/feed.xml', 'title' => 'My Podcast']);
-    $subscription = Subscription::create([
-        'user_id' => $user->id,
-        'feed_id' => $feed->id,
-        'url' => 'https://example.com/feed.xml',
-    ]);
-    $episode = Episode::create([
-        'feed_id' => $feed->id,
-        'media_url' => 'https://example.com/ep1.mp3',
-        'title' => 'Episode One',
-        'duration' => 3600,
-    ]);
-    EpisodeAction::create([
-        'user_id' => $user->id,
-        'subscription_id' => $subscription->id,
-        'episode_id' => $episode->id,
-        'url' => 'https://example.com/ep1.mp3',
-        'changed_at' => now(),
-        'action' => 'play',
-        'data' => ['position' => 120, 'total' => 3600],
-    ]);
-
-    $this->actingAs($user)
-        ->get("/subscription/{$subscription->id}/episode/{$episode->id}")
-        ->assertOk()
-        ->assertSee('Episode One')
-        ->assertSee('id="audio-player"', false)
-        ->assertSee('data-start-pos="120"', false);
-});
-
-it('forbids access to another user\'s subscription', function () {
-    $owner = User::factory()->create();
-    $intruder = User::factory()->create();
-    $feed = Feed::create(['feed_url' => 'https://example.com/feed.xml']);
-    $subscription = Subscription::create([
-        'user_id' => $owner->id,
-        'feed_id' => $feed->id,
-        'url' => 'https://example.com/feed.xml',
-    ]);
-    $episode = Episode::create([
-        'feed_id' => $feed->id,
-        'media_url' => 'https://example.com/ep1.mp3',
-    ]);
-
-    $this->actingAs($intruder)
-        ->get("/subscription/{$subscription->id}")
-        ->assertNotFound();
-
-    $this->actingAs($intruder)
-        ->get("/subscription/{$subscription->id}/episode/{$episode->id}")
-        ->assertNotFound();
-});
-
-it('returns 404 for an unknown subscription', function () {
-    $user = User::factory()->create();
-
-    $this->actingAs($user)->get('/subscription/9999')->assertNotFound();
-});
-
-// --------------------------------------------------------------- actions
-
-it('subscribes to a feed url from the add page', function () {
-    $user = User::factory()->create();
-
-    Livewire\Livewire::actingAs($user)
-        ->test(AddSubscription::class)
-        ->set('url', 'https://Example.com/feed.xml?utm_source=spam')
-        ->call('subscribe')
-        ->assertRedirect(route('dashboard'));
-
-    expect(Subscription::where('user_id', $user->id)->exists())->toBeTrue();
-});
-
-it('rejects an invalid feed url', function () {
-    $user = User::factory()->create();
-
-    Livewire\Livewire::actingAs($user)
-        ->test(AddSubscription::class)
-        ->set('url', 'not-a-url')
-        ->call('subscribe');
-
-    expect(Subscription::where('user_id', $user->id)->exists())->toBeFalse();
-});
-
-it('unsubscribes (soft deletes) from the dashboard', function () {
-    $user = User::factory()->create();
-    $subscription = Subscription::create([
-        'user_id' => $user->id,
-        'url' => 'https://example.com/feed.xml',
-    ]);
-
-    Livewire\Livewire::actingAs($user)
-        ->test(Index::class)
-        ->call('unsubscribe', $subscription->id)
-        ->assertRedirect(route('dashboard'));
-
-    expect(Subscription::where('id', $subscription->id)->exists())->toBeFalse()
-        ->and(Subscription::withTrashed()->where('id', $subscription->id)->exists())->toBeTrue();
+    expect(Subscription::find($subscription->id))->toBeNull()
+        ->and(Subscription::withTrashed()->find($subscription->id)->deleted_at)->not->toBeNull();
 });
 
 it('does not let a user unsubscribe another user\'s subscription', function () {
     $owner = User::factory()->create();
-    $intruder = User::factory()->create();
-    $subscription = Subscription::create([
-        'user_id' => $owner->id,
-        'url' => 'https://example.com/feed.xml',
-    ]);
+    $subscription = Subscription::create(['user_id' => $owner->id, 'url' => 'https://example.com/feed.xml']);
 
-    Livewire\Livewire::actingAs($intruder)
-        ->test(Index::class)
-        ->call('unsubscribe', $subscription->id);
+    $this->actingAs(User::factory()->create())
+        ->delete("/dashboard/subscriptions/{$subscription->id}")
+        ->assertRedirect();
 
-    expect(Subscription::where('id', $subscription->id)->exists())->toBeTrue();
+    expect(Subscription::find($subscription->id))->not->toBeNull();
+});
+
+it('updates language and timezone', function () {
+    $user = User::factory()->create(['language' => 'en', 'timezone' => 'UTC']);
+
+    $this->actingAs($user)
+        ->post('/dashboard/preferences', ['language' => 'pt_BR', 'timezone' => 'America/Sao_Paulo'])
+        ->assertRedirect(route('dashboard').'#settings')
+        ->assertSessionHas('success');
+
+    expect($user->fresh())
+        ->language->toBe('pt_BR')
+        ->timezone->toBe('America/Sao_Paulo');
+});
+
+it('rejects an unknown timezone', function () {
+    $user = User::factory()->create(['timezone' => 'UTC']);
+
+    $this->actingAs($user)
+        ->post('/dashboard/preferences', ['language' => 'en', 'timezone' => 'Mars/Olympus'])
+        ->assertSessionHasErrors('timezone');
+
+    expect($user->fresh()->timezone)->toBe('UTC');
+});
+
+it('changes the password', function () {
+    $user = User::factory()->create(['password' => 'old-password']);
+
+    $this->actingAs($user)
+        ->post('/dashboard/password', [
+            'current_password' => 'old-password',
+            'new_password' => 'new-password',
+            'new_password_confirmation' => 'new-password',
+        ])
+        ->assertSessionHas('success');
+
+    expect(Hash::check('new-password', $user->fresh()->password))->toBeTrue();
+});
+
+it('refuses a password change with the wrong current password', function () {
+    $user = User::factory()->create(['password' => 'old-password']);
+
+    $this->actingAs($user)
+        ->post('/dashboard/password', [
+            'current_password' => 'wrong',
+            'new_password' => 'new-password',
+            'new_password_confirmation' => 'new-password',
+        ])
+        ->assertSessionHasErrors('current_password');
+
+    expect(Hash::check('old-password', $user->fresh()->password))->toBeTrue();
+});
+
+it('refuses a password change when the confirmation differs', function () {
+    $user = User::factory()->create(['password' => 'old-password']);
+
+    $this->actingAs($user)
+        ->post('/dashboard/password', [
+            'current_password' => 'old-password',
+            'new_password' => 'new-password',
+            'new_password_confirmation' => 'other-password',
+        ])
+        ->assertSessionHasErrors('new_password');
 });

@@ -36,7 +36,7 @@ class RegisterController
                 $request->input('email', '')
             );
         } catch (ValidationException $e) {
-            return back()->with('error', collect($e->errors())->flatten()->implode(' '))
+            return back()->withErrors($e->errors())
                 ->withInput($request->only('username', 'email'));
         }
 

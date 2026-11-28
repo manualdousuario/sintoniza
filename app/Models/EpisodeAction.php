@@ -12,7 +12,6 @@ class EpisodeAction extends Model
     protected $fillable = [
         'user_id',
         'subscription_id',
-        'episode_id',
         'device_id',
         'url',
         'changed_at',
@@ -38,12 +37,6 @@ class EpisodeAction extends Model
     public function subscription(): BelongsTo
     {
         return $this->belongsTo(Subscription::class);
-    }
-
-    /** @return BelongsTo<Episode, $this> */
-    public function episode(): BelongsTo
-    {
-        return $this->belongsTo(Episode::class);
     }
 
     /** @return BelongsTo<Device, $this> */

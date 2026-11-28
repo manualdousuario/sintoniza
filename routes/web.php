@@ -1,18 +1,12 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LanguageController;
-use App\Livewire\Dashboard\AddSubscription;
-use App\Livewire\Dashboard\Devices;
-use App\Livewire\Dashboard\Index;
-use App\Livewire\Dashboard\LatestUpdates;
-use App\Livewire\Dashboard\Profile;
-use App\Livewire\Subscription\Episode;
-use App\Livewire\Subscription\Show;
 use Illuminate\Support\Facades\Route;
 
 // ------------------------------------------------------------- Public
@@ -34,12 +28,15 @@ Route::post('/language', LanguageController::class)->name('language');
 
 // -------------------------------------------------------- Authenticated
 Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', Index::class)->name('dashboard');
-    Route::get('/dashboard/add', AddSubscription::class)->name('dashboard.add');
-    Route::get('/dashboard/profile', Profile::class)->name('dashboard.profile');
-    Route::get('/dashboard/profile/latest-updates', LatestUpdates::class)->name('dashboard.latest-updates');
-    Route::get('/dashboard/profile/devices', Devices::class)->name('dashboard.devices');
+    Route::get('/dashboard', [AccountController::class, 'show'])->name('dashboard');
+    Route::delete('/dashboard/subscriptions/{id}', [AccountController::class, 'unsubscribe'])
+        ->whereNumber('id')
+        ->name('account.unsubscribe');
+    Route::post('/dashboard/preferences', [AccountController::class, 'updatePreferences'])->name('account.preferences');
+    Route::post('/dashboard/password', [AccountController::class, 'updatePassword'])->name('account.password');
 
-    Route::get('/subscription/{id}', Show::class)->name('subscription.show');
-    Route::get('/subscription/{id}/episode/{episodeId}', Episode::class)->name('subscription.episode');
+    // v3 pages, folded into the account page.
+    Route::permanentRedirect('/dashboard/profile', '/dashboard');
+    Route::permanentRedirect('/dashboard/devices', '/dashboard');
+    Route::permanentRedirect('/dashboard/profile/devices', '/dashboard');
 });

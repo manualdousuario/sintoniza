@@ -3,19 +3,16 @@
 namespace Database\Seeders;
 
 use App\Models\Device;
-use App\Models\Episode;
 use App\Models\EpisodeAction;
-use App\Models\Feed;
 use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Carbon;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $admin = User::factory()->admin()->create([
+        User::factory()->admin()->create([
             'name' => 'admin',
             'email' => 'admin@sintoniza.test',
             'password' => 'password',
@@ -27,27 +24,15 @@ class DatabaseSeeder extends Seeder
             'password' => 'password',
         ]);
 
-        $feeds = Feed::factory()->count(6)->create([
-            'last_fetched_at' => now()->subHours(2),
-            'next_fetch_at' => now()->addDay(),
-        ])->each(function (Feed $feed) {
-            Episode::factory()->count(5)->create([
-                'feed_id' => $feed->id,
-                'published_at' => Carbon::now()->subDays(rand(1, 30)),
-            ]);
-        });
-
-        $feeds->each(function (Feed $feed) use ($user) {
+        foreach (range(1, 6) as $n) {
             Subscription::create([
                 'user_id' => $user->id,
-                'feed_id' => $feed->id,
-                'url' => $feed->feed_url,
+                'url' => "https://example.com/podcast-{$n}.xml",
             ]);
-        });
+        }
 
         Subscription::create([
             'user_id' => $user->id,
-            'feed_id' => $feeds->first()->id,
             'url' => 'https://example.com/removed-feed.xml',
             'deleted_at' => now()->subDay(),
         ]);
@@ -60,17 +45,17 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $sub = Subscription::where('user_id', $user->id)->first();
-        Episode::where('feed_id', $sub->feed_id)->limit(3)->get()->each(function (Episode $ep) use ($user, $sub, $device) {
+
+        foreach (range(1, 3) as $n) {
             EpisodeAction::create([
                 'user_id' => $user->id,
                 'subscription_id' => $sub->id,
-                'episode_id' => $ep->id,
                 'device_id' => $device->id,
-                'url' => $ep->media_url_normalized,
+                'url' => "https://example.com/podcast-1/episode-{$n}.mp3",
                 'action' => 'play',
                 'changed_at' => now()->subHours(2),
-                'data' => ['position' => 120, 'total' => 3600, 'started' => 0, 'guid' => 'demo-guid'],
+                'data' => ['position' => 120, 'total' => 3600, 'started' => 0, 'guid' => "demo-guid-{$n}"],
             ]);
-        });
+        }
     }
 }

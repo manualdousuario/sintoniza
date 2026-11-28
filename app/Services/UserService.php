@@ -139,9 +139,8 @@ class UserService
     }
 
     /**
-     * Deletes a user and every record that belongs to them. Shared data
-     * (feeds, episodes) is kept. Deletions are explicit because legacy
-     * databases may lack the cascading foreign keys.
+     * Deletes a user and every record that belongs to them. Deletions are
+     * explicit because legacy databases may lack the cascading foreign keys.
      */
     public function purge(User $user): void
     {

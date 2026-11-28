@@ -4,18 +4,18 @@
 [![PHP](https://img.shields.io/badge/PHP-8.4+-purple?logo=php)](https://php.net)
 [![Laravel](https://img.shields.io/badge/Laravel-13-red?logo=laravel)](https://laravel.com)
 
-Sintoniza is a powerful podcast synchronization server based on the gPodder protocol. It helps you keep your podcast subscriptions, episodes, and listening history in sync across all your devices!
+Sintoniza is a small podcast synchronization server for apps that speak the gPodder or Nextcloud gpoddersync API. It keeps subscriptions and listening progress in sync across your devices, and does nothing else.
 
 A public instance is available at [PC do Manual](https://sintoniza.pcdomanual.com/)
 
 ## ✨ Features
 
-- Full compatibility with GPodder and NextCloud gPodder
-- Smart subscription and episode history tracking
-- Seamless device-to-device synchronization
+- gPodder API v1/v2 and Nextcloud gpoddersync compatibility (subscriptions, devices, episode actions)
+- One account page with the connection details, devices, subscriptions (with OPML export) and settings
+- Daily pruning that keeps only the latest action per episode and device
+- Optional deletion of inactive accounts
 - Administrative interface for user management (Filament, at `/admin`)
-- Global statistics dashboard
-- Built with PHP 8.4, Laravel 13, Livewire, Tailwind CSS and MySQL/MariaDB
+- No feed crawler, no queue worker, no front-end JavaScript: PHP 8.4, Laravel 13 and MySQL/MariaDB
 
 ## 📱 Tested Applications
 
@@ -41,7 +41,7 @@ curl -o ./compose.yml https://raw.githubusercontent.com/manualdousuario/sintoniz
 
 2. Configure the settings:
 ```bash
-nano docker-compose.yml
+nano compose.yml
 ```
 
 3. Start the services:
@@ -79,14 +79,14 @@ docker compose up -d
 | MAIL_PORT | SMTP server port | 587 |
 | MAIL_SCHEME | SMTP security type (tls/ssl) | tls |
 
-#### PodcastIndex (optional but recommended)
+## ⬆️ Upgrading to v4
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| PODCAST_INDEX_API_KEY | API key from [podcastindex.org](https://api.podcastindex.org/) | — |
-| PODCAST_INDEX_API_SECRET | API secret from PodcastIndex | — |
-| PODCAST_INDEX_USE_AS_PRIMARY | Use PodcastIndex as the primary metadata source | true |
-| PODCAST_INDEX_FALLBACK_TO_RSS | Fall back to parsing the raw RSS feed when PodcastIndex fails | true |
+- The `2026_11_28_000000_drop_feed_tables` migration runs on start and **deletes** the `feeds`, `feed_aliases` and `episodes` tables, plus the `subscriptions.feed_id` and `episode_actions.episode_id` columns. Subscriptions, devices and episode actions are kept. Back up the database first if you want to keep the fetched feed data.
+- `sintoniza:prune-episode-actions` runs every day at 04:00 and keeps only the latest action per episode and device. Run it once by hand with `--dry-run` to see how much it will remove.
+- The queue worker is gone; only the scheduler runs in the container.
+- The web pages for podcasts, episodes, latest updates and adding podcasts were removed. `/dashboard` is now the single account page; old profile and devices URLs redirect there.
+- `PODCAST_INDEX_*` and `IMMEDIATE_FEED_FETCH` are no longer read and can be removed from your compose file.
+- No API URL or response format changed: apps keep working without reconfiguration.
 
 ---
 

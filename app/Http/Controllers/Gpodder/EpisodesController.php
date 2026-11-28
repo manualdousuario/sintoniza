@@ -89,14 +89,10 @@ class EpisodesController
 
         DB::transaction(function () use ($valid, $userId, $timestamp) {
             $subByUrl = $this->loadOrCreateSubscriptions($valid, $userId, $timestamp);
-            $episodes = $this->loadEpisodeIds($valid, $subByUrl);
             $deviceIdMap = $this->loadDeviceIds($valid, $userId);
 
             foreach ($valid as $action) {
-                $sub = $subByUrl[$action->podcast];
-                $episodeId = $sub['feed'] !== null
-                    ? ($episodes[$sub['feed'].':'.$action->episode] ?? null)
-                    : null;
+                $subscriptionId = $subByUrl[$action->podcast];
 
                 $deviceId = null;
                 if (! empty($action->device)) {
@@ -118,9 +114,8 @@ class EpisodesController
 
                 DB::table('episode_actions')->insertOrIgnore([
                     'user_id' => $userId,
-                    'subscription_id' => $sub['id'],
+                    'subscription_id' => $subscriptionId,
                     'url' => $action->episode,
-                    'episode_id' => $episodeId,
                     'device_id' => $deviceId,
                     'changed_at' => $changedAt->toDateTimeString(),
                     'action' => strtolower($action->action),
@@ -135,82 +130,31 @@ class EpisodesController
     }
 
     /**
-     * Maps podcast URL => ['id' => subscription id, 'feed' => feed id|null].
-     * Clients may report actions for podcasts they never explicitly subscribed
-     * to, so missing subscriptions are created on the fly.
+     * Maps podcast URL => subscription id. Clients may report actions for
+     * podcasts they never explicitly subscribed to, so missing subscriptions
+     * are created on the fly.
+     *
+     * @return array<string, int>
      */
     private function loadOrCreateSubscriptions(array $actions, int $userId, int $timestamp): array
     {
         $urls = array_values(array_unique(array_map(fn ($a) => $a->podcast, $actions)));
 
-        $rows = DB::table('subscriptions')
-            ->where('user_id', $userId)
-            ->whereIn('url', $urls)
-            ->get(['id', 'url', 'feed_id']);
-
-        $map = [];
-        foreach ($rows as $row) {
-            $map[$row->url] = ['id' => (int) $row->id, 'feed' => $row->feed_id !== null ? (int) $row->feed_id : null];
-        }
-
         $now = Carbon::createFromTimestamp($timestamp, 'UTC')->toDateTimeString();
 
-        foreach ($urls as $url) {
-            if (isset($map[$url])) {
-                continue;
-            }
+        DB::table('subscriptions')->insertOrIgnore(array_map(fn (string $url) => [
+            'user_id' => $userId,
+            'url' => $url,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ], $urls));
 
-            DB::table('subscriptions')->insertOrIgnore([
-                'user_id' => $userId,
-                'url' => $url,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]);
-
-            $existing = DB::table('subscriptions')
-                ->where('user_id', $userId)
-                ->where('url', $url)
-                ->first(['id', 'feed_id']);
-
-            if ($existing) {
-                $map[$url] = [
-                    'id' => (int) $existing->id,
-                    'feed' => $existing->feed_id !== null ? (int) $existing->feed_id : null,
-                ];
-            }
-        }
-
-        return $map;
-    }
-
-    /**
-     * Map "{feedId}:{mediaUrl}" => episode id for all referenced episodes.
-     */
-    private function loadEpisodeIds(array $actions, array $subByUrl): array
-    {
-        $byFeed = [];
-        foreach ($actions as $action) {
-            $feedId = $subByUrl[$action->podcast]['feed'] ?? null;
-            if ($feedId === null) {
-                continue;
-            }
-            $byFeed[$feedId][$action->episode] = true;
-        }
-
-        $map = [];
-        foreach ($byFeed as $feedId => $urlSet) {
-            $rows = DB::table('episodes')
-                ->where('feed_id', $feedId)
-                ->whereIn('media_url_normalized', array_keys($urlSet))
-                ->orderByDesc('id')
-                ->get(['id', 'media_url_normalized']);
-
-            foreach ($rows as $row) {
-                $map[$feedId.':'.$row->media_url_normalized] = (int) $row->id;
-            }
-        }
-
-        return $map;
+        return DB::table('subscriptions')
+            ->where('user_id', $userId)
+            ->whereIn('url', $urls)
+            ->pluck('id', 'url')
+            ->map(fn ($id) => (int) $id)
+            ->all();
     }
 
     /**

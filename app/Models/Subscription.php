@@ -15,7 +15,6 @@ class Subscription extends Model
 
     protected $fillable = [
         'user_id',
-        'feed_id',
         'url',
         'data',
     ];
@@ -31,12 +30,6 @@ class Subscription extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    /** @return BelongsTo<Feed, $this> */
-    public function feed(): BelongsTo
-    {
-        return $this->belongsTo(Feed::class);
     }
 
     /** @return HasMany<EpisodeAction, $this> */
